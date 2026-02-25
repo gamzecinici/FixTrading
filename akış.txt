@@ -1,0 +1,357 @@
+FixTrading.sln
+
+│
+
+├── FixTrading.UI
+
+│
+
+├── FixTrading.API
+
+│
+
+├── FixTrading.Application
+
+│
+
+├── FixTrading.Domain
+
+│
+
+├── FixTrading.Persistence
+
+│
+
+├── FixTrading.Infrastructure
+
+│
+
+└── FixTrading.Common
+
+ 
+
+ 
+
+FixTrading.Domain (* İş kavramları* İş kuralları)
+
+│
+
+├── Models
+
+│   ├── Order
+
+│   │   └── Order.cs
+
+│   ├── Trade
+
+│   │   └── Trade.cs
+
+│   └── Instrument
+
+│       └── Instrument.cs
+
+│
+
+├── Dtos
+
+│   ├── Fix
+
+│   │   ├── FixOrderDto.cs
+
+│   │   ├── FixExecutionDto.cs
+
+│   │   └── FixMarketDataDto.cs
+
+│   │
+
+│   ├── Admin
+
+│   │   └── AdminDto.cs
+
+│
+
+├── Enums
+
+│   ├── FixMsgType.cs
+
+│   ├── OrderSide.cs
+
+│   └── OrderStatus.cs
+
+│
+
+├── Interfaces
+
+│   ├── DomainServices
+
+│   │   ├── IOrderDomainService.cs
+
+│   │   └── IMarketDataDomainService.cs
+
+│   │
+
+│   └── ReadModels
+
+│       └── IOrderReadModel.cs
+
+│
+
+└── Rules
+
+    └── OrderBusinessRules.cs
+
+              
+
+              
+
+FixTrading.Application (* FIX mesajını **anlamlandırmak* Use-case çalıştırmak* DB / Redis / FIX **interface ile çağırmak)
+
+│
+
+├── UseCases
+
+│   ├── Order
+
+│   │   ├── NewOrder
+
+│   │   │   └── NewOrderUseCase.cs
+
+│   │   ├── CancelOrder
+
+│   │   │   └── CancelOrderUseCase.cs
+
+│   │   └── ReplaceOrder
+
+│   │       └── ReplaceOrderUseCase.cs
+
+│   │
+
+│   └── MarketData
+
+│       └── Snapshot
+
+│           └── MarketDataSnapshotUseCase.cs
+
+│
+
+├── Fix
+
+│   ├── Handlers
+
+│   │   └── FixMessageHandler.cs
+
+│   │
+
+│   ├── Parsers
+
+│   │   └── IFixMessageParser.cs
+
+│   │
+
+│   └── Mappers
+
+│       └── FixToDomainMapper.cs
+
+│
+
+├── Interfaces
+
+│   ├── Persistence
+
+│   │   └── IOrderRepository.cs
+
+│   │
+
+│   ├── Cache
+
+│   │   └── ICacheService.cs
+
+│   │
+
+│   └── Fix
+
+│       ├── IFixSession.cs
+
+│       └── IFixSender.cs
+
+│
+
+└── Dtos
+
+    └── Api
+
+        └── OrderResponseDto.cs
+
+                             
+
+                             
+
+FixTrading.Persistence (* EF Core* Table mapping* Domain ↔ DB dönüşümü)
+
+│
+
+├── Entities
+
+│   ├── OrderEntity.cs
+
+│   ├── TradeEntity.cs
+
+│   └── InstrumentEntity.cs
+
+│
+
+├── Configurations
+
+│   └── OrderEntityConfiguration.cs
+
+│
+
+├── Repositories
+
+│   └── OrderRepository.cs
+
+│
+
+├── Mappers
+
+│   └── OrderEntityMapper.cs
+
+│
+
+└── AppDbContext.cs
+
+ 
+
+ 
+
+ 
+
+FixTrading.Infrastructure (* FIX socket & session* Redis* Kafka / external)
+
+│
+
+├── Fix
+
+│   ├── Sessions
+
+│   │   └── QuickFixSession.cs
+
+│   │
+
+│   ├── Listeners
+
+│   │   └── FixMessageListener.cs
+
+│   │
+
+│   └── Senders
+
+│       └── FixMessageSender.cs
+
+│
+
+├── Cache
+
+│   └── RedisCacheService.cs
+
+│
+
+├── Messaging
+
+│   └── KafkaProducer.cs
+
+│
+
+└── DependencyInjection.cs
+
+ 
+
+ 
+
+FixTrading.API(* HTTP* Auth* FIX background worker)
+
+│
+
+├── Controllers
+
+│   ├── OrderController.cs
+
+│   └── MarketDataController.cs
+
+│
+
+├── BackgroundServices
+
+│   └── FixListenerWorker.cs
+
+│
+
+└── Program.cs
+
+ 
+
+FixTrading.UI (*Sadece ekran)
+
+│
+
+├── Pages / Views
+
+├── ViewModels
+
+├── ApiClients
+
+│   └── FixTradingApiClient.cs
+
+└── wwwroot
+
+ 
+
+ 
+
+FixTrading.Common (*Cross-cutting)
+
+│
+
+├── Logging
+
+├── Exceptions
+
+├── Constants
+
+└── Extensions
+
+ 
+
+ 
+
+ 
+
+FIX Counterparty
+
+        ↓
+
+Infrastructure (FIX Session)
+
+        ↓
+
+FixMessageListener
+
+        ↓
+
+Application.FixMessageHandler
+
+        ↓
+
+UseCase
+
+        ↓
+
+Domain Rules
+
+        ↓
+
+Persistence (DB) / Redis
+
+        ↓
+
+API → UI

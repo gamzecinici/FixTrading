@@ -1,0 +1,11 @@
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\bin\Debug\net10.0\FixTrading.Domain.deps.json
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\bin\Debug\net10.0\FixTrading.Domain.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\bin\Debug\net10.0\FixTrading.Domain.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\FixTrading.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\FixTrading.Domain.AssemblyInfoInputs.cache
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\FixTrading.Domain.AssemblyInfo.cs
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\FixTrading.Domain.csproj.CoreCompileInputs.cache
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\FixTrading.Domain.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\refint\FixTrading.Domain.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\FixTrading.Domain.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Domain\obj\Debug\net10.0\ref\FixTrading.Domain.dll

@@ -1,0 +1,144 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "FixTrading.Infrastructure.cs/1.0.0": {
+        "dependencies": {
+          "FixTrading.Application": "1.0.0",
+          "QuickFIXn.Core": "1.14.0",
+          "QuickFIXn.FIX4.4": "1.13.0"
+        },
+        "runtime": {
+          "FixTrading.Infrastructure.cs.dll": {}
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.3": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603"
+          }
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603"
+          }
+        }
+      },
+      "QuickFIXn.Core/1.14.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "lib/net8.0/QuickFix.dll": {
+            "assemblyVersion": "1.14.0.0",
+            "fileVersion": "1.14.0.0"
+          }
+        }
+      },
+      "QuickFIXn.FIX4.4/1.13.0": {
+        "dependencies": {
+          "QuickFIXn.Core": "1.14.0"
+        },
+        "runtime": {
+          "lib/net8.0/QuickFix.FIX44.dll": {
+            "assemblyVersion": "1.13.0.0",
+            "fileVersion": "1.13.0.0"
+          }
+        }
+      },
+      "FixTrading.Application/1.0.0": {
+        "dependencies": {
+          "FixTrading.Common": "1.0.0",
+          "FixTrading.Domain": "1.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "FixTrading.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "FixTrading.Common/1.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "FixTrading.Common.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "FixTrading.Domain/1.0.0": {
+        "runtime": {
+          "FixTrading.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "FixTrading.Infrastructure.cs/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bwGMrRcAMWx2s/RDgja97p27rxSz2pEQW0+rX5cWAUWVETVJ/eyxGfjAl8vuG5a+lckWmPIE+vcuaZNVB5YDdw==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Logging.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lxl0WLk7ROgBFAsjcOYjQ8/DVK+VMszxGBzUhgtQmAsTNldLL5pk9NG/cWTsXHq0lUhUEAtZkEE7jOGOA8bGKQ==",
+      "path": "microsoft.extensions.logging.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.logging.abstractions.10.0.3.nupkg.sha512"
+    },
+    "QuickFIXn.Core/1.14.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-S58odWkiY4HYKSEpkZ/WXBsUrmr9EOuvzVq8HYl7cVKvU/4umJ0LZQ136/oxhDNOZGLMtdntxSzZN2ZcyoWvcA==",
+      "path": "quickfixn.core/1.14.0",
+      "hashPath": "quickfixn.core.1.14.0.nupkg.sha512"
+    },
+    "QuickFIXn.FIX4.4/1.13.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KDu/uApDluUyt/VXINghbW9+qO/LVrQpd7/QLTPh8rm67iCFi+u4Hoq6qxIjt5VLT68vpOnzY9hLTwF6P/Q+Gw==",
+      "path": "quickfixn.fix4.4/1.13.0",
+      "hashPath": "quickfixn.fix4.4.1.13.0.nupkg.sha512"
+    },
+    "FixTrading.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FixTrading.Common/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FixTrading.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

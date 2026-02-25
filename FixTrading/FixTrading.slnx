@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="FixTrading.API.cs/FixTrading.API.cs.csproj" Id="92d41275-c5d3-4549-9ebc-986281c05a53" />
+  <Project Path="FixTrading.Application/FixTrading.Application.csproj" Id="920d4199-5118-471d-b3d2-f9ec907b38db" />
+  <Project Path="FixTrading.Common/FixTrading.Common.csproj" Id="8b3cf28d-4155-490b-8a9a-74276bc3c9bc" />
+  <Project Path="FixTrading.Domain/FixTrading.Domain.csproj" Id="4e7f5a40-9641-4ac2-b79a-93228ea6e59e" />
+  <Project Path="FixTrading.Infrastructure.cs/FixTrading.Infrastructure.cs.csproj" Id="23f001e2-6800-42be-9af9-713a6a171e2b" />
+  <Project Path="FixTrading.Persistence/FixTrading.Persistence.csproj" Id="b8e1b289-0e72-4cc0-a84c-d90233d8b424" />
+</Solution>

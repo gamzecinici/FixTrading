@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QuickFIXn.Core" Version="1.14.0" />
+    <PackageReference Include="QuickFIXn.FIX4.4" Version="1.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Fix\Listeners\" />
+    <Folder Include="Fix\Senders\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="fix.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FixTrading.Application\FixTrading.Application.csproj" />
+  </ItemGroup>
+
+</Project>

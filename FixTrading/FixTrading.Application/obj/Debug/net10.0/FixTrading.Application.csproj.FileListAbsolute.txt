@@ -1,0 +1,17 @@
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Application.deps.json
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Application.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Application.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Domain.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Domain.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.csproj.AssemblyReference.cache
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.AssemblyInfoInputs.cache
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.AssemblyInfo.cs
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.csproj.CoreCompileInputs.cache
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTradi.68BDDAE5.Up2Date
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\refint\FixTrading.Application.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\FixTrading.Application.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\obj\Debug\net10.0\ref\FixTrading.Application.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Common.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Application\bin\Debug\net10.0\FixTrading.Common.pdb
