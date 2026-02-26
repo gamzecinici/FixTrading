@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "bIUtsZYw9AQ=",
+  "dgSpecHash": "eNbo6ajUiJo=",
   "success": true,
   "projectFilePath": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Domain\\FixTrading.Domain.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.3\\microsoft.extensions.dependencyinjection.abstractions.10.0.3.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.3\\microsoft.extensions.logging.abstractions.10.0.3.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -38,17 +38,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DtoFixSymbol"
+                "$ref": "#/components/schemas/DtoInstrument"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/DtoFixSymbol"
+                "$ref": "#/components/schemas/DtoInstrument"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/DtoFixSymbol"
+                "$ref": "#/components/schemas/DtoInstrument"
               }
             }
           }
@@ -71,8 +71,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -80,17 +80,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DtoFixSymbol"
+                "$ref": "#/components/schemas/DtoInstrument"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/DtoFixSymbol"
+                "$ref": "#/components/schemas/DtoInstrument"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/DtoFixSymbol"
+                "$ref": "#/components/schemas/DtoInstrument"
               }
             }
           }
@@ -113,8 +113,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -128,7 +128,7 @@
   },
   "components": {
     "schemas": {
-      "DtoFixSymbol": {
+      "DtoInstrument": {
         "type": "object",
         "properties": {
           "recordDate": {
@@ -136,6 +136,7 @@
             "format": "date-time"
           },
           "recordUser": {
+            "maxLength": 50,
             "type": "string",
             "nullable": true
           },
@@ -144,28 +145,22 @@
             "format": "date-time"
           },
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "uuid"
           },
-          "dataType": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "dataName": {
+          "symbol": {
+            "maxLength": 20,
             "type": "string",
             "nullable": true
           },
-          "startDate": {
+          "description": {
+            "maxLength": 100,
             "type": "string",
-            "format": "date-time"
+            "nullable": true
           },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "type": "integer",
-            "format": "int32"
+          "tickSize": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false

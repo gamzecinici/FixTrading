@@ -17,3 +17,4 @@ C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Persistence\bin\De
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Persistence\bin\Debug\net10.0\FixTrading.Domain.pdb
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Persistence\bin\Debug\net10.0\FixTrading.Common.dll
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Persistence\bin\Debug\net10.0\FixTrading.Common.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Persistence\obj\Debug\net10.0\FixTrading.Persistence.sourcelink.json

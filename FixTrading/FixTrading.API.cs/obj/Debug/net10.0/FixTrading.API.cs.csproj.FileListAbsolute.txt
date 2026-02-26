@@ -90,4 +90,5 @@ C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\n
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\FixTrading.Domain.dll
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\FixTrading.Application.pdb
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\FixTrading.Domain.pdb
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\FixTrading.API.cs.sourcelink.json
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

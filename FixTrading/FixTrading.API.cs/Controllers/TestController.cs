@@ -1,71 +1,61 @@
 using Microsoft.AspNetCore.Mvc;
-using FixTrading.Application.Services;
-using FixTrading.Common.Dtos.FixSymbol;
+using FixTrading.Application.Interfaces.Instrument;
+using FixTrading.Common.Dtos.Instrument;
 
 namespace FixTrading.API.Controllers;
 
 /// <summary>
 /// Test ve geliştirme amaçlı HTTP API endpoint'leri.
-/// Sadece IFixSymbolService'e yönlendirme yapar; iş mantığı içermez.
+/// IInstrumentService interface altında çalışır; iş mantığı içermez.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TestController : ControllerBase
 {
-    private readonly IFixSymbolService _fixSymbolService;
+    private readonly IInstrumentService _instrumentService;
 
-    public TestController(IFixSymbolService fixSymbolService)
+    public TestController(IInstrumentService instrumentService)
     {
-        _fixSymbolService = fixSymbolService;
+        _instrumentService = instrumentService;
     }
 
-    /// <summary>
-    /// Veritabanı bağlantısını test eder; kayıt sayısını döner.
-    /// </summary>
+    /// <summary>Veritabanı bağlantısını test eder; kayıt sayısını döner.</summary>
     [HttpGet("db-test")]
     public async Task<IActionResult> TestDatabaseConnection()
     {
-        var symbols = await _fixSymbolService.RetrieveAllFixSymbolsAsync();
-        return Ok($"Sistem çalışıyor. Kayıt sayısı: {symbols.Count}");
+        var instruments = await _instrumentService.RetrieveAllInstrumentsAsync();
+        return Ok($"Sistem çalışıyor. Instrument sayısı: {instruments.Count}");
     }
 
-    /// <summary>
-    /// Tüm FixSymbol kayıtlarını listeler.
-    /// </summary>
+    /// <summary>Tüm Instrument kayıtlarını listeler.</summary>
     [HttpGet("list")]
-    public async Task<IActionResult> GetAllOrders()
+    public async Task<IActionResult> GetAllInstruments()
     {
-        var symbols = await _fixSymbolService.RetrieveAllFixSymbolsAsync();
-        return Ok(symbols);
+        var instruments = await _instrumentService.RetrieveAllInstrumentsAsync();
+        return Ok(instruments);
     }
 
-    /// <summary>
-    /// Yeni FixSymbol ekler.
-    /// </summary>
+    /// <summary>Yeni Instrument ekler.</summary>
     [HttpPost("add")]
-    public async Task<IActionResult> AddOrder([FromBody] DtoFixSymbol fixSymbol)
+    public async Task<IActionResult> AddInstrument([FromBody] DtoInstrument instrument)
     {
-        await _fixSymbolService.CreateNewFixSymbolAsync(fixSymbol);
+        await _instrumentService.CreateNewInstrumentAsync(instrument);
         return Ok("Kayıt başarıyla eklendi.");
     }
 
-    /// <summary>
-    /// Mevcut FixSymbol kaydını günceller.
-    /// </summary>
-    [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateOrder(long id, [FromBody] DtoFixSymbol fixSymbol)
+    /// <summary>Mevcut Instrument kaydını günceller.</summary>
+    [HttpPut("update/{id:guid}")]
+    public async Task<IActionResult> UpdateInstrument(Guid id, [FromBody] DtoInstrument instrument)
     {
-        await _fixSymbolService.UpdateExistingFixSymbolAsync(id, fixSymbol);
+        await _instrumentService.UpdateExistingInstrumentAsync(id, instrument);
         return Ok("Kayıt güncellendi.");
     }
 
-    /// <summary>
-    /// FixSymbol kaydını siler.
-    /// </summary>
-    [HttpDelete("delete/{id}")]
-    public async Task<IActionResult> DeleteOrder(long id)
+    /// <summary>Instrument kaydını siler.</summary>
+    [HttpDelete("delete/{id:guid}")]
+    public async Task<IActionResult> DeleteInstrument(Guid id)
     {
-        await _fixSymbolService.DeleteFixSymbolByIdAsync(id);
+        await _instrumentService.DeleteInstrumentByIdAsync(id);
         return Ok("Kayıt silindi.");
     }
 }

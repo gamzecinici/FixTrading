@@ -10,3 +10,4 @@ C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Common\obj\Debug\n
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Common\obj\Debug\net10.0\refint\FixTrading.Common.dll
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Common\obj\Debug\net10.0\FixTrading.Common.pdb
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Common\obj\Debug\net10.0\ref\FixTrading.Common.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Common\obj\Debug\net10.0\FixTrading.Common.sourcelink.json

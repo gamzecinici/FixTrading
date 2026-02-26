@@ -47,6 +47,9 @@
         }
       },
       "FixTrading.Domain/1.0.0": {
+        "dependencies": {
+          "FixTrading.Common": "1.0.0"
+        },
         "runtime": {
           "FixTrading.Domain.dll": {
             "assemblyVersion": "1.0.0.0",

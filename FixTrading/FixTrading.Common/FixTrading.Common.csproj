@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,9 +10,5 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Dtos\Fix\" />
-    <Folder Include="Dtos\MarketData\" />
-  </ItemGroup>
 
 </Project>

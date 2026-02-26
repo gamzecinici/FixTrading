@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using FixTrading.Persistence.Entities;
-using FixTrading.Common.Dtos.FixSymbol;
+using FixTrading.Common.Dtos.Instrument;
+using FixTrading.Common.Dtos.Trade;
 
 namespace FixTrading.Persistence;
 
 /// <summary>
 /// EF Core veritabanı bağlamı. Sadece Persistence katmanında kullanılır.
-/// Tüm entity'ler ve tablo eşlemeleri burada tanımlıdır.
+/// Entity kullanılmaz; tüm tablolar DTO yapıları ile eşlenir.
 /// </summary>
 public class AppDbContext : DbContext
 {
@@ -15,20 +15,15 @@ public class AppDbContext : DbContext
     {
     }
 
-    // Enstrüman tablosu
-    public DbSet<InstrumentEntity> Instruments { get; set; } = null!;
+    /// <summary>Enstrüman tablosu. FIX market data akışı bu tablo üzerinden yönetilir.</summary>
+    public DbSet<DtoInstrument> Instruments { get; set; } = null!;
 
-    // İşlem (trade) tablosu
-    public DbSet<TradeEntity> Trades { get; set; } = null!;
-
-    // FixSymbol verisi tablosu (DtoFixSymbol doğrudan entity olarak kullanılır)
-    public DbSet<DtoFixSymbol> FixSymbols { get; set; } = null!;
+    /// <summary>İşlem (trade) tablosu.</summary>
+    public DbSet<DtoTrade> Trades { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Assembly içindeki tüm IEntityTypeConfiguration sınıflarını uygula
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }

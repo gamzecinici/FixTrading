@@ -1,15 +1,15 @@
 [
   {
     "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "AddOrder",
+    "Method": "AddInstrument",
     "RelativePath": "api/Test/add",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "fixSymbol",
-        "Type": "FixTrading.Common.Dtos.FixSymbol.DtoFixSymbol",
+        "Name": "instrument",
+        "Type": "FixTrading.Common.Dtos.Instrument.DtoInstrument",
         "IsRequired": true
       }
     ],
@@ -27,7 +27,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "DeleteOrder",
+    "Method": "DeleteInstrument",
     "RelativePath": "api/Test/delete/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
@@ -35,7 +35,7 @@
     "Parameters": [
       {
         "Name": "id",
-        "Type": "System.Int64",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
@@ -43,7 +43,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "GetAllOrders",
+    "Method": "GetAllInstruments",
     "RelativePath": "api/Test/list",
     "HttpMethod": "GET",
     "IsController": true,
@@ -53,7 +53,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "UpdateOrder",
+    "Method": "UpdateInstrument",
     "RelativePath": "api/Test/update/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -61,12 +61,12 @@
     "Parameters": [
       {
         "Name": "id",
-        "Type": "System.Int64",
+        "Type": "System.Guid",
         "IsRequired": true
       },
       {
-        "Name": "fixSymbol",
-        "Type": "FixTrading.Common.Dtos.FixSymbol.DtoFixSymbol",
+        "Name": "instrument",
+        "Type": "FixTrading.Common.Dtos.Instrument.DtoInstrument",
         "IsRequired": true
       }
     ],

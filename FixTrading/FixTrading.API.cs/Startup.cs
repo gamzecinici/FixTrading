@@ -2,7 +2,6 @@ using FixTrading.API.Controllers;
 using FixTrading.API.BackgroundServices;
 using FixTrading.Application;
 using FixTrading.Application.Interfaces.Fix;
-using FixTrading.Common.Dtos.FixSymbol;
 using FixTrading.Domain.Interfaces;
 using FixTrading.Infrastructure.Fix.Sessions;
 using FixTrading.Persistence;
@@ -38,14 +37,15 @@ public class Startup
         var connectionString = Configuration.GetConnectionString("DefaultConnection")!;
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
-        services.AddScoped<IBaseRepository<DtoFixSymbol>, FixSymbolRepository>();
+        services.AddScoped<IInstrumentRepository, InstrumentRepository>();
+        services.AddScoped<ITradeRepository, TradeRepository>();
 
         // Katman servisleri - Infrastructure (FIX)
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
 
-        // İç kullanım için FixSymbol handler'ı
-        services.AddScoped<FixSymbolHandler>();
+        // İç kullanım için Instrument handler'ı
+        services.AddScoped<InstrumentHandler>();
 
         // Arka plan FIX dinleyici servisi
         services.AddHostedService<FixListenerWorker>();

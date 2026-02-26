@@ -18,3 +18,4 @@ C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Infrastructure.cs\
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Infrastructure.cs\bin\Debug\net10.0\FixTrading.Domain.pdb
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Infrastructure.cs\obj\Debug\net10.0\FixTradi.CB5168A1.Up2Date
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Infrastructure.cs\bin\Debug\net10.0\fix.cfg
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.Infrastructure.cs\obj\Debug\net10.0\FixTrading.Infrastructure.cs.sourcelink.json

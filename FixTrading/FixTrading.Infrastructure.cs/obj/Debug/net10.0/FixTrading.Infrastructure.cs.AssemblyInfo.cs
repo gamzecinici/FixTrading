@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FixTrading.Infrastructure.cs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+163bb84f9929edc27afe49f9a15a10ead808cbad")]
 [assembly: System.Reflection.AssemblyProductAttribute("FixTrading.Infrastructure.cs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FixTrading.Infrastructure.cs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

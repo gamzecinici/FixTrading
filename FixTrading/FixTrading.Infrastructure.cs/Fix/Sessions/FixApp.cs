@@ -11,10 +11,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private SessionID? _session;    // Aktif FIX oturumunu tutar
         private readonly object _lock = new object();
 
-        private readonly Dictionary<string, (decimal? Bid, decimal? Ask, int Line)>
-            _symbols = new();
-
-        private int _nextLine = 2;
+        private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();
 
         public SessionID? CurrentSession => _session;
 
@@ -195,15 +192,14 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 // En son bilinen bid/ask değerlerini sakla
                 if (!_symbols.ContainsKey(symbol))
                 {
-                    _symbols[symbol] = (bid, ask, 0);
+                    _symbols[symbol] = (bid, ask);
                 }
                 else
                 {
                     var existing = _symbols[symbol];
                     _symbols[symbol] = (
                         bid ?? existing.Bid,
-                        ask ?? existing.Ask,
-                        existing.Line
+                        ask ?? existing.Ask
                     );
                 }
 
