@@ -7,7 +7,7 @@ namespace FixTrading.API.BackgroundServices;
 
 /// <summary>
 /// FIX protokolü dinleyicisi; arka planda sürekli çalışır.
-/// IFixSession üzerinden bağlantıyı yönetir.
+/// IFixSession üzerinden bağlantıyı yönetir. Market data doğrudan QuickFIX FromApp üzerinden gelir.
 /// </summary>
 public class FixListenerWorker : BackgroundService
 {
@@ -30,11 +30,16 @@ public class FixListenerWorker : BackgroundService
             Console.WriteLine("FIX başlatıldı.");
 
             // Bağlantı kurulana kadar bekle
+            var waitCount = 0;
             while (!_fixSession.IsConnected && !stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(500, stoppingToken);
+                waitCount++;
+                if (waitCount % 6 == 0) // Her ~3 saniyede bir
+                    Console.WriteLine("[FIX] Sunucuya bağlantı bekleniyor... (fix.cfg: SocketConnectHost/Port kontrol edin)");
             }
 
+            if (stoppingToken.IsCancellationRequested) return;
             Console.WriteLine("FIX bağlantısı hazır.");
 
             // instrument tablosundaki tüm semboller için otomatik subscribe at
@@ -49,6 +54,10 @@ public class FixListenerWorker : BackgroundService
                     .Distinct()
                     .ToListAsync(stoppingToken);
 
+                Console.WriteLine($"[FIX] instruments tablosundan {symbols.Count} sembol okundu.");
+                if (symbols.Count == 0)
+                    Console.WriteLine("[FIX] UYARI: instruments tablosu boş - subscribe gönderilmeyecek, market data gelmez.");
+
                 foreach (var symbol in symbols)
                 {
                     Console.WriteLine($"Instrument tablosundan subscribe: {symbol}");
@@ -56,7 +65,7 @@ public class FixListenerWorker : BackgroundService
                 }
             }
 
-            // Uygulama kapanana kadar çalışmaya devam et
+            // Uygulama kapanana kadar çalışmaya devam et (market data doğrudan FixApp.FromApp üzerinden gelir)
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
         catch (TaskCanceledException)
@@ -72,7 +81,6 @@ public class FixListenerWorker : BackgroundService
 
     public override Task StopAsync(CancellationToken cancellationToken)
     {
-        // FIX oturumunu temiz şekilde kapat
         _fixSession.Stop();
         Console.WriteLine("FIX durduruldu.");
         return base.StopAsync(cancellationToken);

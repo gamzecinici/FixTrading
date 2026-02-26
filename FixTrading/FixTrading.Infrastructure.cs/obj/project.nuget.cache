@@ -1,13 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "l9rR2+KQXyk=",
+  "dgSpecHash": "hOGHenRGLuY=",
   "success": true,
   "projectFilePath": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.3\\microsoft.extensions.dependencyinjection.abstractions.10.0.3.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.3\\microsoft.extensions.logging.abstractions.10.0.3.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\microsoft.extensions.options\\10.0.3\\microsoft.extensions.options.10.0.3.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.3\\microsoft.extensions.primitives.10.0.3.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\mongodb.bson\\3.3.0\\mongodb.bson.3.3.0.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\mongodb.driver\\3.3.0\\mongodb.driver.3.3.0.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\quickfixn.core\\1.14.0\\quickfixn.core.1.14.0.nupkg.sha512",
-    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\quickfixn.fix4.4\\1.13.0\\quickfixn.fix4.4.1.13.0.nupkg.sha512"
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\quickfixn.fix4.4\\1.13.0\\quickfixn.fix4.4.1.13.0.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\sharpcompress\\0.30.1\\sharpcompress.0.30.1.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\snappier\\1.0.0\\snappier.1.0.0.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\zstdsharp.port\\0.7.3\\zstdsharp.port.0.7.3.nupkg.sha512"
   ],
   "logs": []
 }
