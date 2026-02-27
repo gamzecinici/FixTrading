@@ -1,13 +1,10 @@
 namespace FixTrading.Application.Interfaces.MarketData;
 
-/// <summary>
-/// Market data buffer arayüzü. FIX'ten gelen verileri bellekte tutar ve periyodik bulk insert yapar.
-/// Doğrudan DB işlemi yapılmaz; sadece veri ekleme çağrısı yapılır.
-/// </summary>
+// FIX'ten gelen market data'yı doğrudan DB'ye yazmak yerine
+// önce bellekte (RAM) tutmak için kullanılan buffer arayüzü.
 public interface IMarketDataBuffer
 {
-    /// <summary>
-    /// Geçerli (bid ve ask dolu) veriyi buffer'a ekler. Eksik veri eklenmez.
-    /// </summary>
+    // Geçerli (bid ve ask dolu) market data bilgisini buffer'a ekler.
+    // Bu metod DB işlemi yapmaz, sadece memory'e veri ekler.
     void Add(string symbol, decimal bid, decimal ask);
 }

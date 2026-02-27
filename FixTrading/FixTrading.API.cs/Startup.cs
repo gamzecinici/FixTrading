@@ -44,17 +44,25 @@ public class Startup
         services.AddScoped<IInstrumentRepository, InstrumentRepository>();
         services.AddScoped<ITradeRepository, TradeRepository>();
 
-        // Katman servisleri - Infrastructure (FIX + MongoDB)
+        // appsettings.json dosyasındaki "MongoMarketData" ayarlarını okur
+        // ve bu ayarları MongoMarketDataOptions sınıfına aktarır
         services.Configure<FixMarketDataOptions>(
             Configuration.GetSection(FixMarketDataOptions.SectionName));
         services.Configure<MongoMarketDataOptions>(
             Configuration.GetSection(MongoMarketDataOptions.SectionName));
+
+        // MongoClient'ı DI container'a Singleton olarak ekler
         services.AddSingleton<MongoClient>(sp =>
         {
             var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MongoMarketDataOptions>>().Value;
             return new MongoClient(opts.ConnectionString);
         });
-        services.AddSingleton<IMarketDataBuffer, MongoMarketDataBuffer>();
+
+        // IMarketDataBuffer istendiğinde MongoMarketDataBuffer oluşturulur
+        // Bu sınıf FIX'ten gelen verileri memory'de tutar
+        // ve periyodik olarak MongoDB'ye bulk insert yapar
+        services.AddSingleton<IMarketDataBuffer, MongoMarketDataBuffer>();  
+        
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
 

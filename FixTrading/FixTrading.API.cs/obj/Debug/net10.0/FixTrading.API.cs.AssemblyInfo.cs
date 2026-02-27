@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FixTrading.API.cs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1d5aea4c1fc36e102f246aedf7be370026109cb4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c4a16551866f0fcbe510c7c5db40f106196a8d13")]
 [assembly: System.Reflection.AssemblyProductAttribute("FixTrading.API.cs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FixTrading.API.cs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

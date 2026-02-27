@@ -7,21 +7,23 @@ using QuickFix.Fields;
 namespace FixTrading.Infrastructure.Fix.Sessions
 {
     public class FixApp : MessageCracker, IApplication
-    // FIX mesajlarını işleyen ana uygulama sınıfı. Gelen mesajları işler ve konsola yazdırır. 
-    //IApplication → FIX session event’lerini yönetir
-    // MessageCracker → Gelen mesaj tipini ayırır
+    // FIX mesajlarını yakalayan ve işleyen ana sınıf
+    // IApplication → FIX bağlantı olaylarını yönetir (logon, logout vb.)
+    // MessageCracker → Gelen mesaj tipine göre doğru OnMessage metodunu çağırır
     {
         private SessionID? _session;    // Aktif FIX oturumunu tutar
         private readonly object _lock = new object();
 
         private readonly IMarketDataBuffer _marketDataBuffer;
         private readonly FixMarketDataOptions _fixOptions;
-        private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();
+        private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
+
         private bool _firstMarketDataLogged;
         private int _marketDataMsgCount;
 
         public SessionID? CurrentSession => _session;
 
+        // DI bu constructor'ı otomatik çağırır
         public FixApp(IMarketDataBuffer marketDataBuffer, IOptions<FixMarketDataOptions> fixOptions)
         {
             _marketDataBuffer = marketDataBuffer;
@@ -86,7 +88,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
 
         
-        public void Subscribe(string symbol)   // Sembola göre fiyat akışını başlatır
+        public void Subscribe(string symbol)   // Server’a market data isteği gönderir
         {
             while (_session == null)    // Bağlantı kurulana kadar bekle
                 Thread.Sleep(100);
@@ -96,6 +98,8 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             if (_fixOptions.UseSlashSymbolFormat && fixSymbol.Length == 6)
                 fixSymbol = $"{fixSymbol[..3]}/{fixSymbol[3..]}"; // EUR/USD alternatifi
 
+
+            // Market data request oluşturulur
             var request = new QuickFix.FIX44.MarketDataRequest(
                 new MDReqID(Guid.NewGuid().ToString()),
                 new SubscriptionRequestType(

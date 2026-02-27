@@ -7,17 +7,21 @@ using MongoDB.Driver;
 namespace FixTrading.Infrastructure.MongoDb;
 
 /// <summary>
-/// Market data buffer. Verileri bellekte tutar, periyodik olarak MongoDB'ye bulk insert yapar.
-/// MongoClient Singleton ile yönetilir; performans için InsertMany ordered=false kullanır.
+/// 1 dakika boyunca gelen TÜM market data kayıtlarını biriktirir,
+/// flush zamanı gelince hepsini InsertMany ile MongoDB'ye toplu yazar.
 /// </summary>
 public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
 {
     private readonly IMongoCollection<DtoMarketData> _collection;
-    private readonly ConcurrentDictionary<string, DtoMarketData> _latestBySymbol = new();
+
+    // 1 dakika boyunca gelen TÜM verileri biriktiren thread-safe liste
+    private readonly ConcurrentBag<DtoMarketData> _buffer = new();
+
     private readonly Timer _flushTimer;
     private readonly int _flushIntervalMs;
     private bool _disposed;
 
+    // DI container bu constructor'ı otomatik çağırır (new ile çağrılmaz)
     public MongoMarketDataBuffer(MongoClient mongoClient, IOptions<MongoMarketDataOptions> options)
     {
         var opts = options.Value;
@@ -26,7 +30,7 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
         _flushIntervalMs = opts.FlushIntervalSeconds * 1000;
 
         _flushTimer = new Timer(FlushBuffer, null, _flushIntervalMs, _flushIntervalMs);
-        Console.WriteLine($"[MongoMarketData] Buffer başlatıldı, her {opts.FlushIntervalSeconds} sn. sembol başına 1 kayıt yazılacak.");
+        Console.WriteLine($"[MongoMarketData] Buffer başlatıldı, her {opts.FlushIntervalSeconds} sn. tüm veriler toplu yazılacak.");
     }
 
     private static readonly TimeSpan TurkeyOffset = TimeSpan.FromHours(3);
@@ -34,7 +38,7 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
     public void Add(string symbol, decimal bid, decimal ask)
     {
         if (bid <= 0 || ask <= 0) return;
-        symbol = symbol.Trim().ToUpper().Replace("/", ""); // EUR/USD = EURUSD
+        symbol = symbol.Trim().ToUpper().Replace("/", "");
 
         var utcNow = DateTime.UtcNow;
         var turkeyTime = utcNow + TurkeyOffset;
@@ -46,22 +50,20 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
             Ask = ask,
             Mid = (bid + ask) / 2,
             Timestamp = utcNow,
-            TimestampFormatted = turkeyTime.ToString("dd/MM/yyyy HH:mm")
+            TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
         };
-        _latestBySymbol.AddOrUpdate(symbol, dto, (_, _) => dto);
+
+        _buffer.Add(dto);
     }
 
+    // 60 sn dolunca buffer'daki TÜM verileri alıp MongoDB'ye toplu yazar
     private void FlushBuffer(object? _)
     {
-        if (_latestBySymbol.IsEmpty) return;
+        if (_buffer.IsEmpty) return;
 
-        var keys = _latestBySymbol.Keys.ToList();
         var snapshot = new List<DtoMarketData>();
-        foreach (var symbol in keys)
-        {
-            if (_latestBySymbol.TryRemove(symbol, out var dto))
-                snapshot.Add(dto);
-        }
+        while (_buffer.TryTake(out var dto))
+            snapshot.Add(dto);
 
         if (snapshot.Count == 0) return;
 
@@ -74,10 +76,11 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
         {
             Console.WriteLine($"[MongoMarketDataBuffer] Bulk insert hata: {ex.Message}");
             foreach (var item in snapshot)
-                _latestBySymbol.TryAdd(item.Symbol, item);
+                _buffer.Add(item);
         }
     }
 
+    // Uygulama kapanırken DI tarafından otomatik çağrılır
     public void Dispose()
     {
         if (_disposed) return;
@@ -89,7 +92,7 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
 }
 
 /// <summary>
-/// MongoDB market data buffer ayarları.
+/// appsettings'ten okunan Mongo ayarları.
 /// </summary>
 public class MongoMarketDataOptions
 {

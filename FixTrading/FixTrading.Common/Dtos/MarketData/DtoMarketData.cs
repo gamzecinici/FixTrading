@@ -1,17 +1,24 @@
 namespace FixTrading.Common.Dtos.MarketData;
 
-/// <summary>
-/// MongoDB marketData collection için normalize edilmiş veri modeli.
-/// FIX'ten gelen bid/ask verisi bu formata dönüştürülür.
-/// </summary>
+// MongoDB marketData collection'a yazılacak normalize edilmiş veri modeli.
+// FIX'ten gelen bid/ask verisi bu DTO'ya dönüştürülerek saklanır.
 public class DtoMarketData
 {
+    // İşlem gören enstrüman (örn: EURUSD)
     public string Symbol { get; set; } = string.Empty;
+
+    // Alış fiyatı
     public decimal Bid { get; set; }
+
+    // Satış fiyatı
     public decimal Ask { get; set; }
+
+    // Orta fiyat (Bid + Ask) / 2
     public decimal Mid { get; set; }
-    /// <summary>UTC zaman damgası (sorgu ve sıralama için)</summary>
+
+    // UTC zaman damgası (DB sorgu ve sıralama için kullanılır)
     public DateTime Timestamp { get; set; }
-    /// <summary>Görüntüleme formatı: dd/MM/yyyy HH:mm (Türkiye saati UTC+3)</summary>
+
+    // Türkiye saatine göre formatlanmış zaman (UI gösterimi için)
     public string TimestampFormatted { get; set; } = string.Empty;
 }
