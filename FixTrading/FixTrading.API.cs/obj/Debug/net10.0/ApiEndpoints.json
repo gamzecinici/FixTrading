@@ -1,7 +1,132 @@
 [
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_2",
+    "RelativePath": "api/Instrument/{id:guid}",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_3",
+    "RelativePath": "api/Instrument/add",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "instrument",
+        "Type": "FixTrading.Common.Dtos.Instrument.DtoInstrument",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
     "Method": "\u003CConfigure\u003Eb__5_0",
+    "RelativePath": "api/Instrument/db-test",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_5",
+    "RelativePath": "api/Instrument/delete/{id:guid}",
+    "HttpMethod": "DELETE",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_1",
+    "RelativePath": "api/Instrument/list",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_4",
+    "RelativePath": "api/Instrument/update/{id:guid}",
+    "HttpMethod": "PUT",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "instrument",
+        "Type": "FixTrading.Common.Dtos.Instrument.DtoInstrument",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_6",
     "RelativePath": "api/LatestPrice",
     "HttpMethod": "GET",
     "IsController": false,
@@ -17,7 +142,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_1",
+    "Method": "\u003CConfigure\u003Eb__5_7",
     "RelativePath": "api/LatestPrice/{symbol}",
     "HttpMethod": "GET",
     "IsController": false,
@@ -36,78 +161,5 @@
         "StatusCode": 200
       }
     ]
-  },
-  {
-    "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "AddInstrument",
-    "RelativePath": "api/Test/add",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "instrument",
-        "Type": "FixTrading.Common.Dtos.Instrument.DtoInstrument",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "TestDatabaseConnection",
-    "RelativePath": "api/Test/db-test",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "DeleteInstrument",
-    "RelativePath": "api/Test/delete/{id}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "GetAllInstruments",
-    "RelativePath": "api/Test/list",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "FixTrading.API.Controllers.TestController",
-    "Method": "UpdateInstrument",
-    "RelativePath": "api/Test/update/{id}",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "instrument",
-        "Type": "FixTrading.Common.Dtos.Instrument.DtoInstrument",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
   }
 ]

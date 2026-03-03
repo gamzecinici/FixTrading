@@ -99,7 +99,6 @@ public class RedisLatestPriceStore : ILatestPriceStore
 
 // Redis bağlantı ayarlarını tutan sınıf. ConnectionString, Redis sunucusunun adresini belirtir.
 //LatestPriceTtl, en son fiyat bilgisinin Redis'te ne kadar süreyle saklanacağını belirler (null ise süresiz)
-
 public class RedisOptions
 {
     public const string SectionName = "Redis";

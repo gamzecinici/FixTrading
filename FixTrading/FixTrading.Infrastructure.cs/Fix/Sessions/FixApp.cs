@@ -22,7 +22,8 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private bool _firstMarketDataLogged;
         private int _marketDataMsgCount;
 
-        public SessionID? CurrentSession => _session;
+        
+        public SessionID? CurrentSession => _session;  //dışarıdan aktif session bilgisini okumak için kullanılan property.
 
         // DI bu constructor'ı otomatik çağırır. gerekli bağımlılıkları alır ve sınıf içinde saklar.
         public FixApp(IMarketDataBuffer marketDataBuffer, ILatestPriceStore latestPriceStore, IOptions<FixMarketDataOptions> fixOptions)
@@ -90,8 +91,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         }
 
 
-
-        
+        // Belirli bir sembol için market data akışını başlatır. Bu metot, server'a market data isteği gönderir.
         public void Subscribe(string symbol)   // Server’a market data isteği gönderir
         {
             while (_session == null)    // Bağlantı kurulana kadar bekle

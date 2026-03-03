@@ -1,5 +1,6 @@
 using FixTrading.API.Controllers;
 using FixTrading.API.BackgroundServices;
+using FixTrading.Common.Dtos.Instrument;
 using FixTrading.Application;
 using FixTrading.Application.Interfaces.Fix;
 using FixTrading.Application.Interfaces.MarketData;
@@ -32,8 +33,7 @@ public class Startup
     // Servisleri sisteme tanıttığımız yer
     public void ConfigureServices(IServiceCollection services)
     {
-        // HTTP API controller'ları
-        services.AddControllers();
+        services.AddAuthorization();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
@@ -45,7 +45,6 @@ public class Startup
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddScoped<IInstrumentRepository, InstrumentRepository>();
-        services.AddScoped<ITradeRepository, TradeRepository>();
 
         // appsettings.json dosyasındaki "MongoMarketData" ayarlarını okur
         // ve bu ayarları MongoMarketDataOptions sınıfına aktarır
@@ -82,7 +81,6 @@ public class Startup
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
 
-        // Controller ile Application arasındaki handler'lar (mimariye uygun)
         services.AddScoped<InstrumentHandler>();
         services.AddScoped<LatestPriceHandler>();
 
@@ -106,7 +104,38 @@ public class Startup
         }
 
         app.UseAuthorization();
-        app.MapControllers();
+
+        // Instrument API: HTTP eşlemesi burada, iş Handler'da (controller yok)
+        app.MapGet("/api/Instrument/db-test", async (InstrumentHandler handler) =>
+        {
+            var instruments = await handler.RetrieveAllAsync();
+            return Results.Ok($"Sistem çalışıyor. Instrument sayısı: {instruments.Count}");
+        });
+        app.MapGet("/api/Instrument/list", async (InstrumentHandler handler) =>
+        {
+            var instruments = await handler.RetrieveAllAsync();
+            return Results.Ok(instruments);
+        });
+        app.MapGet("/api/Instrument/{id:guid}", async (Guid id, InstrumentHandler handler) =>
+        {
+            var instrument = await handler.RetrieveByIdAsync(id);
+            return instrument is null ? Results.NotFound() : Results.Ok(instrument);
+        });
+        app.MapPost("/api/Instrument/add", async (DtoInstrument instrument, InstrumentHandler handler) =>
+        {
+            await handler.CreateAsync(instrument);
+            return Results.Ok("Kayıt başarıyla eklendi.");
+        });
+        app.MapPut("/api/Instrument/update/{id:guid}", async (Guid id, DtoInstrument instrument, InstrumentHandler handler) =>
+        {
+            await handler.UpdateAsync(id, instrument);
+            return Results.Ok("Kayıt güncellendi.");
+        });
+        app.MapDelete("/api/Instrument/delete/{id:guid}", async (Guid id, InstrumentHandler handler) =>
+        {
+            await handler.DeleteAsync(id);
+            return Results.Ok("Kayıt silindi.");
+        });
 
         // Latest Price API: HTTP eşlemesi burada, iş Handler'da (controller yok)
         app.MapGet("/api/LatestPrice", async (LatestPriceHandler handler) =>

@@ -6,10 +6,7 @@ using MongoDB.Driver;
 
 namespace FixTrading.Infrastructure.MongoDb;
 
-/// <summary>
-/// 1 dakika boyunca gelen TÜM market data kayıtlarını biriktirir,
-/// flush zamanı gelince hepsini InsertMany ile MongoDB'ye toplu yazar.
-/// </summary>
+// MongoDB'ye market data yazmak için kullanılan buffer sınıfı. 1 dakika boyunca gelen tüm verileri biriktirir ve sonra toplu olarak MongoDB'ye yazar. 
 public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
 {
     private readonly IMongoCollection<DtoMarketData> _collection;
@@ -21,10 +18,10 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
     private readonly int _flushIntervalMs;
     private bool _disposed;
 
-    // DI container bu constructor'ı otomatik çağırır (new ile çağrılmaz)
+    // DI container bu constructor'ı otomatik çağırır (new ile çağrılmaz). fixapp içinde IMarketDataBuffer fonksiyonu
     public MongoMarketDataBuffer(MongoClient mongoClient, IOptions<MongoMarketDataOptions> options)
     {
-        var opts = options.Value;
+        var opts = options.Value;   //config değerlerini alır
         var database = mongoClient.GetDatabase(opts.DatabaseName);
         _collection = database.GetCollection<DtoMarketData>(opts.CollectionName);
         _flushIntervalMs = opts.FlushIntervalSeconds * 1000;

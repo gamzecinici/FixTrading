@@ -4,23 +4,24 @@ using FixTrading.Common.Dtos.Trade;
 
 namespace FixTrading.Persistence;
 
-/// <summary>
-/// EF Core veritabanı bağlamı. Sadece Persistence katmanında kullanılır.
-/// Entity kullanılmaz; tüm tablolar DTO yapıları ile eşlenir.
-/// </summary>
+//bu sınıf, Entity Framework Core kullanarak veritabanı işlemlerini yönetir.
+//AppDbContext, DbContext sınıfından türetilmiştir ve veritabanı bağlantısı ve tabloların yapılandırılması için gerekli ayarları içerir.
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public AppDbContext(DbContextOptions<AppDbContext> options)   //DbContextOptions, veritabanı bağlantısı ve diğer yapılandırma seçeneklerini içeren bir sınıftır.
         : base(options)
     {
     }
 
-    /// <summary>Enstrüman tablosu. FIX market data akışı bu tablo üzerinden yönetilir.</summary>
+    //DbSet, Entity Framework Core'da bir tabloyu temsil eder. DtoInstrument ve DtoTrade sınıfları, veritabanındaki tabloların yapısını tanımlar.
     public DbSet<DtoInstrument> Instruments { get; set; } = null!;
 
-    /// <summary>İşlem (trade) tablosu.</summary>
+    //DbSet, Entity Framework Core'da bir tabloyu temsil eder. DtoTrade sınıfı, veritabanındaki Trade tablosunun yapısını tanımlar.
     public DbSet<DtoTrade> Trades { get; set; } = null!;
 
+
+    //OnModelCreating metodu, Entity Framework Core tarafından veritabanı modeli oluşturulurken çağrılır.
+    //Bu metodun içinde, model yapılandırmalarını uygulamak için ApplyConfigurationsFromAssembly kullanılır.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
