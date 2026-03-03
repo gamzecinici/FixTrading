@@ -1214,3 +1214,83 @@
 20260227-11:09:51.119 : Initiated logon request
 20260227-11:09:52.875 : Sequence numbers reset due to ResetSeqNumFlag=Y
 20260227-11:09:52.877 : Received logon
+20260302-19:06:27.325 : Session FIX.4.4:FINTECHEE->SPOTEX already disconnected: Resetting...
+20260302-19:06:27.330 : Session reset: New session
+20260302-19:06:27.331 : Created session
+20260302-19:06:27.334 : Connecting to 192.54.136.152 on port 8060
+20260302-19:06:27.515 : Connection succeeded
+20260302-19:06:27.527 : Session reset: ResetOnLogon
+20260302-19:06:27.536 : Session reset: ResetSeqNumFlag
+20260302-19:06:27.549 : Initiated logon request
+20260302-19:06:29.551 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260302-19:06:29.552 : Received logon
+20260302-19:17:24.571 : Initiated logout request
+20260302-19:17:24.714 : Received logout response
+20260302-19:17:24.714 : Session FIX.4.4:FINTECHEE->SPOTEX disconnecting: Received logout response
+20260302-19:17:24.734 : Session FIX.4.4:FINTECHEE->SPOTEX already disconnected: System.ObjectDisposedException: The CancellationTokenSource has been disposed.
+   at QuickFix.SocketInitiatorThread.ReadSome(Byte[] buffer, Int32 timeoutMilliseconds)
+   at QuickFix.SocketInitiatorThread.Read()
+20260302-19:18:08.833 : Created session
+20260302-19:18:08.837 : Connecting to 192.54.136.152 on port 8060
+20260302-19:18:08.997 : Connection succeeded
+20260302-19:18:09.008 : Session reset: ResetOnLogon
+20260302-19:18:09.016 : Session reset: ResetSeqNumFlag
+20260302-19:18:09.030 : Initiated logon request
+20260302-19:18:11.290 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260302-19:18:11.291 : Received logon
+20260302-19:24:04.926 : Created session
+20260302-19:24:04.934 : Connecting to 192.54.136.152 on port 8060
+20260302-19:24:05.093 : Connection succeeded
+20260302-19:24:05.102 : Session reset: ResetOnLogon
+20260302-19:24:05.109 : Session reset: ResetSeqNumFlag
+20260302-19:24:05.121 : Initiated logon request
+20260302-19:24:07.024 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260302-19:24:07.025 : Received logon
+20260303-06:12:23.621 : Created session
+20260303-06:12:23.630 : Connecting to 192.54.136.152 on port 8060
+20260303-06:12:23.834 : Connection succeeded
+20260303-06:12:23.845 : Session reset: ResetOnLogon
+20260303-06:12:23.854 : Session reset: ResetSeqNumFlag
+20260303-06:12:23.872 : Initiated logon request
+20260303-06:12:26.637 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-06:12:26.638 : Received logon
+20260303-07:39:18.663 : Created session
+20260303-07:39:18.676 : Connecting to 192.54.136.152 on port 8060
+20260303-07:39:18.858 : Connection succeeded
+20260303-07:39:18.869 : Session reset: ResetOnLogon
+20260303-07:39:18.879 : Session reset: ResetSeqNumFlag
+20260303-07:39:18.892 : Initiated logon request
+20260303-07:39:20.698 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-07:39:20.699 : Received logon
+20260303-07:40:02.775 : Created session
+20260303-07:40:02.783 : Connecting to 192.54.136.152 on port 8060
+20260303-07:40:04.693 : Connection succeeded
+20260303-07:40:04.702 : Session reset: ResetOnLogon
+20260303-07:40:04.710 : Session reset: ResetSeqNumFlag
+20260303-07:40:04.721 : Initiated logon request
+20260303-07:40:08.412 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-07:40:08.413 : Received logon
+20260303-07:40:58.532 : Created session
+20260303-07:40:58.548 : Connecting to 192.54.136.152 on port 8060
+20260303-07:41:00.976 : Connection succeeded
+20260303-07:41:00.985 : Session reset: ResetOnLogon
+20260303-07:41:00.992 : Session reset: ResetSeqNumFlag
+20260303-07:41:01.003 : Initiated logon request
+20260303-07:41:04.578 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-07:41:04.579 : Received logon
+20260303-07:46:48.157 : Created session
+20260303-07:46:48.201 : Connecting to 192.54.136.152 on port 8060
+20260303-07:46:48.378 : Connection succeeded
+20260303-07:46:48.388 : Session reset: ResetOnLogon
+20260303-07:46:48.398 : Session reset: ResetSeqNumFlag
+20260303-07:46:48.412 : Initiated logon request
+20260303-07:46:50.225 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-07:46:50.227 : Received logon
+20260303-08:05:28.458 : Created session
+20260303-08:05:28.468 : Connecting to 192.54.136.152 on port 8060
+20260303-08:05:28.635 : Connection succeeded
+20260303-08:05:28.645 : Session reset: ResetOnLogon
+20260303-08:05:28.655 : Session reset: ResetSeqNumFlag
+20260303-08:05:28.669 : Initiated logon request
+20260303-08:05:30.452 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-08:05:30.453 : Received logon

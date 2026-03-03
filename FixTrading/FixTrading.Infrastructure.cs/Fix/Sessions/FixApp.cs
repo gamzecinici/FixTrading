@@ -12,9 +12,10 @@ namespace FixTrading.Infrastructure.Fix.Sessions
     // MessageCracker → Gelen mesaj tipine göre doğru OnMessage metodunu çağırır
     {
         private SessionID? _session;    // Aktif FIX oturumunu tutar
-        private readonly object _lock = new object();
+        private readonly object _lock = new object();    // Çoklu thread'lerde sembol verilerine güvenli erişim için kilit nesnesi
 
         private readonly IMarketDataBuffer _marketDataBuffer;
+        private readonly ILatestPriceStore _latestPriceStore;
         private readonly FixMarketDataOptions _fixOptions;
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
 
@@ -23,10 +24,11 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
         public SessionID? CurrentSession => _session;
 
-        // DI bu constructor'ı otomatik çağırır
-        public FixApp(IMarketDataBuffer marketDataBuffer, IOptions<FixMarketDataOptions> fixOptions)
+        // DI bu constructor'ı otomatik çağırır. gerekli bağımlılıkları alır ve sınıf içinde saklar.
+        public FixApp(IMarketDataBuffer marketDataBuffer, ILatestPriceStore latestPriceStore, IOptions<FixMarketDataOptions> fixOptions)
         {
             _marketDataBuffer = marketDataBuffer;
+            _latestPriceStore = latestPriceStore;
             _fixOptions = fixOptions?.Value ?? new FixMarketDataOptions();
         }
 
@@ -60,6 +62,8 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         public void FromAdmin(Message message, SessionID sessionID) { }
         public void ToApp(Message message, SessionID sessionID) { }
 
+
+        // Gelen uygulama mesajlarını işler. Her mesaj geldiğinde çalışır.
         public void FromApp(Message message, SessionID sessionID)
         {
             try
@@ -101,10 +105,10 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
             // Market data request oluşturulur
             var request = new QuickFix.FIX44.MarketDataRequest(
-                new MDReqID(Guid.NewGuid().ToString()),
-                new SubscriptionRequestType(
+                new MDReqID(Guid.NewGuid().ToString()),   // Her istek için benzersiz bir ID oluşturulur
+                new SubscriptionRequestType(    // İstek tipi: önce tam snapshot, sonra güncellemeler
                     SubscriptionRequestType.SNAPSHOT_PLUS_UPDATES),
-                new MarketDepth(1)
+                new MarketDepth(1)    // Sadece en iyi fiyatları (top of book) istemek için derinlik 1 olarak ayarlanır
             );
 
             request.Set(new MDUpdateType(0));
@@ -112,7 +116,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
             var bidGroup =         // BID (alış) fiyatlarını istemek için grup oluşturulur
                 new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
-            bidGroup.SetField(new MDEntryType(MDEntryType.BID));
+            bidGroup.SetField(new MDEntryType(MDEntryType.BID));   // Bu grup, sadece BID fiyatlarını içerecek şekilde yapılandırılır
             request.AddGroup(bidGroup);
 
             var askGroup =         // OFFER (satış) fiyatlarını istemek için grup oluşturulur
@@ -183,7 +187,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 var group =
                     new QuickFix.FIX44
                     .MarketDataSnapshotFullRefresh
-                    .NoMDEntriesGroup();
+                    .NoMDEntriesGroup();   //Bu mesajın içinde kaç tane fiyat kaydı var?
 
                 message.GetGroup(i, group);
 
@@ -222,14 +226,11 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             Render(symbol, bid, ask);
         }
 
-
+        // Sembolü normalize eder: boşlukları kaldırır, büyük harfe çevirir, slash'ları kaldırır
         private static string NormalizeSymbol(string symbol) => symbol.Trim().ToUpper().Replace("/", "");
 
-        /// <summary>
-        /// 1) Konsol: Her tick'te anlık canlı akış (Mongo'dan bağımsız).
-        /// 2) Mongo buffer: Sadece geçerli veriyi buffer'a ekler; flush 60 sn'de bir ayrı çalışır.
-        /// EUR/USD ve EURUSD aynı sembol olarak işlenir.
-        /// </summary>
+
+        // Verilen sembol, bid ve ask fiyatlarını ekrana yazdırır. Ayrıca, MongoDB buffer'ına ve Redis'e güncel fiyat bilgisini gönderir.
         private void Render(string symbol, decimal? bid, decimal? ask)
         {
             symbol = NormalizeSymbol(symbol);
@@ -241,7 +242,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 else
                 {
                     var existing = _symbols[symbol];
-                    _symbols[symbol] = (bid ?? existing.Bid, ask ?? existing.Ask);
+                    _symbols[symbol] = (bid ?? existing.Bid, ask ?? existing.Ask);   //yeni gelen bid veya ask null değilse güncelle, null ise eski değeri koru
                 }
                 data = _symbols[symbol];
             }
@@ -251,17 +252,24 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             var askText = data.ask?.ToString("0.####") ?? "-";
             Console.WriteLine($"{symbol} - {bidText} / {askText}");
 
-            // 2) MONGO BUFFER: Sembol başına son değer (60 sn'de bir flush ile yazılacak)
+            // 2) MONGO BUFFER: 60 sn boyunca biriken tüm veriler toplu yazılacak
+            // 3) REDIS: En son fiyat her tick'te güncellenir (Latest Price API için)
             if (data.bid.HasValue && data.ask.HasValue && data.bid.Value > 0 && data.ask.Value > 0)
             {
                 try
                 {
-                    _marketDataBuffer.Add(symbol, data.bid.Value, data.ask.Value);
+                    _marketDataBuffer.Add(symbol, data.bid.Value, data.ask.Value);  //Direkt mongo ya yazmadan RAM e yazıyor
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[FixApp] Buffer ekleme hatası: {ex.Message}");
                 }
+
+                _ = Task.Run(async () =>   // Arka planda Redis'e yazma işlemi yapılır. Hata olursa yakalanır ve konsola yazdırılır.
+                {
+                    try { await _latestPriceStore.SetLatestAsync(symbol, data.bid!.Value, data.ask!.Value); }
+                    catch (Exception ex) { Console.WriteLine($"[FixApp] Redis yazma hatası: {ex.Message}"); }
+                });
             }
         }
     }

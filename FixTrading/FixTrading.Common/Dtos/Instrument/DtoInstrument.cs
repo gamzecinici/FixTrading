@@ -4,28 +4,26 @@ using FixTrading.Common.Dtos.Order;
 
 namespace FixTrading.Common.Dtos.Instrument;
 
-/// <summary>
-/// Instrument modeli. Hem API/Application katmanlarında DTO hem de Persistence'ta EF entity olarak kullanılır.
-/// instruments tablosuna eşlenir. FIX market data akışı bu tablo üzerinden yönetilir.
-/// </summary>
+
+// Enstrüman bilgilerini temsil eden DTO sınıfı. Veritabanındaki "instruments" tablosuna karşılık gelir.
 [Table("instruments")]
-public class DtoInstrument : DtoBase
+public class DtoInstrument : DtoBase  // DtoBase sınıfından türetilir
 {
     [Key]
     [Column("id")]
     public Guid Id { get; set; }
 
-    /// <summary>Enstrüman sembolü (örn: EURUSD, USDTRY). varchar(20)</summary>
+    //kullanılan sembol (örn: EURUSD). varchar(20), boş olamaz
     [Column("symbol")]
     [MaxLength(20)]
-    public string Symbol { get; set; } = string.Empty;
+    public string Symbol { get; set; } = string.Empty;  // Sembolün boş olmasını engellemek için varsayılan olarak boş string atanır
 
-    /// <summary>Açıklama. varchar(100), nullable</summary>
+   
     [Column("description")]
     [MaxLength(100)]
-    public string? Description { get; set; }
+    public string? Description { get; set; }   //null olabilir , okunabilir değiştirilebilir
 
-    /// <summary>Minimum fiyat adımı. numeric(18,8)</summary>
+    
     [Column("tick_size", TypeName = "numeric(18,8)")]
-    public decimal TickSize { get; set; }
+    public decimal TickSize { get; set; }  //tick size: Enstrümanın fiyat hareketlerinin minimum adımını belirten bir değerdir.
 }

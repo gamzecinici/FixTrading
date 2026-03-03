@@ -1,5 +1,43 @@
 [
   {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_0",
+    "RelativePath": "api/LatestPrice",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_1",
+    "RelativePath": "api/LatestPrice/{symbol}",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "symbol",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "FixTrading.API.Controllers.TestController",
     "Method": "AddInstrument",
     "RelativePath": "api/Test/add",

@@ -5,21 +5,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FixTrading.API.BackgroundServices;
 
-/// <summary>
-/// FIX protokolü dinleyicisi; arka planda sürekli çalışır.
-/// IFixSession üzerinden bağlantıyı yönetir. Market data doğrudan QuickFIX FromApp üzerinden gelir.
-/// </summary>
+// Bu BackgroundService, uygulama başlatıldığında FIX oturumunu yönetir.
 public class FixListenerWorker : BackgroundService
 {
     private readonly IFixSession _fixSession;
     private readonly IServiceScopeFactory _scopeFactory;
 
+    // Constructor, IFixSession ve IServiceScopeFactory bağımlılıklarını alır.
     public FixListenerWorker(IFixSession fixSession, IServiceScopeFactory scopeFactory)
     {
         _fixSession = fixSession;
         _scopeFactory = scopeFactory;
     }
 
+
+    // Program açılınca çalışacak arka plan kodu burasıdır.
+    //Gerekirse bekler(async), işi bitince tamamlanır(Task) ve program kapanırken düzgün şekilde durabilir(stoppingToken).
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
@@ -48,11 +49,11 @@ public class FixListenerWorker : BackgroundService
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 var symbols = await dbContext.Instruments
-                    .AsNoTracking()
-                    .Select(i => i.Symbol.Trim())
-                    .Where(s => s != "")
-                    .Distinct()
-                    .ToListAsync(stoppingToken);
+                    .AsNoTracking()   // Performansı artırmak için AsNoTracking kullanılır, çünkü sadece okuma işlemi yapılır.
+                    .Select(i => i.Symbol.Trim())  // Sembolün başındaki ve sonundaki boşlukları kaldır
+                    .Where(s => s != "")  // Boş sembolleri listeden çıkar.
+                    .Distinct()  // Aynı sembol birden fazla varsa tekrarları sil.
+                    .ToListAsync(stoppingToken);  // Veritabanından sembolleri asenkron olarak liste olarak getirir.
 
                 Console.WriteLine($"[FIX] instruments tablosundan {symbols.Count} sembol okundu.");
                 if (symbols.Count == 0)

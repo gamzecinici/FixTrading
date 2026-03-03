@@ -1,6 +1,6 @@
 # MongoDB Market Data Yazma – Kod ve Akış Raporu
 
-Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve ilgili tüm kodların ne işe yaradığını açıklar.
+Bu rapor, FIX market data verilerinin MongoDB'ye nasıl yazıldığını ve ilgili tüm kodların ne işe yaradığını açıklar.
 
 ---
 
@@ -23,15 +23,15 @@ Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve il
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ MongoMarketDataBuffer                                                        │
-│ • Add(): Symbol tekrar normalize, _latestBySymbol[key] = son değer           │
-│ • Timer (60 sn) → FlushBuffer() → InsertMany → MongoDB                       │
+│ • Add(): Symbol normalize, yeni DtoMarketData → ConcurrentBag'e ekle        │
+│ • Timer (60 sn) → FlushBuffer() → TÜM kayıtları InsertMany → MongoDB        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Özet:**
-- **Konsol:** Her tick’te anlık akış (Mongo’dan bağımsız).
-- **MongoDB:** Her 60 saniyede sembol başına 1 kayıt (InsertMany batch).
-- **Sembol normalizasyonu:** EUR/USD ve EURUSD aynı sembol olarak işlenir → MongoDB’ye her zaman slash’sız (EURUSD) yazılır.
+- **Konsol:** Her tick'te anlık akış (Mongo'dan bağımsız).
+- **MongoDB:** 1 dakika boyunca gelen TÜM tick verileri biriktirilir, 60 sn sonunda toplu InsertMany ile yazılır.
+- **Sembol normalizasyonu:** EUR/USD ve EURUSD aynı sembol olarak işlenir → MongoDB'ye her zaman slash'sız (EURUSD) yazılır.
 
 ---
 
@@ -44,12 +44,12 @@ Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve il
 | **DtoMarketData.cs** | `FixTrading.Common/Dtos/MarketData/` | MongoDB `marketData` collection için veri modeli. |
 
 **Alanlar:**
-- `Symbol` – Enstrüman sembolü (her zaman slash’sız: EURUSD, XAUUSD)
+- `Symbol` – Enstrüman sembolü (her zaman slash'sız: EURUSD, XAUUSD)
 - `Bid` – Alış fiyatı
 - `Ask` – Satış fiyatı
 - `Mid` – (Bid + Ask) / 2
 - `Timestamp` – UTC zaman damgası
-- `TimestampFormatted` – dd/MM/yyyy HH:mm (Türkiye saati, UTC+3)
+- `TimestampFormatted` – dd.MM.yyyy HH:mm (Türkiye saati, UTC+3)
 
 ---
 
@@ -67,7 +67,7 @@ Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve il
 
 | Dosya | Konum | Görevi |
 |-------|-------|--------|
-| **FixApp.cs** | `FixTrading.Infrastructure/Fix/Sessions/` | Market data’yı alır, normalize eder, konsola yazar ve buffer’a gönderir. |
+| **FixApp.cs** | `FixTrading.Infrastructure/Fix/Sessions/` | Market data'yı alır, normalize eder, konsola yazar ve buffer'a gönderir. |
 
 **Önemli metodlar:**
 
@@ -86,16 +86,17 @@ Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve il
 
 | Dosya | Konum | Görevi |
 |-------|-------|--------|
-| **MongoMarketDataBuffer.cs** | `FixTrading.Infrastructure/MongoDb/` | Bellekte son değeri tutar; 60 sn’de bir MongoDB’ye batch yazar. |
+| **MongoMarketDataBuffer.cs** | `FixTrading.Infrastructure/MongoDb/` | Tüm tick'leri bellekte biriktirir; 60 sn'de bir MongoDB'ye toplu yazar. |
 
 **Sorumluluklar:**
 
 | Öğe | Açıklama |
 |-----|----------|
-| `_latestBySymbol` | ConcurrentDictionary – Sembol başına son DtoMarketData |
+| `_buffer` | `ConcurrentBag<DtoMarketData>` – Gelen her tick ayrı kayıt olarak eklenir (üzerine yazılmaz) |
 | `_flushTimer` | Her 60 saniyede `FlushBuffer` tetikler |
-| `Add(symbol, bid, ask)` | Symbol tekrar normalize eder; bid/ask > 0 ise `_latestBySymbol` günceller |
-| `FlushBuffer` | Tüm sembolleri alır, `InsertMany(ordered: false)` ile MongoDB’ye yazar |
+| `Add(symbol, bid, ask)` | Symbol normalize eder; bid/ask > 0 ise yeni DtoMarketData oluşturup `_buffer.Add()` ile ekler |
+| `FlushBuffer` | `TryTake` ile bag'i tamamen boşaltır, tüm kayıtları `InsertMany(ordered: false)` ile MongoDB'ye yazar |
+| `Dispose` | Timer'ı durdurur, kalan verileri son bir kez flush eder |
 
 **MongoMarketDataOptions:** ConnectionString, DatabaseName, CollectionName, FlushIntervalSeconds.
 
@@ -125,9 +126,9 @@ Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve il
 | 3 | ProcessMarketData / ProcessGroup → bid, ask parse | FixApp.cs |
 | 4 | `Render(symbol, bid, ask)` → `symbol = NormalizeSymbol(symbol)` | FixApp.cs |
 | 5 | Konsola yazar; bid/ask > 0 ise `_marketDataBuffer.Add(symbol, bid, ask)` | FixApp.Render |
-| 6 | `MongoMarketDataBuffer.Add` → symbol tekrar normalize, `_latestBySymbol` güncelle | MongoMarketDataBuffer |
+| 6 | `MongoMarketDataBuffer.Add` → symbol normalize, yeni DtoMarketData oluştur, `_buffer.Add()` | MongoMarketDataBuffer |
 | 7 | 60 sn sonra Timer `FlushBuffer` çağırır | MongoMarketDataBuffer |
-| 8 | `InsertMany(snapshot)` ile MongoDB’ye yazar | MongoMarketDataBuffer.FlushBuffer |
+| 8 | `TryTake` ile buffer boşaltılır, `InsertMany(snapshot)` ile MongoDB'ye yazılır | MongoMarketDataBuffer.FlushBuffer |
 
 ---
 
@@ -146,12 +147,14 @@ Bu rapor, FIX market data verilerinin MongoDB’ye nasıl yazıldığını ve il
 
 ## 5. ÖNEMLİ KURALLAR
 
-- **bid veya ask 0 ise** kayıt buffer’a eklenmez.
-- **Sembol normalizasyonu:** `EUR/USD` ve `EURUSD` aynı sembol; her yerde slash’sız (EURUSD) kullanılır.
-- **Her sembol için** sadece son değer saklanır; 60 sn’de sembol başına 1 kayıt MongoDB’ye yazılır.
+- **bid veya ask ≤ 0 ise** kayıt buffer'a eklenmez.
+- **Sembol normalizasyonu:** `EUR/USD` ve `EURUSD` aynı sembol; her yerde slash'sız (EURUSD) kullanılır.
+- **1 dakika boyunca gelen TÜM tick verileri** bellekte biriktirilir; flush anında toplu InsertMany ile MongoDB'ye yazılır.
 - **InsertMany ordered=false** – Hata olsa bile diğer kayıtlar yazılmaya devam eder.
-- **Timestamp** UTC; `TimestampFormatted` Türkiye saati (UTC+3).
-- **Veri kaynağı:** SPOTEX’ten gelen W/X mesajları QuickFIX FromApp üzerinden `FixApp.OnMessage` ile işlenir.
+- **Hata durumunda** kayıtlar tekrar buffer'a geri eklenir, bir sonraki flush'ta tekrar denenir.
+- **Timestamp** UTC; `TimestampFormatted` Türkiye saati (UTC+3), format: dd.MM.yyyy HH:mm.
+- **Veri kaynağı:** SPOTEX'ten gelen W/X mesajları QuickFIX FromApp üzerinden `FixApp.OnMessage` ile işlenir.
+- **Uygulama kapanırken** `Dispose` çağrılır → kalan veriler son bir kez flush edilir, veri kaybı önlenir.
 
 ---
 

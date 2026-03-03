@@ -7,9 +7,9 @@ namespace FixTrading.Domain.Interfaces;
 /// </summary>
 public interface IInstrumentRepository
 {
-    Task InsertAsync(DtoInstrument dto);
-    Task<DtoInstrument?> FetchByIdAsync(Guid id);
-    Task<List<DtoInstrument>> FetchAllAsync();
-    Task UpdateExistingAsync(Guid id, DtoInstrument dto);
-    Task RemoveByIdAsync(Guid id);
+    Task InsertAsync(DtoInstrument dto);   // Yeni bir enstrüman ekler.
+    Task<DtoInstrument?> FetchByIdAsync(Guid id);  // Belirli bir enstrümanı ID'sine göre getirir. ID'ye sahip enstrüman bulunamazsa null döner.
+    Task<List<DtoInstrument>> FetchAllAsync();  // Veritabanındaki tüm enstrümanları liste olarak getirir. 
+    Task UpdateExistingAsync(Guid id, DtoInstrument dto);  // Mevcut kaydı günceller. ID'ye sahip enstrüman bulunamazsa hiçbir işlem yapmaz.
+    Task RemoveByIdAsync(Guid id);   // ID'ye göre kaydı siler. ID'ye sahip enstrüman bulunamazsa hiçbir işlem yapmaz.
 }

@@ -7,10 +7,13 @@ using FixTrading.Domain.Interfaces;
 using FixTrading.Infrastructure.Fix;
 using FixTrading.Infrastructure.Fix.Sessions;
 using FixTrading.Infrastructure.MongoDb;
+using FixTrading.Infrastructure.Redis;
 using FixTrading.Persistence;
 using FixTrading.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using StackExchange.Redis;
 
 namespace FixTrading.API;
 
@@ -50,6 +53,19 @@ public class Startup
             Configuration.GetSection(FixMarketDataOptions.SectionName));
         services.Configure<MongoMarketDataOptions>(
             Configuration.GetSection(MongoMarketDataOptions.SectionName));
+        services.Configure<RedisOptions>(      // Redis ayarlarını okur
+            Configuration.GetSection(RedisOptions.SectionName));
+
+        // Redis bağlantısı (abortConnect: false = Redis yoksa uygulama yine de başlar)
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+            var config = ConfigurationOptions.Parse(opts.ConnectionString);
+            config.AbortOnConnectFail = false;
+            config.ConnectTimeout = 3000;
+            return ConnectionMultiplexer.Connect(config);
+        });
+        services.AddSingleton<ILatestPriceStore, RedisLatestPriceStore>();
 
         // MongoClient'ı DI container'a Singleton olarak ekler
         services.AddSingleton<MongoClient>(sp =>
@@ -66,8 +82,9 @@ public class Startup
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
 
-        // İç kullanım için Instrument handler'ı
+        // Controller ile Application arasındaki handler'lar (mimariye uygun)
         services.AddScoped<InstrumentHandler>();
+        services.AddScoped<LatestPriceHandler>();
 
         // Arka plan FIX dinleyici servisi
         services.AddHostedService<FixListenerWorker>();
@@ -76,6 +93,12 @@ public class Startup
     // Uygulama çalışırken isteklerin nasıl ilerleyeceğini belirler
     public void Configure(WebApplication app)
     {
+        var urls = Configuration["ASPNETCORE_URLS"] ?? "http://localhost:5076";
+        var baseUrl = urls.Split(';')[0].Trim();
+        Console.WriteLine($"[API] Web sunucu: {baseUrl}");
+        Console.WriteLine($"[API] Swagger: {baseUrl.TrimEnd('/')}/swagger");
+        Console.WriteLine($"[API] Latest Price: {baseUrl.TrimEnd('/')}/api/LatestPrice");
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -84,5 +107,17 @@ public class Startup
 
         app.UseAuthorization();
         app.MapControllers();
+
+        // Latest Price API: HTTP eşlemesi burada, iş Handler'da (controller yok)
+        app.MapGet("/api/LatestPrice", async (LatestPriceHandler handler) =>
+        {
+            var prices = await handler.GetAllLatestAsync();
+            return Results.Ok(prices);
+        });
+        app.MapGet("/api/LatestPrice/{symbol}", async (string symbol, LatestPriceHandler handler) =>
+        {
+            var price = await handler.GetLatestAsync(symbol);
+            return price is null ? Results.NotFound(new { message = $"Sembol bulunamadı: {symbol}" }) : Results.Ok(price);
+        });
     }
 }

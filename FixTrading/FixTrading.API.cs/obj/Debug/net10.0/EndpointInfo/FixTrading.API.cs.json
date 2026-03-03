@@ -5,6 +5,40 @@
     "version": "1.0"
   },
   "paths": {
+    "/api/LatestPrice": {
+      "get": {
+        "tags": [
+          "FixTrading.API.cs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/LatestPrice/{symbol}": {
+      "get": {
+        "tags": [
+          "FixTrading.API.cs"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Test/db-test": {
       "get": {
         "tags": [
@@ -168,6 +202,9 @@
     }
   },
   "tags": [
+    {
+      "name": "FixTrading.API.cs"
+    },
     {
       "name": "Test"
     }
