@@ -65,6 +65,7 @@ public class Startup
             return ConnectionMultiplexer.Connect(config);
         });
         services.AddSingleton<ILatestPriceStore, RedisLatestPriceStore>();
+        services.AddSingleton<IMongoLatestPriceReader, MongoLatestPriceReader>();
 
         // MongoClient'ı DI container'a Singleton olarak ekler
         services.AddSingleton<MongoClient>(sp =>
@@ -106,31 +107,43 @@ public class Startup
         app.UseAuthorization();
 
         // Instrument API: HTTP eşlemesi burada, iş Handler'da (controller yok)
-        app.MapGet("/api/Instrument/db-test", async (InstrumentHandler handler) =>
+
+        // Test endpoint: Veritabanı bağlantısını ve temel işlevselliği kontrol eder
+        app.MapGet("/api/Instrument/db-test", async (InstrumentHandler handler) =>  
         {
             var instruments = await handler.RetrieveAllAsync();
             return Results.Ok($"Sistem çalışıyor. Instrument sayısı: {instruments.Count}");
         });
+
+        // CRUD endpoint'leri: En temel işlemler, tüm detaylar Handler'da (controller yok)
         app.MapGet("/api/Instrument/list", async (InstrumentHandler handler) =>
         {
             var instruments = await handler.RetrieveAllAsync();
             return Results.Ok(instruments);
         });
+
+        // ID'ye göre retrieval: Eğer bulunamazsa 404 döner
         app.MapGet("/api/Instrument/{id:guid}", async (Guid id, InstrumentHandler handler) =>
         {
             var instrument = await handler.RetrieveByIdAsync(id);
             return instrument is null ? Results.NotFound() : Results.Ok(instrument);
         });
+
+        // Create, Update, Delete işlemleri: Basit mesajlarla sonuç döner, detaylar Handler'da
         app.MapPost("/api/Instrument/add", async (DtoInstrument instrument, InstrumentHandler handler) =>
         {
             await handler.CreateAsync(instrument);
             return Results.Ok("Kayıt başarıyla eklendi.");
         });
+
+        // Update işlemi: ID'ye göre güncelleme yapar, eğer ID bulunmazsa 404 döner
         app.MapPut("/api/Instrument/update/{id:guid}", async (Guid id, DtoInstrument instrument, InstrumentHandler handler) =>
         {
             await handler.UpdateAsync(id, instrument);
             return Results.Ok("Kayıt güncellendi.");
         });
+
+        // Delete işlemi: ID'ye göre silme yapar, eğer ID bulunmazsa 404 döner
         app.MapDelete("/api/Instrument/delete/{id:guid}", async (Guid id, InstrumentHandler handler) =>
         {
             await handler.DeleteAsync(id);
@@ -138,11 +151,15 @@ public class Startup
         });
 
         // Latest Price API: HTTP eşlemesi burada, iş Handler'da (controller yok)
+
+        // Tüm sembollerin son fiyatlarını getirir
         app.MapGet("/api/LatestPrice", async (LatestPriceHandler handler) =>
         {
             var prices = await handler.GetAllLatestAsync();
             return Results.Ok(prices);
         });
+
+        // Belirli bir sembolün son fiyatını getirir, eğer sembol bulunmazsa 404 döner
         app.MapGet("/api/LatestPrice/{symbol}", async (string symbol, LatestPriceHandler handler) =>
         {
             var price = await handler.GetLatestAsync(symbol);

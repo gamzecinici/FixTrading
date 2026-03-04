@@ -73,7 +73,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
 
     // Redis'te saklanan tüm sembollerin en son fiyat bilgilerini alır. Tüm semboller için anahtarlar oluşturulur ve değerler alınır.
     // Sonuç, sembole göre sıralanır.
-    public async Task<List<DtoMarketData>> GetAllLatestAsync()
+    public async Task<List<DtoMarketData>> GetAllLatestAsync() //*****
     {
         var members = await _db.SetMembersAsync(KeySet);  // Tüm sembollerin listesi alınır
         if (members.Length == 0) return [];

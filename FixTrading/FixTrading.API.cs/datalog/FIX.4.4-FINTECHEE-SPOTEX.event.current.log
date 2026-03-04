@@ -1318,3 +1318,36 @@
 20260303-12:53:46.178 : Initiated logon request
 20260303-12:53:48.034 : Sequence numbers reset due to ResetSeqNumFlag=Y
 20260303-12:53:48.037 : Received logon
+20260303-13:27:54.826 : Created session
+20260303-13:27:54.840 : Connecting to 192.54.136.152 on port 8060
+20260303-13:27:55.072 : Connection succeeded
+20260303-13:27:55.090 : Session reset: ResetOnLogon
+20260303-13:27:55.105 : Session reset: ResetSeqNumFlag
+20260303-13:27:55.126 : Initiated logon request
+20260303-13:27:57.058 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260303-13:27:57.060 : Received logon
+20260304-10:52:46.794 : Created session
+20260304-10:52:46.804 : Connecting to 192.54.136.152 on port 8060
+20260304-10:52:47.010 : Connection succeeded
+20260304-10:52:47.022 : Session reset: ResetOnLogon
+20260304-10:52:47.031 : Session reset: ResetSeqNumFlag
+20260304-10:52:47.047 : Initiated logon request
+20260304-10:52:49.067 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260304-10:52:49.068 : Received logon
+20260304-10:54:37.361 : Session FIX.4.4:FINTECHEE->SPOTEX disconnecting: System.Net.Sockets.SocketException (10058): Yuva aynı yönde önceki bir kapatma çağrısıyla zaten kapatılmış olduğundan bir veri gönderme veya alma isteğine izin verilmedi.
+   at QuickFix.SocketInitiatorThread.ReadSome(Byte[] buffer, Int32 timeoutMilliseconds)
+   at QuickFix.SocketInitiatorThread.Read()
+20260304-10:54:47.924 : Connecting to 192.54.136.152 on port 8060
+20260304-10:54:50.631 : Connection failed: Hedef makine etkin olarak reddettiğinden bağlantı kurulamadı. 192.54.136.152:8060
+20260304-10:55:18.189 : Connecting to 192.54.136.152 on port 8060
+20260304-10:55:20.872 : Connection failed: Hedef makine etkin olarak reddettiğinden bağlantı kurulamadı. 192.54.136.152:8060
+20260304-10:55:48.468 : Connecting to 192.54.136.152 on port 8060
+20260304-10:55:51.166 : Connection failed: Hedef makine etkin olarak reddettiğinden bağlantı kurulamadı. 192.54.136.152:8060
+20260304-11:28:17.139 : Created session
+20260304-11:28:17.146 : Connecting to 192.54.136.152 on port 8060
+20260304-11:28:17.323 : Connection succeeded
+20260304-11:28:17.336 : Session reset: ResetOnLogon
+20260304-11:28:17.348 : Session reset: ResetSeqNumFlag
+20260304-11:28:17.364 : Initiated logon request
+20260304-11:28:17.516 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260304-11:28:17.518 : Received logon
