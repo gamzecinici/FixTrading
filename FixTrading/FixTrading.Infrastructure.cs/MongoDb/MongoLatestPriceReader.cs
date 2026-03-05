@@ -16,8 +16,8 @@ public class MongoLatestPriceReader : IMongoLatestPriceReader
     // Constructor, MongoDB bağlantısı ve ayarları alır
     public MongoLatestPriceReader(MongoClient mongoClient, IOptions<MongoMarketDataOptions> options)
     {
-        var opts = options.Value;
-        var database = mongoClient.GetDatabase(opts.DatabaseName);
+        var opts = options.Value;   
+        var database = mongoClient.GetDatabase(opts.DatabaseName);   
         _collection = database.GetCollection<DtoMarketData>(opts.CollectionName);
     }
 

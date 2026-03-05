@@ -8,6 +8,7 @@ using FixTrading.Domain.Interfaces;
 using FixTrading.Infrastructure.Fix;
 using FixTrading.Infrastructure.Fix.Sessions;
 using FixTrading.Infrastructure.MongoDb;
+using FixTrading.Infrastructure.Observers;
 using FixTrading.Infrastructure.Redis;
 using FixTrading.Persistence;
 using FixTrading.Persistence.Repositories;
@@ -77,8 +78,21 @@ public class Startup
         // IMarketDataBuffer istendiğinde MongoMarketDataBuffer oluşturulur
         // Bu sınıf FIX'ten gelen verileri memory'de tutar
         // ve periyodik olarak MongoDB'ye bulk insert yapar
-        services.AddSingleton<IMarketDataBuffer, MongoMarketDataBuffer>();  
-        
+        services.AddSingleton<IMarketDataBuffer, MongoMarketDataBuffer>();
+
+        // Observer pattern: Market data tick'leri için Subject ve Observer'lar
+        services.AddSingleton<ConsoleTickObserver>();
+        services.AddSingleton<MongoBufferTickObserver>();
+        services.AddSingleton<RedisStoreTickObserver>();
+        services.AddSingleton<IMarketDataSubject>(sp =>
+        {
+            var subject = new MarketDataSubject();
+            subject.Attach(sp.GetRequiredService<ConsoleTickObserver>());
+            subject.Attach(sp.GetRequiredService<MongoBufferTickObserver>());
+            subject.Attach(sp.GetRequiredService<RedisStoreTickObserver>());
+            return subject;
+        });
+
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
 

@@ -1351,3 +1351,11 @@
 20260304-11:28:17.364 : Initiated logon request
 20260304-11:28:17.516 : Sequence numbers reset due to ResetSeqNumFlag=Y
 20260304-11:28:17.518 : Received logon
+20260305-08:24:49.659 : Created session
+20260305-08:24:49.668 : Connecting to 192.54.136.152 on port 8060
+20260305-08:24:49.861 : Connection succeeded
+20260305-08:24:49.871 : Session reset: ResetOnLogon
+20260305-08:24:49.879 : Session reset: ResetSeqNumFlag
+20260305-08:24:49.892 : Initiated logon request
+20260305-08:24:51.858 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260305-08:24:51.859 : Received logon

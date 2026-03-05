@@ -9,7 +9,7 @@ namespace FixTrading.API.Controllers;
 
 public class LatestPriceHandler
 {
-    private readonly ILatestPriceStore _latestPriceStore;
+    private readonly ILatestPriceStore _latestPriceStore;   
     private readonly IMongoLatestPriceReader _mongoReader;
 
 

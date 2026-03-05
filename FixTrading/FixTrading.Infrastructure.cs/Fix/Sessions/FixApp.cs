@@ -1,4 +1,5 @@
 using FixTrading.Application.Interfaces.MarketData;
+using FixTrading.Common.Dtos.MarketData;
 using FixTrading.Infrastructure.Fix;
 using Microsoft.Extensions.Options;
 using QuickFix;
@@ -14,8 +15,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private SessionID? _session;    // Aktif FIX oturumunu tutar
         private readonly object _lock = new object();    // Çoklu thread'lerde sembol verilerine güvenli erişim için kilit nesnesi
 
-        private readonly IMarketDataBuffer _marketDataBuffer;
-        private readonly ILatestPriceStore _latestPriceStore;
+        private readonly IMarketDataSubject _marketDataSubject;    // Observer pattern için kullanılan Subject. Yeni fiyat geldiğinde tüm Observer'lara bildirim gönderir.
         private readonly FixMarketDataOptions _fixOptions;
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
 
@@ -26,10 +26,9 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         public SessionID? CurrentSession => _session;  //dışarıdan aktif session bilgisini okumak için kullanılan property.
 
         // DI bu constructor'ı otomatik çağırır. gerekli bağımlılıkları alır ve sınıf içinde saklar.
-        public FixApp(IMarketDataBuffer marketDataBuffer, ILatestPriceStore latestPriceStore, IOptions<FixMarketDataOptions> fixOptions)
+        public FixApp(IMarketDataSubject marketDataSubject, IOptions<FixMarketDataOptions> fixOptions)
         {
-            _marketDataBuffer = marketDataBuffer;
-            _latestPriceStore = latestPriceStore;
+            _marketDataSubject = marketDataSubject;
             _fixOptions = fixOptions?.Value ?? new FixMarketDataOptions();
         }
 
@@ -230,7 +229,8 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private static string NormalizeSymbol(string symbol) => symbol.Trim().ToUpper().Replace("/", "");
 
 
-        // Verilen sembol, bid ve ask fiyatlarını ekrana yazdırır. Ayrıca, MongoDB buffer'ına ve Redis'e güncel fiyat bilgisini gönderir.
+        // Verilen sembol, bid ve ask fiyatlarını işler ve Observer pattern ile tüm dinleyicilere bildirir.
+        // (Konsol, MongoDB buffer, Redis gibi Observer'lar Notify ile bilgilendirilir)
         private void Render(string symbol, decimal? bid, decimal? ask)
         {
             symbol = NormalizeSymbol(symbol);
@@ -248,29 +248,24 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             }
 
             // 1) KONSOL: Anlık real-time akış - her tick'te hemen yazdır (Mongo'dan bağımsız)
-            var bidText = data.bid?.ToString("0.####") ?? "-";
-            var askText = data.ask?.ToString("0.####") ?? "-";
-            Console.WriteLine($"{symbol} - {bidText} / {askText}");
-
             // 2) MONGO BUFFER: 60 sn boyunca biriken tüm veriler toplu yazılacak
             // 3) REDIS: En son fiyat her tick'te güncellenir (Latest Price API için)
-            if (data.bid.HasValue && data.ask.HasValue && data.bid.Value > 0 && data.ask.Value > 0)
+            // Observer pattern: Her tick'te Subject üzerinden tüm Observer'lara bildir
+            // (Kısmi veri geldiğinde bid/ask için 0 kullanılır; Buffer ve Redis observer'ları 0 değerlerini yok sayar)
+            var bidVal = data.bid ?? 0;
+            var askVal = data.ask ?? 0;
+            var utcNow = DateTime.UtcNow;
+            var turkeyTime = utcNow + TimeSpan.FromHours(3);
+            var dto = new DtoMarketData
             {
-                try
-                {
-                    _marketDataBuffer.Add(symbol, data.bid.Value, data.ask.Value);  //Direkt mongo ya yazmadan RAM e yazıyor
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[FixApp] Buffer ekleme hatası: {ex.Message}");
-                }
-
-                _ = Task.Run(async () =>   // Arka planda Redis'e yazma işlemi yapılır. Hata olursa yakalanır ve konsola yazdırılır.
-                {
-                    try { await _latestPriceStore.SetLatestAsync(symbol, data.bid!.Value, data.ask!.Value); }
-                    catch (Exception ex) { Console.WriteLine($"[FixApp] Redis yazma hatası: {ex.Message}"); }
-                });
-            }
+                Symbol = symbol,
+                Bid = bidVal,
+                Ask = askVal,
+                Mid = (bidVal > 0 && askVal > 0) ? (bidVal + askVal) / 2 : 0,
+                Timestamp = utcNow,
+                TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
+            };
+            _marketDataSubject.Notify(dto);
         }
     }
 }
