@@ -1,5 +1,6 @@
-using FixTrading.API.Controllers;
 using FixTrading.API.BackgroundServices;
+using FixTrading.API.Controllers;
+using FixTrading.API.HealthChecks;
 using FixTrading.Common.Dtos.Instrument;
 using FixTrading.Application;
 using FixTrading.Application.Interfaces.Fix;
@@ -10,9 +11,11 @@ using FixTrading.Infrastructure.Fix.Sessions;
 using FixTrading.Infrastructure.MongoDb;
 using FixTrading.Infrastructure.Observers;
 using FixTrading.Infrastructure.Redis;
+using FixTrading.Infrastructure.Stores;
 using FixTrading.Persistence;
 using FixTrading.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -80,16 +83,21 @@ public class Startup
         // ve periyodik olarak MongoDB'ye bulk insert yapar
         services.AddSingleton<IMarketDataBuffer, MongoMarketDataBuffer>();
 
+        // In-memory last price: FIX disconnect olsa bile API son bilinen fiyatı döner
+        services.AddSingleton<IInMemoryLastPriceStore, InMemoryLastPriceStore>();
+
         // Observer pattern: Market data tick'leri için Subject ve Observer'lar
         services.AddSingleton<ConsoleTickObserver>();
         services.AddSingleton<MongoBufferTickObserver>();
         services.AddSingleton<RedisStoreTickObserver>();
+        services.AddSingleton<InMemoryLastPriceObserver>();
         services.AddSingleton<IMarketDataSubject>(sp =>
         {
             var subject = new MarketDataSubject();
             subject.Attach(sp.GetRequiredService<ConsoleTickObserver>());
             subject.Attach(sp.GetRequiredService<MongoBufferTickObserver>());
             subject.Attach(sp.GetRequiredService<RedisStoreTickObserver>());
+            subject.Attach(sp.GetRequiredService<InMemoryLastPriceObserver>());
             return subject;
         });
 
@@ -101,16 +109,28 @@ public class Startup
 
         // Arka plan FIX dinleyici servisi
         services.AddHostedService<FixListenerWorker>();
+
+        // Burada uygulamanın sağlık durumunu kontrol eden Health Check'ler eklenir
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString, name: "postgresql", tags: ["db"])   // PostgreSQL bağlantısını kontrol eder
+            .AddMongoDb(sp => sp.GetRequiredService<MongoClient>(), name: "mongodb", tags: ["db"])   // MongoDB bağlantısını kontrol eder
+            .AddRedis(sp =>      // Redis bağlantısını kontrol eder
+            {
+                var opts = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+                return opts.ConnectionString;
+            }, name: "redis", tags: ["cache"])
+            .AddCheck<FixSessionHealthCheck>("fix_session", tags: ["fix"]);    // FIX oturumunun durumunu kontrol eder 
     }
 
     // Uygulama çalışırken isteklerin nasıl ilerleyeceğini belirler
-    public void Configure(WebApplication app)
+    public void Configure(WebApplication app) 
     {
-        var urls = Configuration["ASPNETCORE_URLS"] ?? "http://localhost:5076";
+        var urls = Configuration["ASPNETCORE_URLS"] ?? "http://localhost:5076";   // Uygulamanın hangi URL'lerde dinleyeceğini belirler, yoksa varsayılan olarak localhost:5076 kullanır
         var baseUrl = urls.Split(';')[0].Trim();
         Console.WriteLine($"[API] Web sunucu: {baseUrl}");
         Console.WriteLine($"[API] Swagger: {baseUrl.TrimEnd('/')}/swagger");
         Console.WriteLine($"[API] Latest Price: {baseUrl.TrimEnd('/')}/api/LatestPrice");
+        Console.WriteLine($"[API] Health Check: {baseUrl.TrimEnd('/')}/health");
 
         if (app.Environment.IsDevelopment())
         {
@@ -119,6 +139,9 @@ public class Startup
         }
 
         app.UseAuthorization();
+
+        // Health Check endpoint: PostgreSQL, MongoDB, Redis ve FIX oturumu durumunu döner
+        app.MapHealthChecks("/health");
 
         // Instrument API: HTTP eşlemesi burada, iş Handler'da (controller yok)
 

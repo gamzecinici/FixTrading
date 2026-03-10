@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "rVC9N1FS7Pk=",
+  "dgSpecHash": "6DpFmRkzhJ0=",
   "success": true,
   "projectFilePath": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.API.cs\\FixTrading.API.cs.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\aspnetcore.healthchecks.mongodb\\9.0.0\\aspnetcore.healthchecks.mongodb.9.0.0.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\aspnetcore.healthchecks.npgsql\\9.0.0\\aspnetcore.healthchecks.npgsql.9.0.0.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\aspnetcore.healthchecks.redis\\9.0.0\\aspnetcore.healthchecks.redis.9.0.0.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",

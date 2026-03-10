@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FixTrading.Persistence")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+671a9e320a83449ddaaac62d6b422b8e30f94525")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dde800a71221342b5ca4b9f0241da6b482c322b0")]
 [assembly: System.Reflection.AssemblyProductAttribute("FixTrading.Persistence")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FixTrading.Persistence")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

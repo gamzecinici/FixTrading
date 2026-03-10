@@ -16,19 +16,21 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private readonly object _lock = new object();    // Çoklu thread'lerde sembol verilerine güvenli erişim için kilit nesnesi
 
         private readonly IMarketDataSubject _marketDataSubject;    // Observer pattern için kullanılan Subject. Yeni fiyat geldiğinde tüm Observer'lara bildirim gönderir.
+        private readonly IMarketDataBuffer _marketDataBuffer;      // FIX disconnect sırasında buffer'ı flush etmek için
         private readonly FixMarketDataOptions _fixOptions;
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
 
         private bool _firstMarketDataLogged;
         private int _marketDataMsgCount;
+        private static bool _debugLogged;
 
         
         public SessionID? CurrentSession => _session;  //dışarıdan aktif session bilgisini okumak için kullanılan property.
 
-        // DI bu constructor'ı otomatik çağırır. gerekli bağımlılıkları alır ve sınıf içinde saklar.
-        public FixApp(IMarketDataSubject marketDataSubject, IOptions<FixMarketDataOptions> fixOptions)
+        public FixApp(IMarketDataSubject marketDataSubject, IMarketDataBuffer marketDataBuffer, IOptions<FixMarketDataOptions> fixOptions)
         {
             _marketDataSubject = marketDataSubject;
+            _marketDataBuffer = marketDataBuffer;
             _fixOptions = fixOptions?.Value ?? new FixMarketDataOptions();
         }
 
@@ -44,10 +46,24 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             _session = sessionID;
         }
 
+
+        // FIX bağlantısı kapatıldığında çalışır. Buffer'daki verileri MongoDB'ye kaydeder ve session bilgisini temizler.
         public void OnLogout(SessionID sessionID)
         {
-            Console.WriteLine("FIX bağlantısı kapatıldı.");
-            _session = null;
+            try
+            {
+                Console.WriteLine("FIX bağlantısı kapatıldı.");
+                _marketDataBuffer.Flush();
+                Console.WriteLine("[FIX] MongoDB buffer flush edildi (son veriler kaydedildi).");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FixApp] OnLogout buffer flush hatası: {ex.Message}");
+            }
+            finally
+            {
+                _session = null;
+            }
         }
 
         public void ToAdmin(Message message, SessionID sessionID)
@@ -113,15 +129,17 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             request.Set(new MDUpdateType(0));
             request.Set(new AggregatedBook(true));   
 
-            var bidGroup =         // BID (alış) fiyatlarını istemek için grup oluşturulur
-                new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
-            bidGroup.SetField(new MDEntryType(MDEntryType.BID));   // Bu grup, sadece BID fiyatlarını içerecek şekilde yapılandırılır
+            var bidGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+            bidGroup.SetField(new MDEntryType(MDEntryType.BID));
             request.AddGroup(bidGroup);
 
-            var askGroup =         // OFFER (satış) fiyatlarını istemek için grup oluşturulur
-                new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+            var askGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
             askGroup.SetField(new MDEntryType(MDEntryType.OFFER));
             request.AddGroup(askGroup);
+
+            var tradeGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+            tradeGroup.SetField(new MDEntryType(MDEntryType.TRADE));
+            request.AddGroup(tradeGroup);
 
             var symbolGroup =     // Hangi sembol için veri isteneceğini belirten grup
                 new QuickFix.FIX44.MarketDataRequest.NoRelatedSymGroup();
@@ -139,7 +157,10 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             SessionID sessionID)
         {
             if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; Console.WriteLine("[FIX] İlk MarketDataSnapshotFullRefresh (W) alındı."); }
-            ProcessMarketData(message.GetString(Tags.Symbol), message);
+            var symbol = message.IsSetField(Tags.Symbol) ? message.GetString(Tags.Symbol)
+                : message.IsSetField(Tags.SecurityID) ? message.GetString(Tags.SecurityID)
+                : "";
+            ProcessMarketData(symbol, message);
         }
 
         public void OnMessage(QuickFix.FIX44.MarketDataRequestReject message, SessionID sessionID)
@@ -177,30 +198,53 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         {
             decimal? bid = null;
             decimal? ask = null;
+            decimal? trade = null;
 
-            int count = message.GetInt(Tags.NoMDEntries);
-
-            // Her fiyat kaydını tek tek işle
-            for (int i = 1; i <= count; i++)
+            try
             {
-                var group =
-                    new QuickFix.FIX44
-                    .MarketDataSnapshotFullRefresh
-                    .NoMDEntriesGroup();   //Bu mesajın içinde kaç tane fiyat kaydı var?
+                if (!message.IsSetField(Tags.NoMDEntries))
+                {
+                    if (!_debugLogged) { _debugLogged = true; Console.WriteLine("[FIX] DEBUG: NoMDEntries yok. Raw: " + message.ToString().Replace('\x01', '|').Substring(0, Math.Min(300, message.ToString().Length))); }
+                    Render(symbol, null, null);
+                    return;
+                }
+                int count = message.GetInt(Tags.NoMDEntries);
+                if (count <= 0)
+                {
+                    if (!_debugLogged) { _debugLogged = true; Console.WriteLine($"[FIX] DEBUG: NoMDEntries=0, Symbol={symbol}"); }
+                    Render(symbol, null, null);
+                    return;
+                }
 
-                message.GetGroup(i, group);
+                for (int i = 1; i <= count; i++)
+                {
+                    var group = new QuickFix.FIX44.MarketDataSnapshotFullRefresh.NoMDEntriesGroup();
+                    message.GetGroup(i, group);
+                    if (!_debugLogged && i == 1)
+                    {
+                        _debugLogged = true;
+                        try
+                        {
+                            var hasType = group.IsSetField(Tags.MDEntryType);
+                            var hasPx = group.IsSetField(Tags.MDEntryPx);
+                            var typeVal = hasType ? ((int)group.GetChar(Tags.MDEntryType)).ToString() : "yok";
+                            var pxVal = hasPx ? group.GetDecimal(Tags.MDEntryPx).ToString() : "yok";
+                            Console.WriteLine($"[FIX] DEBUG: NoMDEntries={count}, Symbol={symbol}, MDEntryType(269)={typeVal}, MDEntryPx(270)={pxVal}");
+                        }
+                        catch { }
+                    }
+                    ParseMdEntry(group, ref bid, ref ask, ref trade);
+                }
 
-                var type = group.GetChar(Tags.MDEntryType);
-                var price = group.GetDecimal(Tags.MDEntryPx);
-
-                if (type == MDEntryType.BID)
-                    bid = price;
-
-                if (type == MDEntryType.OFFER)
-                    ask = price;
+                ApplyTradeFallback(ref bid, ref ask, trade);
+            }
+            catch (Exception ex)
+            {
+                if (!_debugLogged) { _debugLogged = true; Console.WriteLine($"[FixApp] ProcessMarketData hatası: {ex.Message}\n{ex.StackTrace}"); }
+                else Console.WriteLine($"[FixApp] ProcessMarketData: {ex.Message}");
             }
 
-            Render(symbol, bid, ask);             // İşlenen veriyi ekrana yazdır
+            Render(symbol, bid, ask);
         }
 
 
@@ -209,20 +253,43 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         {
             decimal? bid = null;
             decimal? ask = null;
+            decimal? trade = null;
 
-            var type = group.GetChar(Tags.MDEntryType);
+            try
+            {
+                ParseMdEntry(group, ref bid, ref ask, ref trade);
+                ApplyTradeFallback(ref bid, ref ask, trade);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FixApp] ProcessGroup hatası: {ex.Message}");
+            }
+
+            Render(symbol, bid, ask);
+        }
+
+        private static void ParseMdEntry(Group group, ref decimal? bid, ref decimal? ask, ref decimal? trade)
+        {
+            if (!group.IsSetField(Tags.MDEntryPx)) return;
             var price = group.GetDecimal(Tags.MDEntryPx);
+            if (price <= 0) return;
 
-            // Bid güncellendiyse
+            if (!group.IsSetField(Tags.MDEntryType)) return;
+            var type = group.GetChar(Tags.MDEntryType);
+
             if (type == MDEntryType.BID)
                 bid = price;
-
-            // Ask güncellendiyse
-            if (type == MDEntryType.OFFER)
+            else if (type == MDEntryType.OFFER)
                 ask = price;
+            else if (type == MDEntryType.TRADE)
+                trade = price;
+        }
 
-            // Güncel fiyatı ekrana yansıt
-            Render(symbol, bid, ask);
+        private static void ApplyTradeFallback(ref decimal? bid, ref decimal? ask, decimal? trade)
+        {
+            if (trade == null) return;
+            if (bid == null) bid = trade;
+            if (ask == null) ask = trade;
         }
 
         // Sembolü normalize eder: boşlukları kaldırır, büyük harfe çevirir, slash'ları kaldırır
@@ -250,8 +317,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             // 1) KONSOL: Anlık real-time akış - her tick'te hemen yazdır (Mongo'dan bağımsız)
             // 2) MONGO BUFFER: 60 sn boyunca biriken tüm veriler toplu yazılacak
             // 3) REDIS: En son fiyat her tick'te güncellenir (Latest Price API için)
-            // Observer pattern: Her tick'te Subject üzerinden tüm Observer'lara bildir
-            // (Kısmi veri geldiğinde bid/ask için 0 kullanılır; Buffer ve Redis observer'ları 0 değerlerini yok sayar)
+
             var bidVal = data.bid ?? 0;
             var askVal = data.ask ?? 0;
             var utcNow = DateTime.UtcNow;
@@ -265,7 +331,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 Timestamp = utcNow,
                 TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
             };
-            _marketDataSubject.Notify(dto);
+            _marketDataSubject.Notify(dto);        // Yeni fiyat geldiğinde tüm Observer'lara bildirim gönderilir
         }
     }
 }

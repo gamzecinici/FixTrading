@@ -53,6 +53,12 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
         _buffer.Add(dto);
     }
 
+    // Buffer'daki verileri hemen kalıcı depoya yazar. FIX disconnect sırasında son verilerin kaybolmaması için çağrılır.
+    public void Flush()
+    {
+        FlushBuffer(null);
+    }
+
     // 60 sn dolunca buffer'daki TÜM verileri alıp MongoDB'ye toplu yazar
     private void FlushBuffer(object? _)
     {

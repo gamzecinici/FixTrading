@@ -4,9 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FixTrading.Application;
 
-/// <summary>
-/// servisleri DI container'a kaydeder.
-/// </summary>
+//Bu sınıf, Application katmanındaki servislerin Dependency Injection (DI) konteynerine kaydedilmesi için kullanılır.
 public static class ApplicationServiceRegistration
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
