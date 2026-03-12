@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
+using FixTrading.Common.Pricing;
 
 namespace FixTrading.Infrastructure.Stores;
 
@@ -24,7 +25,8 @@ public class InMemoryLastPriceStore : IInMemoryLastPriceStore
             Symbol = symbol,
             Bid = bid,
             Ask = ask,
-            Mid = (bid + ask) / 2,
+            Mid = PricingCalculator.Mid(bid, ask),                   // Mid fiyatı hesaplanır
+            Spread = PricingCalculator.Spread(bid, ask),            // Spread hesaplanır
             Timestamp = utcNow,
             TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
         };

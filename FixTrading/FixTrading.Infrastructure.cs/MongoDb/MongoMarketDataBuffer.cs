@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
+using FixTrading.Common.Pricing;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
@@ -40,12 +41,14 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
         var utcNow = DateTime.UtcNow;
         var turkeyTime = utcNow + TurkeyOffset;
 
+        var (mid, spread) = PricingCalculator.FromBidAsk(bid, ask);
         var dto = new DtoMarketData
         {
             Symbol = symbol,
             Bid = bid,
             Ask = ask,
-            Mid = (bid + ask) / 2,
+            Mid = mid,
+            Spread = spread,
             Timestamp = utcNow,
             TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
         };
@@ -94,9 +97,7 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
     }
 }
 
-/// <summary>
-/// appsettings'ten okunan Mongo ayarları.
-/// </summary>
+// MongoDB bağlantı bilgilerini ve buffer ayarlarını tutan sınıf. appsettings.json'dan bu değerler okunur ve DI container'a aktarılır.
 public class MongoMarketDataOptions
 {
     public const string SectionName = "MongoMarketData";

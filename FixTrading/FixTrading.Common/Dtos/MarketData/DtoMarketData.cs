@@ -16,6 +16,9 @@ public class DtoMarketData
     // Orta fiyat (Bid + Ask) / 2
     public decimal Mid { get; set; }
 
+    // Spread (Ask - Bid)
+    public decimal Spread { get; set; }
+
     // UTC zaman damgası (DB sorgu ve sıralama için kullanılır)
     public DateTime Timestamp { get; set; }
 

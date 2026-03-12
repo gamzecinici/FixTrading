@@ -55,6 +55,7 @@ public class LatestPriceHandler
         return await _inMemoryStore.GetLatestAsync(symbol);
     }
 
+    // Bu metod, tüm sembollerin en son fiyat bilgilerini döndürür.
     public async Task<List<DtoMarketData>> GetAllLatestAsync()
     {
         try

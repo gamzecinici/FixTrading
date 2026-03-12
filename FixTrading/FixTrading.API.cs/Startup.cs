@@ -14,6 +14,7 @@ using FixTrading.Infrastructure.Redis;
 using FixTrading.Infrastructure.Stores;
 using FixTrading.Persistence;
 using FixTrading.Persistence.Repositories;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -141,7 +142,35 @@ public class Startup
         app.UseAuthorization();
 
         // Health Check endpoint: PostgreSQL, MongoDB, Redis ve FIX oturumu durumunu döner
-        app.MapHealthChecks("/health");
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                var status = report.Status;    //Report: HealthCheck'lerin genel durumunu verir (Healthy, Unhealthy, Degraded)
+                string message;                //Status:Sistemin genel durumu
+                if (status == HealthStatus.Healthy)
+                {
+                    message = "Healthy";
+                }
+                else
+                {
+                    var names = report.Entries  //HealthCheck'lerin detaylarını verir, her bir check'in adı ve durumu içerir
+                        .Where(e => e.Value.Status == HealthStatus.Unhealthy)
+                        .Select(e => e.Key switch
+                        {
+                            "mongodb" => "MongoDB",
+                            "redis" => "Redis",
+                            "fix_session" => "FIX",
+                            "postgresql" => "PostgreSQL",
+                            _ => e.Key
+                        });
+                    message = "Unhealthy - " + string.Join(", ", names);
+                }
+                context.Response.StatusCode = status == HealthStatus.Healthy ? 200 : 503;
+                await context.Response.WriteAsync(message);
+            }
+        });
 
         // Instrument API: HTTP eşlemesi burada, iş Handler'da (controller yok)
 

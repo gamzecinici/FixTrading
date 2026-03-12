@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
+using FixTrading.Common.Pricing;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -39,12 +40,14 @@ public class RedisLatestPriceStore : ILatestPriceStore
         var utcNow = DateTime.UtcNow;
         var turkeyTime = utcNow + TurkeyOffset;
 
+        var (mid, spread) = PricingCalculator.FromBidAsk(bid, ask);
         var dto = new DtoMarketData
         {
             Symbol = symbol,
             Bid = bid,
             Ask = ask,
-            Mid = (bid + ask) / 2,
+            Mid = mid,
+            Spread = spread,
             Timestamp = utcNow,
             TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
         };

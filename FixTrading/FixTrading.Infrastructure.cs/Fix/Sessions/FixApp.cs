@@ -1,5 +1,6 @@
 using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
+using FixTrading.Common.Pricing;
 using FixTrading.Infrastructure.Fix;
 using Microsoft.Extensions.Options;
 using QuickFix;
@@ -320,6 +321,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
             var bidVal = data.bid ?? 0;
             var askVal = data.ask ?? 0;
+            var (mid, spread) = PricingCalculator.FromBidAsk(bidVal, askVal);   // Mid ve spread hesaplanır
             var utcNow = DateTime.UtcNow;
             var turkeyTime = utcNow + TimeSpan.FromHours(3);
             var dto = new DtoMarketData
@@ -327,7 +329,8 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 Symbol = symbol,
                 Bid = bidVal,
                 Ask = askVal,
-                Mid = (bidVal > 0 && askVal > 0) ? (bidVal + askVal) / 2 : 0,
+                Mid = mid,
+                Spread = spread,
                 Timestamp = utcNow,
                 TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
             };
