@@ -2,6 +2,7 @@ using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
 using FixTrading.Common.Pricing;
 using FixTrading.Infrastructure.Fix;
+using FixTrading.Infrastructure.Observers;
 using Microsoft.Extensions.Options;
 using QuickFix;
 using QuickFix.Fields;
@@ -16,23 +17,38 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private SessionID? _session;    // Aktif FIX oturumunu tutar
         private readonly object _lock = new object();    // Çoklu thread'lerde sembol verilerine güvenli erişim için kilit nesnesi
 
-        private readonly IMarketDataSubject _marketDataSubject;    // Observer pattern için kullanılan Subject. Yeni fiyat geldiğinde tüm Observer'lara bildirim gönderir.
+        private readonly ConsoleTickObserver _consoleTickObserver;
+        private readonly MongoBufferTickObserver _mongoBufferTickObserver;
+        private readonly RedisStoreTickObserver _redisStoreTickObserver;
+        private readonly InMemoryLastPriceObserver _inMemoryLastPriceObserver;
         private readonly IMarketDataBuffer _marketDataBuffer;      // FIX disconnect sırasında buffer'ı flush etmek için
+        private readonly IPricingAlertChecker _pricingAlertChecker;
         private readonly FixMarketDataOptions _fixOptions;
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
+        private readonly Dictionary<string, string> _mdReqIdToSymbol = new();  // MDReqID -> Symbol (X mesajlarında grup içinde olmayabiliyor)
 
         private bool _firstMarketDataLogged;
-        private int _marketDataMsgCount;
         private static bool _debugLogged;
 
         
         public SessionID? CurrentSession => _session;  //dışarıdan aktif session bilgisini okumak için kullanılan property.
 
-        public FixApp(IMarketDataSubject marketDataSubject, IMarketDataBuffer marketDataBuffer, IOptions<FixMarketDataOptions> fixOptions)
+        public FixApp(
+            IMarketDataBuffer marketDataBuffer,
+            IPricingAlertChecker pricingAlertChecker,
+            IOptions<FixMarketDataOptions> fixOptions,
+            ConsoleTickObserver consoleTickObserver,
+            MongoBufferTickObserver mongoBufferTickObserver,
+            RedisStoreTickObserver redisStoreTickObserver,
+            InMemoryLastPriceObserver inMemoryLastPriceObserver)
         {
-            _marketDataSubject = marketDataSubject;
             _marketDataBuffer = marketDataBuffer;
+            _pricingAlertChecker = pricingAlertChecker;
             _fixOptions = fixOptions?.Value ?? new FixMarketDataOptions();
+            _consoleTickObserver = consoleTickObserver;
+            _mongoBufferTickObserver = mongoBufferTickObserver;
+            _redisStoreTickObserver = redisStoreTickObserver;
+            _inMemoryLastPriceObserver = inMemoryLastPriceObserver;
         }
 
 
@@ -64,6 +80,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             finally
             {
                 _session = null;
+                lock (_mdReqIdToSymbol) { _mdReqIdToSymbol.Clear(); }
             }
         }
 
@@ -85,14 +102,6 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         {
             try
             {
-                var msgType = message.Header.GetString(Tags.MsgType);
-                if (msgType == "W" || msgType == "X")
-                {
-                    if (++_marketDataMsgCount <= 5)
-                        Console.WriteLine($"[FIX] Market data mesajı #{_marketDataMsgCount}: MsgType={msgType}");
-                }
-                else
-                    Console.WriteLine($"[FIX] Gelen mesaj: MsgType={msgType}");
                 Crack(message, sessionID);
             }
             catch (QuickFix.UnsupportedMessageType)
@@ -120,8 +129,9 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
 
             // Market data request oluşturulur
+            var mdReqId = Guid.NewGuid().ToString();
             var request = new QuickFix.FIX44.MarketDataRequest(
-                new MDReqID(Guid.NewGuid().ToString()),   // Her istek için benzersiz bir ID oluşturulur
+                new MDReqID(mdReqId),
                 new SubscriptionRequestType(    // İstek tipi: önce tam snapshot, sonra güncellemeler
                     SubscriptionRequestType.SNAPSHOT_PLUS_UPDATES),
                 new MarketDepth(1)    // Sadece en iyi fiyatları (top of book) istemek için derinlik 1 olarak ayarlanır
@@ -147,7 +157,11 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             symbolGroup.SetField(new Symbol(fixSymbol));
             request.AddGroup(symbolGroup);
 
-            Console.WriteLine($"Subscribe gönderildi: {fixSymbol}");
+            lock (_mdReqIdToSymbol)
+            {
+                _mdReqIdToSymbol[mdReqId] = NormalizeSymbol(fixSymbol);
+            }
+
 
             Session.SendToTarget(request, _session);         // FIX mesajı aktif session üzerinden server'a gönderilir
         }
@@ -157,10 +171,16 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             QuickFix.FIX44.MarketDataSnapshotFullRefresh message,
             SessionID sessionID)
         {
-            if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; Console.WriteLine("[FIX] İlk MarketDataSnapshotFullRefresh (W) alındı."); }
+            if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; }
             var symbol = message.IsSetField(Tags.Symbol) ? message.GetString(Tags.Symbol)
                 : message.IsSetField(Tags.SecurityID) ? message.GetString(Tags.SecurityID)
                 : "";
+            symbol = NormalizeSymbol(symbol);
+            if (!string.IsNullOrEmpty(symbol) && message.IsSetField(Tags.MDReqID))
+            {
+                var mdReqId = message.GetString(Tags.MDReqID);
+                lock (_mdReqIdToSymbol) { _mdReqIdToSymbol[mdReqId] = symbol; }
+            }
             ProcessMarketData(symbol, message);
         }
 
@@ -177,9 +197,23 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             QuickFix.FIX44.MarketDataIncrementalRefresh message,
             SessionID sessionID)
         {
-            if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; Console.WriteLine("[FIX] İlk MarketDataIncrementalRefresh (X) alındı."); }
+            if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; }
             int count = message.GetInt(Tags.NoMDEntries);
 
+            string? symbolFromMessage = null;
+            if (message.IsSetField(Tags.Symbol))
+                symbolFromMessage = NormalizeSymbol(message.GetString(Tags.Symbol));
+            else if (message.IsSetField(Tags.MDReqID))
+            {
+                var mdReqId = message.GetString(Tags.MDReqID);
+                lock (_mdReqIdToSymbol)
+                {
+                    _mdReqIdToSymbol.TryGetValue(mdReqId, out symbolFromMessage);
+                }
+            }
+
+            decimal? accBid = null, accAsk = null, accTrade = null;
+            var sym = symbolFromMessage ?? "";
             for (int i = 1; i <= count; i++)
             {
                 var group =
@@ -189,8 +223,30 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
                 message.GetGroup(i, group);
 
-                var symbol = group.GetString(Tags.Symbol);
-                ProcessGroup(symbol, group);
+                var symbol = group.IsSetField(Tags.Symbol)
+                    ? NormalizeSymbol(group.GetString(Tags.Symbol))
+                    : symbolFromMessage ?? "";
+                if (!string.IsNullOrEmpty(symbol)) sym = symbol;
+
+                if (string.IsNullOrEmpty(sym)) continue;
+
+                decimal? bid = null, ask = null, trade = null;
+                try
+                {
+                    ParseMdEntry(group, ref bid, ref ask, ref trade);
+                    accBid = bid ?? accBid;
+                    accAsk = ask ?? accAsk;
+                    accTrade = trade ?? accTrade;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[FixApp] ProcessGroup hatası: {ex.Message}");
+                }
+            }
+            if (!string.IsNullOrEmpty(sym))
+            {
+                ApplyTradeFallback(ref accBid, ref accAsk, accTrade);
+                Render(sym, accBid, accAsk);
             }
         }
 
@@ -315,13 +371,9 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 data = _symbols[symbol];
             }
 
-            // 1) KONSOL: Anlık real-time akış - her tick'te hemen yazdır (Mongo'dan bağımsız)
-            // 2) MONGO BUFFER: 60 sn boyunca biriken tüm veriler toplu yazılacak
-            // 3) REDIS: En son fiyat her tick'te güncellenir (Latest Price API için)
-
             var bidVal = data.bid ?? 0;
             var askVal = data.ask ?? 0;
-            var (mid, spread) = PricingCalculator.FromBidAsk(bidVal, askVal);   // Mid ve spread hesaplanır
+            var (mid, spread) = PricingCalculator.FromBidAsk(bidVal, askVal);
             var utcNow = DateTime.UtcNow;
             var turkeyTime = utcNow + TimeSpan.FromHours(3);
             var dto = new DtoMarketData
@@ -334,7 +386,21 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 Timestamp = utcNow,
                 TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
             };
-            _marketDataSubject.Notify(dto);        // Yeni fiyat geldiğinde tüm Observer'lara bildirim gönderilir
+
+            // Konsol: her tick (limit ihlali ayrimi yok; akis izleme)
+            _consoleTickObserver.OnTick(dto);
+
+            var breach = _pricingAlertChecker.CheckAndLogIfBreach(dto);
+
+            // Mongo market pipeline: bozuk veri dahil devam (alerts collection ayri)
+            _mongoBufferTickObserver.OnTick(dto);
+
+            // Redis + in-memory: sadece limit icindeki (dogru) veri; ihlalde onceki dogru deger korunur
+            if (!breach)
+            {
+                _redisStoreTickObserver.OnTick(dto);
+                _inMemoryLastPriceObserver.OnTick(dto);
+            }
         }
     }
 }

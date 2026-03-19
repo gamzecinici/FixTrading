@@ -26,7 +26,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
     // Constructor, Redis bağlantısı ve ayarları alır
     public RedisLatestPriceStore(IConnectionMultiplexer redis, IOptions<RedisOptions> options)
     {
-        _db = redis.GetDatabase();
+        _db = redis.GetDatabase();  
         _options = options.Value;
     }
 

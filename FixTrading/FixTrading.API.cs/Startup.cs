@@ -8,8 +8,10 @@ using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Domain.Interfaces;
 using FixTrading.Infrastructure.Fix;
 using FixTrading.Infrastructure.Fix.Sessions;
+using FixTrading.Infrastructure.Email;
 using FixTrading.Infrastructure.MongoDb;
 using FixTrading.Infrastructure.Observers;
+using FixTrading.Infrastructure.Pricing;
 using FixTrading.Infrastructure.Redis;
 using FixTrading.Infrastructure.Stores;
 using FixTrading.Persistence;
@@ -50,6 +52,14 @@ public class Startup
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddScoped<IInstrumentRepository, InstrumentRepository>();
+        services.AddScoped<IPricingLimitsRepository, PricingLimitsRepository>();
+
+        // Pricing limits cache (singleton) ve alert mekanizması
+        services.AddSingleton<PricingLimitsCache>();
+        services.AddSingleton<IPricingLimitsProvider>(sp => sp.GetRequiredService<PricingLimitsCache>());
+        services.AddSingleton<IPricingLimitsCache>(sp => sp.GetRequiredService<PricingLimitsCache>());
+        services.AddSingleton<IAlertStore, MongoAlertStore>();
+        services.AddSingleton<IPricingAlertChecker, PricingAlertChecker>();
 
         // appsettings.json dosyasındaki "MongoMarketData" ayarlarını okur
         // ve bu ayarları MongoMarketDataOptions sınıfına aktarır
@@ -59,6 +69,11 @@ public class Startup
             Configuration.GetSection(MongoMarketDataOptions.SectionName));
         services.Configure<RedisOptions>(      // Redis ayarlarını okur
             Configuration.GetSection(RedisOptions.SectionName));
+        services.Configure<EmailAlertOptions>(
+            Configuration.GetSection(EmailAlertOptions.SectionName));
+
+        // E-posta alert bildirimi
+        services.AddSingleton<IAlertNotifier, EmailAlertNotifier>();
 
         // Redis bağlantısı (abortConnect: false = Redis yoksa uygulama yine de başlar)
         services.AddSingleton<IConnectionMultiplexer>(sp =>
@@ -92,15 +107,6 @@ public class Startup
         services.AddSingleton<MongoBufferTickObserver>();
         services.AddSingleton<RedisStoreTickObserver>();
         services.AddSingleton<InMemoryLastPriceObserver>();
-        services.AddSingleton<IMarketDataSubject>(sp =>
-        {
-            var subject = new MarketDataSubject();
-            subject.Attach(sp.GetRequiredService<ConsoleTickObserver>());
-            subject.Attach(sp.GetRequiredService<MongoBufferTickObserver>());
-            subject.Attach(sp.GetRequiredService<RedisStoreTickObserver>());
-            subject.Attach(sp.GetRequiredService<InMemoryLastPriceObserver>());
-            return subject;
-        });
 
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
@@ -110,6 +116,7 @@ public class Startup
 
         // Arka plan FIX dinleyici servisi
         services.AddHostedService<FixListenerWorker>();
+        services.AddHostedService<PricingLimitsCacheRefreshWorker>();
 
         // Burada uygulamanın sağlık durumunu kontrol eden Health Check'ler eklenir
         services.AddHealthChecks()
@@ -230,6 +237,25 @@ public class Startup
         {
             var price = await handler.GetLatestAsync(symbol);
             return price is null ? Results.NotFound(new { message = $"Sembol bulunamadı: {symbol}" }) : Results.Ok(price);
+        });
+
+        // Limit simülasyonu: Veritabanındaki limitleri değiştirmeden "bu mid/spread ile alert tetiklenir mi?" testi.
+        // Hiçbir yere yazmaz; sadece mevcut limitlere göre sonuç döner.
+        app.MapGet("/api/Alerts/Simulate", (IPricingLimitsProvider limitsProvider, string symbol, decimal mid, decimal spread) =>
+        {
+            symbol = symbol.Trim().ToUpper().Replace("/", "");
+            var limit = limitsProvider.GetLimit(symbol);
+            if (limit == null)
+                return Results.NotFound(new { wouldAlert = false, message = $"Sembol için limit tanımlı değil: {symbol}" });
+
+            if (mid < limit.MinMid)
+                return Results.Ok(new { wouldAlert = true, type = "MID_TOO_LOW", value = mid, limitValue = limit.MinMid, message = $"mid ({mid}) < min_mid ({limit.MinMid})" });
+            if (mid > limit.MaxMid)
+                return Results.Ok(new { wouldAlert = true, type = "MID_TOO_HIGH", value = mid, limitValue = limit.MaxMid, message = $"mid ({mid}) > max_mid ({limit.MaxMid})" });
+            if (spread > limit.MaxSpread)
+                return Results.Ok(new { wouldAlert = true, type = "SPREAD_LIMIT", value = spread, limitValue = limit.MaxSpread, message = $"spread ({spread}) > max_spread ({limit.MaxSpread})" });
+
+            return Results.Ok(new { wouldAlert = false, message = "Limitler içinde", limit = new { limit.MinMid, limit.MaxMid, limit.MaxSpread } });
         });
     }
 }

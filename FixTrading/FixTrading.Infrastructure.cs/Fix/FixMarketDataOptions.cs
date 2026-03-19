@@ -10,4 +10,7 @@ public class FixMarketDataOptions
     // true  => EURUSD yerine EUR/USD gönderilir
     // false => EURUSD olarak gönderilir
     public bool UseSlashSymbolFormat { get; set; } = true;
+
+    /// <summary>Logon sonrası subscribe öncesi beklenecek saniye (birçok FIX sunucu bu süreye ihtiyaç duyar).</summary>
+    public int PostLogonDelaySeconds { get; set; } = 3;
 }

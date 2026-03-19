@@ -1,6 +1,38 @@
 [
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_8",
+    "RelativePath": "api/Alerts/Simulate",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "symbol",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "mid",
+        "Type": "System.Decimal",
+        "IsRequired": true
+      },
+      {
+        "Name": "spread",
+        "Type": "System.Decimal",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
     "Method": "\u003CConfigure\u003Eb__5_2",
     "RelativePath": "api/Instrument/{id:guid}",
     "HttpMethod": "GET",

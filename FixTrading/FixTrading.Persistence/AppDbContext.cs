@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using FixTrading.Common.Dtos.Instrument;
 using FixTrading.Common.Dtos.Trade;
+using FixTrading.Persistence.Entities;
 
 namespace FixTrading.Persistence;
 
@@ -19,12 +20,14 @@ public class AppDbContext : DbContext
     //DbSet, Entity Framework Core'da bir tabloyu temsil eder. DtoTrade sınıfı, veritabanındaki Trade tablosunun yapısını tanımlar.
     public DbSet<DtoTrade> Trades { get; set; } = null!;
 
+    public DbSet<PricingLimitEntity> PricingLimits { get; set; } = null!;
 
     //OnModelCreating metodu, Entity Framework Core tarafından veritabanı modeli oluşturulurken çağrılır.
     //Bu metodun içinde, model yapılandırmalarını uygulamak için ApplyConfigurationsFromAssembly kullanılır.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        // IEntityTypeConfiguration sınıfları (örn. PricingLimitConfiguration) uygulanır
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }

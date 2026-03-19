@@ -76,7 +76,8 @@ public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
         try
         {
             _collection.InsertMany(snapshot, new InsertManyOptions { IsOrdered = false });
-            Console.WriteLine($"[MongoMarketData] {snapshot.Count} kayıt yazıldı.");
+            var time = DateTime.UtcNow.Add(TimeSpan.FromHours(3)).ToString("HH:mm:ss");
+            Console.WriteLine($"[MongoMarketData] {snapshot.Count} kayıt MongoDB'ye toplu yazıldı. ({time})");
         }
         catch (Exception ex)
         {

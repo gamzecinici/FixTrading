@@ -1,17 +1,33 @@
 using FixTrading.API;
 
+// Konsol çıktısının hemen görünmesi için
+Console.Out.Flush();
+Console.WriteLine("[FixTrading] Uygulama başlatılıyor...");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Startup üzerinden servisleri kaydet
 var startup = new Startup(builder.Configuration);
 startup.ConfigureServices(builder.Services);
 
-builder.Logging.ClearProviders();
+// Varsayılan logları koru; sadece console ekleyerek tüm çıktıların görünmesini sağla
 builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-var app = builder.Build();
+WebApplication app;
+try
+{
+    app = builder.Build();
+}
+catch (Exception ex)
+{
+    Console.WriteLine("[FixTrading] Uygulama oluşturulurken hata: " + ex.Message);
+    Console.WriteLine(ex.StackTrace);
+    throw;
+}
 
 // Startup üzerinden pipeline'ı yapılandır
 startup.Configure(app);
 
+Console.WriteLine("[FixTrading] Web sunucu başlıyor.");
 app.Run();

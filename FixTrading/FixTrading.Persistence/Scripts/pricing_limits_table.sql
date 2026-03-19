@@ -1,0 +1,4 @@
+-- pricing_limits tablosu (PostgreSQL) - mevcut şema
+-- Tablo: id (PK), instrument_id (FK -> instruments.id), min_mid, max_mid, max_spread, record_date, record_user, record_create_date
+-- Uygulama instruments tablosu ile join yaparak sembol bazlı limit okur.
+-- Bu script sadece referans içindir; tablo zaten bu yapıda ise kullanmayın.

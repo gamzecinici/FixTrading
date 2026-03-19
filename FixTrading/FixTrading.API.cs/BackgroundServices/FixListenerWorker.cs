@@ -1,7 +1,9 @@
 using FixTrading.Application.Interfaces.Fix;
+using FixTrading.Infrastructure.Fix;
 using FixTrading.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace FixTrading.API.BackgroundServices;
 
@@ -10,12 +12,13 @@ public class FixListenerWorker : BackgroundService
 {
     private readonly IFixSession _fixSession;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly FixMarketDataOptions _fixOptions;
 
-    // Constructor, IFixSession ve IServiceScopeFactory bağımlılıklarını alır.
-    public FixListenerWorker(IFixSession fixSession, IServiceScopeFactory scopeFactory)
+    public FixListenerWorker(IFixSession fixSession, IServiceScopeFactory scopeFactory, IOptions<FixMarketDataOptions> fixOptions)
     {
         _fixSession = fixSession;
         _scopeFactory = scopeFactory;
+        _fixOptions = fixOptions.Value;
     }
 
 
@@ -33,25 +36,35 @@ public class FixListenerWorker : BackgroundService
             // Bağlantı kurulana kadar bekle (max 10 dakika, sonra arka planda tekrar dener)
             var waitCount = 0;
             const int maxWaitSeconds = 600; // 10 dakika
+            var lastLogMinute = -1;
             while (!_fixSession.IsConnected && !stoppingToken.IsCancellationRequested && waitCount * 500 < maxWaitSeconds * 1000)
             {
                 await Task.Delay(500, stoppingToken);
                 waitCount++;
-                if (waitCount % 6 == 0)
-                    Console.WriteLine("[FIX] Sunucuya bağlantı bekleniyor... (fix.cfg: SocketConnectHost/Port kontrol edin)");
+                var elapsedSec = (waitCount * 500) / 1000;
+                var elapsedMin = elapsedSec / 60;
+                if (elapsedMin > lastLogMinute && elapsedMin >= 1)
+                {
+                    lastLogMinute = elapsedMin;
+                    Console.WriteLine($"[FIX] Bağlantı bekleniyor ({elapsedMin} dk)...");
+                }
             }
 
             if (stoppingToken.IsCancellationRequested) return;
 
             if (!_fixSession.IsConnected)
             {
-                Console.WriteLine("[FIX] Bağlantı zaman aşımı. Arka planda bağlantı bekleniyor, bağlanınca otomatik subscribe yapılacak.");
+                Console.WriteLine("[FIX] Bağlantı kurulamadı. Arka planda her 15 sn denenecek; bağlanınca otomatik subscribe yapılacak.");
+                Console.WriteLine("[FIX] API (LatestPrice, Alerts/Simulate) FIX olmadan da kullanılabilir.");
                 _ = DeferredSubscribeWhenConnectedAsync(stoppingToken);
                 await Task.Delay(Timeout.Infinite, stoppingToken);
                 return;
             }
 
             Console.WriteLine("FIX bağlantısı hazır.");
+            var delaySec = Math.Max(0, _fixOptions.PostLogonDelaySeconds);
+            if (delaySec > 0)
+                await Task.Delay(TimeSpan.FromSeconds(delaySec), stoppingToken);
             await SubscribeInstrumentsAsync(stoppingToken);
 
             await Task.Delay(Timeout.Infinite, stoppingToken);
@@ -64,6 +77,9 @@ public class FixListenerWorker : BackgroundService
         {
             Console.WriteLine("FIX Worker hata verdi:");
             Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            // Worker düşmesin, sonsuz bekleyerek process kalsın
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
     }
 
@@ -71,24 +87,27 @@ public class FixListenerWorker : BackgroundService
     // Bu metod, veritabanından sembolleri okuyup FIX oturumuna subscribe eder.
     private async Task SubscribeInstrumentsAsync(CancellationToken stoppingToken)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        var symbols = await dbContext.Instruments
-            .AsNoTracking()
-            .Select(i => i.Symbol.Trim())
-            .Where(s => s != "")
-            .Distinct()
-            .ToListAsync(stoppingToken);
-
-        Console.WriteLine($"[FIX] instruments tablosundan {symbols.Count} sembol okundu.");
-        if (symbols.Count == 0)
-            Console.WriteLine("[FIX] UYARI: instruments tablosu boş - subscribe gönderilmeyecek, market data gelmez.");
-
-        foreach (var symbol in symbols)
+        try
         {
-            Console.WriteLine($"Instrument tablosundan subscribe: {symbol}");
-            _fixSession.Subscribe(symbol);
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var symbols = await dbContext.Instruments
+                .AsNoTracking()
+                .Select(i => i.Symbol.Trim())
+                .Where(s => s != "")
+                .Distinct()
+                .ToListAsync(stoppingToken);
+
+            if (symbols.Count == 0)
+                Console.WriteLine("[FIX] UYARI: instruments tablosu boş.");
+
+            foreach (var symbol in symbols)
+                _fixSession.Subscribe(symbol);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FIX] instruments okuma hatası (PostgreSQL bağlantı/tablo kontrol edin): {ex.Message}");
         }
     }
 
@@ -101,8 +120,17 @@ public class FixListenerWorker : BackgroundService
             await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
             if (_fixSession.IsConnected)
             {
-                Console.WriteLine("[FIX] Bağlantı kuruldu, semboller subscribe ediliyor...");
-                await SubscribeInstrumentsAsync(stoppingToken);
+                var delaySec = Math.Max(0, _fixOptions.PostLogonDelaySeconds);
+                if (delaySec > 0)
+                    await Task.Delay(TimeSpan.FromSeconds(delaySec), stoppingToken);
+                try
+                {
+                    await SubscribeInstrumentsAsync(stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[FIX] Deferred subscribe hatası: {ex.Message}");
+                }
                 return;
             }
         }

@@ -25,12 +25,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.15.1" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FixTrading.Application\FixTrading.Application.csproj" />
     <ProjectReference Include="..\FixTrading.Common\FixTrading.Common.csproj" />
+    <ProjectReference Include="..\FixTrading.Domain\FixTrading.Domain.csproj" />
   </ItemGroup>
 
 </Project>
