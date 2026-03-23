@@ -11,6 +11,6 @@ public class FixMarketDataOptions
     // false => EURUSD olarak gönderilir
     public bool UseSlashSymbolFormat { get; set; } = true;
 
-    /// <summary>Logon sonrası subscribe öncesi beklenecek saniye (birçok FIX sunucu bu süreye ihtiyaç duyar).</summary>
+    // FIX bağlantısı kurulduktan sonra, logon mesajı gönderildikten sonra kaç saniye beklenmesi gerektiği
     public int PostLogonDelaySeconds { get; set; } = 3;
 }

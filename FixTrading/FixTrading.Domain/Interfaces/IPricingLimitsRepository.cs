@@ -1,4 +1,4 @@
-using FixTrading.Common.Dtos.Pricing;
+ using FixTrading.Common.Dtos.Pricing;
 
 namespace FixTrading.Domain.Interfaces;
 

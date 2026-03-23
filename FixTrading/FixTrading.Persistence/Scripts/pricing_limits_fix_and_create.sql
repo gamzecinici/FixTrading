@@ -1,5 +1,4 @@
--- pricing_limits tablosu şeması (mevcut yapı - instrument_id ile instruments'a bağlı)
--- Tablo zaten bu yapıdaysa bu script'e gerek yok. Yeni kurulum için örnek:
+
 
 -- CREATE TABLE pricing_limits (
 --     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

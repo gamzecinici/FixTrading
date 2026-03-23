@@ -1,8 +1,8 @@
+using FixTrading.Application.Interfaces.Fix;
 using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
 using FixTrading.Common.Pricing;
 using FixTrading.Infrastructure.Fix;
-using FixTrading.Infrastructure.Observers;
 using Microsoft.Extensions.Options;
 using QuickFix;
 using QuickFix.Fields;
@@ -10,19 +10,12 @@ using QuickFix.Fields;
 namespace FixTrading.Infrastructure.Fix.Sessions
 {
     public class FixApp : MessageCracker, IApplication
-    // FIX mesajlarını yakalayan ve işleyen ana sınıf
-    // IApplication → FIX bağlantı olaylarını yönetir (logon, logout vb.)
-    // MessageCracker → Gelen mesaj tipine göre doğru OnMessage metodunu çağırır
     {
-        private SessionID? _session;    // Aktif FIX oturumunu tutar
-        private readonly object _lock = new object();    // Çoklu thread'lerde sembol verilerine güvenli erişim için kilit nesnesi
+        private SessionID? _session;
+        private readonly object _lock = new object();
 
-        private readonly ConsoleTickObserver _consoleTickObserver;
-        private readonly MongoBufferTickObserver _mongoBufferTickObserver;
-        private readonly RedisStoreTickObserver _redisStoreTickObserver;
-        private readonly InMemoryLastPriceObserver _inMemoryLastPriceObserver;
-        private readonly IMarketDataBuffer _marketDataBuffer;      // FIX disconnect sırasında buffer'ı flush etmek için
-        private readonly IPricingAlertChecker _pricingAlertChecker;
+        private readonly IMarketDataBuffer _marketDataBuffer;
+        private readonly IFixMessageHandler _fixMessageHandler;
         private readonly FixMarketDataOptions _fixOptions;
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
         private readonly Dictionary<string, string> _mdReqIdToSymbol = new();  // MDReqID -> Symbol (X mesajlarında grup içinde olmayabiliyor)
@@ -35,20 +28,12 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
         public FixApp(
             IMarketDataBuffer marketDataBuffer,
-            IPricingAlertChecker pricingAlertChecker,
-            IOptions<FixMarketDataOptions> fixOptions,
-            ConsoleTickObserver consoleTickObserver,
-            MongoBufferTickObserver mongoBufferTickObserver,
-            RedisStoreTickObserver redisStoreTickObserver,
-            InMemoryLastPriceObserver inMemoryLastPriceObserver)
+            IFixMessageHandler fixMessageHandler,
+            IOptions<FixMarketDataOptions> fixOptions)
         {
             _marketDataBuffer = marketDataBuffer;
-            _pricingAlertChecker = pricingAlertChecker;
+            _fixMessageHandler = fixMessageHandler;
             _fixOptions = fixOptions?.Value ?? new FixMarketDataOptions();
-            _consoleTickObserver = consoleTickObserver;
-            _mongoBufferTickObserver = mongoBufferTickObserver;
-            _redisStoreTickObserver = redisStoreTickObserver;
-            _inMemoryLastPriceObserver = inMemoryLastPriceObserver;
         }
 
 
@@ -353,8 +338,6 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private static string NormalizeSymbol(string symbol) => symbol.Trim().ToUpper().Replace("/", "");
 
 
-        // Verilen sembol, bid ve ask fiyatlarını işler ve Observer pattern ile tüm dinleyicilere bildirir.
-        // (Konsol, MongoDB buffer, Redis gibi Observer'lar Notify ile bilgilendirilir)
         private void Render(string symbol, decimal? bid, decimal? ask)
         {
             symbol = NormalizeSymbol(symbol);
@@ -366,7 +349,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 else
                 {
                     var existing = _symbols[symbol];
-                    _symbols[symbol] = (bid ?? existing.Bid, ask ?? existing.Ask);   //yeni gelen bid veya ask null değilse güncelle, null ise eski değeri koru
+                    _symbols[symbol] = (bid ?? existing.Bid, ask ?? existing.Ask);
                 }
                 data = _symbols[symbol];
             }
@@ -387,20 +370,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
             };
 
-            // Konsol: her tick (limit ihlali ayrimi yok; akis izleme)
-            _consoleTickObserver.OnTick(dto);
-
-            var breach = _pricingAlertChecker.CheckAndLogIfBreach(dto);
-
-            // Mongo market pipeline: bozuk veri dahil devam (alerts collection ayri)
-            _mongoBufferTickObserver.OnTick(dto);
-
-            // Redis + in-memory: sadece limit icindeki (dogru) veri; ihlalde onceki dogru deger korunur
-            if (!breach)
-            {
-                _redisStoreTickObserver.OnTick(dto);
-                _inMemoryLastPriceObserver.OnTick(dto);
-            }
+            _fixMessageHandler.Handle(dto);
         }
     }
 }

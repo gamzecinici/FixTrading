@@ -33,16 +33,14 @@ public class FixListenerWorker : BackgroundService
 
             Console.WriteLine("FIX başlatıldı.");
 
-            // Bağlantı kurulana kadar bekle (max 10 dakika, sonra arka planda tekrar dener)
             var waitCount = 0;
-            const int maxWaitSeconds = 600; // 10 dakika
+            const int maxWaitSeconds = 600;
             var lastLogMinute = -1;
             while (!_fixSession.IsConnected && !stoppingToken.IsCancellationRequested && waitCount * 500 < maxWaitSeconds * 1000)
             {
                 await Task.Delay(500, stoppingToken);
                 waitCount++;
-                var elapsedSec = (waitCount * 500) / 1000;
-                var elapsedMin = elapsedSec / 60;
+                var elapsedMin = (waitCount * 500) / 1000 / 60;
                 if (elapsedMin > lastLogMinute && elapsedMin >= 1)
                 {
                     lastLogMinute = elapsedMin;
@@ -84,7 +82,6 @@ public class FixListenerWorker : BackgroundService
     }
 
 
-    // Bu metod, veritabanından sembolleri okuyup FIX oturumuna subscribe eder.
     private async Task SubscribeInstrumentsAsync(CancellationToken stoppingToken)
     {
         try
@@ -107,7 +104,7 @@ public class FixListenerWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[FIX] instruments okuma hatası (PostgreSQL bağlantı/tablo kontrol edin): {ex.Message}");
+            Console.WriteLine($"[FIX] instruments okuma hatası: {ex.Message}");
         }
     }
 

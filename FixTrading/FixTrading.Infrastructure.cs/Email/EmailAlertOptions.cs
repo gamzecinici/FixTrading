@@ -17,4 +17,10 @@ public class EmailAlertOptions
 
     // ToAddresses, e-posta alert'lerinin gönderileceği alıcı adreslerini içerir.Virgülle ayrılmış mail adresleri şeklinde tanımlanır.
     public string ToAddresses { get; set; } = string.Empty;
+
+    // Aynı sembol+tip için kaç dakika boyunca tekrar e-posta gönderilmeyeceği (rate limit önleme, varsayılan 15).
+    public int AlertCooldownMinutes { get; set; } = 15;
+
+    // Geçici SMTP hatalarında (4.3.0 vb.) kaç kez tekrar deneneceği.
+    public int RetryCount { get; set; } = 2;
 }

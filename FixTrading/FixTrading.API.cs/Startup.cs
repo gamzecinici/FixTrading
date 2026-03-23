@@ -108,13 +108,21 @@ public class Startup
         services.AddSingleton<RedisStoreTickObserver>();
         services.AddSingleton<InMemoryLastPriceObserver>();
 
+        // Application katmanı: FIX parse → Domain Rules → Persistence
+        services.AddSingleton<IFixMessageHandler>(sp =>
+            new FixTrading.Application.Services.FixMessageHandler(
+                sp.GetRequiredService<ConsoleTickObserver>(),
+                sp.GetRequiredService<MongoBufferTickObserver>(),
+                sp.GetRequiredService<RedisStoreTickObserver>(),
+                sp.GetRequiredService<InMemoryLastPriceObserver>(),
+                sp.GetRequiredService<IPricingAlertChecker>()));
+
         services.AddSingleton<FixApp>();
         services.AddSingleton<IFixSession, QuickFixSession>();
 
         services.AddScoped<InstrumentHandler>();
         services.AddScoped<LatestPriceHandler>();
 
-        // Arka plan FIX dinleyici servisi
         services.AddHostedService<FixListenerWorker>();
         services.AddHostedService<PricingLimitsCacheRefreshWorker>();
 

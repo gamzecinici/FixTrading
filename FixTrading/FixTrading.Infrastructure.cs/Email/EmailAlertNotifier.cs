@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using FixTrading.Common.Dtos.Alert;
 using FixTrading.Domain.Interfaces;
 using MailKit.Net.Smtp;
@@ -11,16 +12,21 @@ namespace FixTrading.Infrastructure.Email;
 public class EmailAlertNotifier : IAlertNotifier
 {
     private readonly EmailAlertOptions _options;
+    private readonly ConcurrentDictionary<string, DateTime> _lastSentAt = new();
 
     public EmailAlertNotifier(IOptions<EmailAlertOptions> options)
     {
         _options = options.Value;
     }
 
-    // Bu yöntem, verilen alert bilgilerini kullanarak e-posta bildirimleri gönderir.
     public async Task NotifyAsync(DtoAlert alert, CancellationToken ct = default)
     {
         if (!_options.Enabled || string.IsNullOrWhiteSpace(_options.ToAddresses))
+            return;
+
+        var key = $"{alert.Symbol}|{alert.Type}";
+        var cooldown = TimeSpan.FromMinutes(Math.Max(1, _options.AlertCooldownMinutes));
+        if (_lastSentAt.TryGetValue(key, out var last) && DateTime.UtcNow - last < cooldown)
             return;
 
         var toList = _options.ToAddresses
@@ -51,23 +57,40 @@ public class EmailAlertNotifier : IAlertNotifier
         message.Subject = subject;
         message.Body = new TextPart("plain") { Text = body };
 
-        using var client = new SmtpClient();
-        try
+        var retries = Math.Max(0, _options.RetryCount);
+        for (var attempt = 0; attempt <= retries; attempt++)
         {
-            var secureSocketOptions = _options.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
-            await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, secureSocketOptions, ct);
-            if (!string.IsNullOrEmpty(_options.Username))
-                await client.AuthenticateAsync(_options.Username, _options.Password, ct);
-            await client.SendAsync(message, ct);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[EmailAlertNotifier] E-posta gönderilemedi: {ex.Message}");
-        }
-        finally
-        {
-            try { await client.DisconnectAsync(true, ct); }
-            catch { /* ignore */ }
+            if (attempt > 0)
+                await Task.Delay(TimeSpan.FromSeconds(30 * attempt), ct);
+
+            using var client = new SmtpClient();
+            try
+            {
+                var secureSocketOptions = _options.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
+                await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, secureSocketOptions, ct);
+                if (!string.IsNullOrEmpty(_options.Username))
+                    await client.AuthenticateAsync(_options.Username, _options.Password, ct);
+                await client.SendAsync(message, ct);
+                _lastSentAt[key] = DateTime.UtcNow;
+                return;
+            }
+            catch (Exception ex)
+            {
+                var isRetryable = ex.Message.Contains("4.3.0", StringComparison.OrdinalIgnoreCase)
+                    || ex.Message.Contains("Temporary", StringComparison.OrdinalIgnoreCase)
+                    || ex.Message.Contains("Try again later", StringComparison.OrdinalIgnoreCase);
+                if (attempt < retries && isRetryable)
+                    Console.WriteLine($"[EmailAlertNotifier] Geçici hata, {30 * (attempt + 1)} sn sonra tekrar denenecek: {ex.Message}");
+                else
+                {
+                    Console.WriteLine($"[EmailAlertNotifier] E-posta gönderilemedi: {ex.Message}");
+                    return;
+                }
+            }
+            finally
+            {
+                try { await client.DisconnectAsync(true, ct); } catch { /* ignore */ }
+            }
         }
     }
 }
