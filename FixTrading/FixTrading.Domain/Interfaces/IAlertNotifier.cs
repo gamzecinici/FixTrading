@@ -2,7 +2,7 @@ using FixTrading.Common.Dtos.Alert;
 
 namespace FixTrading.Domain.Interfaces;
 
-// Bu arayüz, sistemde oluşan alert'leri bildirmek için kullanılan bir arayüzdür.
+// Bu arayüz, sistemde oluşan alert'leri bildirmek(farward) için kullanılan bir arayüzdür.
 // NotifyAsync metodu, verilen DtoAlert nesnesini asenkron olarak bildirir.
 public interface IAlertNotifier
 {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "AR3hySeQqvQ=",
+  "dgSpecHash": "Yo/WGel80KU=",
   "success": true,
   "projectFilePath": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.API.cs\\FixTrading.API.cs.csproj",
   "expectedPackageFiles": [
@@ -9,6 +9,7 @@
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\aspnetcore.healthchecks.redis\\9.0.0\\aspnetcore.healthchecks.redis.9.0.0.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
+    "C:\\Users\\GAMZECINICI\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\GAMZECINICI\\.nuget\\packages\\mailkit\\4.15.1\\mailkit.4.15.1.nupkg.sha512",

@@ -41,14 +41,15 @@ public class FixMessageHandler : IFixMessageHandler
         _consoleTickObserver.OnTick(tick);
 
         // Domain Rules: Fiyat limit ihlali kontrolü
-        // İhlal varsa Redis/in-memory observer'lara gönderilmez (son doğru fiyat korunur)
+        // İhlal varsa Redis/in-memory observer'lara gönderilmez (son doğru fiyat korunur
+        // limit kontrolü yapılır , alert oluşturulur , mail tetiklenebilir
         var breach = _pricingAlertChecker.CheckAndLogIfBreach(tick);
 
         // Mongo market pipeline: bozuk veri dahil devam (alerts collection ayrı)
         _mongoBufferTickObserver.OnTick(tick);
 
         // Redis + in-memory: sadece limit içindeki (doğru) veri; ihlalde önceki doğru değer korunur
-        if (!breach)
+        if (!breach)    // İhlal yok, tick'i Redis ve in-memory observer'lara gönder
         {
             _redisStoreTickObserver.OnTick(tick);
             _inMemoryLastPriceObserver.OnTick(tick);

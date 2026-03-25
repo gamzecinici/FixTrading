@@ -1,0 +1,2 @@
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\wwwroot\css\theme.css
+wwwroot\css\theme.css

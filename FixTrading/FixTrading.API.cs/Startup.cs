@@ -16,6 +16,7 @@ using FixTrading.Infrastructure.Redis;
 using FixTrading.Infrastructure.Stores;
 using FixTrading.Persistence;
 using FixTrading.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -40,6 +41,20 @@ public class Startup
     // Servisleri sisteme tanıttığımız yer
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddRazorPages();
+
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Login";
+                options.AccessDeniedPath = "/Login";
+                options.Cookie.Name = "FixTrading.Auth";
+                options.Cookie.IsEssential = true;
+                options.SlidingExpiration = false;
+                // Tarayıcı kapanınca da silinsin
+                options.Cookie.MaxAge = null;
+            });
+
         services.AddAuthorization();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
@@ -154,7 +169,13 @@ public class Startup
             app.UseSwaggerUI();
         }
 
+        app.UseStaticFiles();
+
+        app.UseAuthentication();
         app.UseAuthorization();
+
+        app.MapGet("/", () => Results.Redirect("/Login"));
+        app.MapRazorPages();
 
         // Health Check endpoint: PostgreSQL, MongoDB, Redis ve FIX oturumu durumunu döner
         app.MapHealthChecks("/health", new HealthCheckOptions

@@ -106,4 +106,9 @@ C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\n
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\BouncyCastle.Cryptography.dll
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\MailKit.dll
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\MimeKit.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\BCrypt.Net-Next.dll
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\FixTrading.API.cs.RazorAssemblyInfo.cache
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\FixTrading.API.cs.RazorAssemblyInfo.cs
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\FixTrading.API.cs.staticwebassets.runtime.json
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\compressed\xozr97sxcy-{0}-ad1fx4qara-ad1fx4qara.gz
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

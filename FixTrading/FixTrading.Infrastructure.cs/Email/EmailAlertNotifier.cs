@@ -9,6 +9,7 @@ using MimeKit;
 namespace FixTrading.Infrastructure.Email;
 
 // Bu sınıf, IAlertNotifier arayüzünü uygulayarak e-posta yoluyla alert bildirimleri göndermek için kullanılır.
+//FIX → FixApp → Handler → PricingAlertChecker → IAlertNotifier → EmailAlertNotifier → MAIL
 public class EmailAlertNotifier : IAlertNotifier
 {
     private readonly EmailAlertOptions _options;
@@ -19,13 +20,21 @@ public class EmailAlertNotifier : IAlertNotifier
         _options = options.Value;
     }
 
+
+    // NotifyAsync metodu, verilen DtoAlert nesnesini asenkron olarak bildirir.
+    //// Alert geldiğinde çalışır (mail gönderme metodu)
     public async Task NotifyAsync(DtoAlert alert, CancellationToken ct = default)
     {
         if (!_options.Enabled || string.IsNullOrWhiteSpace(_options.ToAddresses))
             return;
 
+        // Aynı alert için unique key oluştur (symbol + type)
         var key = $"{alert.Symbol}|{alert.Type}";
+
+        // Alert başına minimum bekleme süresi (örneğin, 1 dakika)
         var cooldown = TimeSpan.FromMinutes(Math.Max(1, _options.AlertCooldownMinutes));
+
+        // Eğer aynı alert için son gönderimden bu yana belirli bir süre geçmediyse, yeni bir bildirim gönderme
         if (_lastSentAt.TryGetValue(key, out var last) && DateTime.UtcNow - last < cooldown)
             return;
 
@@ -50,10 +59,13 @@ public class EmailAlertNotifier : IAlertNotifier
             FixTrading Pricing Alert
             """;
 
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
+        var message = new MimeMessage();     // E-posta mesajı oluştur
+        message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));    // Gönderen adresi ekle
+
+        // Alıcı adreslerini ekle
         foreach (var to in toList)
             message.To.Add(MailboxAddress.Parse(to));
+        // Konu ve gövdeyi ayarla
         message.Subject = subject;
         message.Body = new TextPart("plain") { Text = body };
 
@@ -66,6 +78,7 @@ public class EmailAlertNotifier : IAlertNotifier
             using var client = new SmtpClient();
             try
             {
+                // SMTP sunucusuna bağlan ve e-posta gönder
                 var secureSocketOptions = _options.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
                 await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, secureSocketOptions, ct);
                 if (!string.IsNullOrEmpty(_options.Username))

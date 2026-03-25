@@ -1,0 +1,271 @@
+/* 
+   FixTrading — Shared Theme System
+   Tüm tema renkleri burada CSS custom property olarak tanımlı.
+   Bileşen stilleri (card, input, buton, bg) buradan gelir.
+   Dark → varsayılan; Light → [data-theme="light"] override.
+ */
+
+/* ──────────────────────────────────────────
+   DARK TEMA  (varsayılan / :root)
+────────────────────────────────────────── */
+:root {
+    /* Arka plan */
+    --ft-bg:              #0f131c;
+    --ft-mesh-a:          #1c2029;
+    --ft-mesh-b:          #09111d;
+    --ft-dot:             rgba(191, 199, 215, 0.04);
+    --ft-blob-from:       rgba(60, 221, 199, 0.08);
+    --ft-blob-to:         rgba(191, 199, 215, 0.04);
+    --ft-chart-opacity:   0.06;
+    --ft-chart-blend:     screen;
+
+    /* Kart */
+    --ft-card-bg:         rgba(28, 32, 41, 0.65);
+    --ft-card-blur:       20px;
+    --ft-card-glow:       inset 1px 1px 0px 0px rgba(191, 199, 215, 0.07);
+    --ft-card-shadow:     0 16px 48px rgba(0, 0, 0, 0.50);
+    --ft-card-border:     rgba(69, 71, 75, 0.12);
+
+    /* Input */
+    --ft-input-bg:        rgba(10, 14, 23, 0.50);
+    --ft-input-bg-focus:  rgba(10, 14, 23, 0.80);
+    --ft-input-border:    rgba(255, 255, 255, 0.06);
+    --ft-input-ring:      rgba(60, 221, 199, 0.30);
+    --ft-autofill-bg:     #0a0e17;
+    --ft-autofill-text:   #dfe2ef;
+    --ft-placeholder:     rgba(143, 144, 149, 0.40);
+
+    /* Metin */
+    --ft-text:            #dfe2ef;
+    --ft-text-muted:      rgba(198, 198, 203, 0.85);
+    --ft-text-faint:      rgba(198, 198, 203, 0.50);
+
+    /* Çizgi */
+    --ft-divider:         rgba(255, 255, 255, 0.05);
+
+    /* Toggle butonu */
+    --ft-toggle-bg:       rgba(28, 32, 41, 0.85);
+    --ft-toggle-border:   rgba(255, 255, 255, 0.08);
+    --ft-toggle-text:     #c6c6cb;
+    --ft-toggle-hover-bg: rgba(60, 221, 199, 0.10);
+    --ft-toggle-shadow:   0 2px 12px rgba(0, 0, 0, 0.40);
+}
+
+/* ──────────────────────────────────────────
+   LIGHT TEMA  ([data-theme="light"])
+────────────────────────────────────────── */
+[data-theme="light"] {
+    /* Arka plan */
+    --ft-bg:              #edf2ff;
+    --ft-mesh-a:          #d6e4ff;
+    --ft-mesh-b:          #bfd4ff;
+    --ft-dot:             rgba(80, 130, 220, 0.07);
+    --ft-blob-from:       rgba(99, 179, 237, 0.22);
+    --ft-blob-to:         rgba(147, 197, 253, 0.12);
+    --ft-chart-opacity:   0.06;
+    --ft-chart-blend:     multiply;
+
+    /* Kart */
+    --ft-card-bg:         rgba(255, 255, 255, 0.72);
+    --ft-card-blur:       24px;
+    --ft-card-glow:       inset 1px 1px 0px 0px rgba(255, 255, 255, 0.90);
+    --ft-card-shadow:     0 16px 48px rgba(80, 120, 210, 0.13);
+    --ft-card-border:     rgba(180, 210, 250, 0.55);
+
+    /* Input */
+    --ft-input-bg:        rgba(255, 255, 255, 0.62);
+    --ft-input-bg-focus:  rgba(255, 255, 255, 0.95);
+    --ft-input-border:    rgba(150, 185, 240, 0.40);
+    --ft-input-ring:      rgba(14, 165, 233, 0.22);
+    --ft-autofill-bg:     #edf2ff;
+    --ft-autofill-text:   #1a2235;
+    --ft-placeholder:     rgba(100, 125, 175, 0.50);
+
+    /* Metin */
+    --ft-text:            #1a2235;
+    --ft-text-muted:      rgba(55, 75, 115, 0.90);
+    --ft-text-faint:      rgba(55, 75, 115, 0.55);
+
+    /* Çizgi */
+    --ft-divider:         rgba(160, 190, 240, 0.30);
+
+    /* Toggle butonu */
+    --ft-toggle-bg:       rgba(255, 255, 255, 0.90);
+    --ft-toggle-border:   rgba(150, 185, 240, 0.50);
+    --ft-toggle-text:     #4a5a85;
+    --ft-toggle-hover-bg: rgba(14, 165, 233, 0.08);
+    --ft-toggle-shadow:   0 2px 12px rgba(80, 120, 210, 0.15);
+}
+
+/* ══════════════════════════════════════════
+   PAYLAŞILAN BİLEŞEN STİLLERİ
+   (Her iki tema da bu sınıfları kullanır,
+    renk değerleri CSS variable'dan gelir)
+══════════════════════════════════════════ */
+
+/* Material icon ayarı */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+}
+
+/* Body arka planı */
+.ft-body {
+    background-color: var(--ft-bg);
+    color: var(--ft-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mesh gradient + dot arka plan */
+.ft-bg-mesh {
+    background:
+        radial-gradient(circle at 20% 20%, var(--ft-mesh-a) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, var(--ft-mesh-b) 0%, transparent 50%);
+}
+.ft-dot-pattern {
+    background-image: radial-gradient(var(--ft-dot) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+/* Ambient blob */
+.ft-blob {
+    background: radial-gradient(
+        ellipse at center,
+        var(--ft-blob-from) 0%,
+        var(--ft-blob-to) 40%,
+        transparent 70%
+    );
+}
+
+/* Arka plan grafik görseli */
+.ft-chart {
+    opacity: var(--ft-chart-opacity);
+    mix-blend-mode: var(--ft-chart-blend);
+}
+
+/* ── Glassmorphism Kart ── */
+.ft-card {
+    background: var(--ft-card-bg);
+    backdrop-filter: blur(var(--ft-card-blur));
+    -webkit-backdrop-filter: blur(var(--ft-card-blur));
+    border: 1px solid var(--ft-card-border);
+    box-shadow: var(--ft-card-glow), var(--ft-card-shadow);
+}
+
+/* ── Input Alanı ──
+   !important: Tailwind forms plugin'inin background:#fff override'ını kırar */
+.ft-input {
+    background: var(--ft-input-bg) !important;
+    border: 1px solid var(--ft-input-border) !important;
+    color: var(--ft-text) !important;
+    box-shadow: none !important;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.ft-input::placeholder {
+    color: var(--ft-placeholder) !important;
+    opacity: 1;
+}
+.ft-input:focus,
+.ft-input:focus-visible {
+    outline: none !important;
+    background: var(--ft-input-bg-focus) !important;
+    border-color: var(--ft-input-ring) !important;
+    box-shadow: 0 0 0 3px var(--ft-input-ring) !important;
+}
+.ft-input:hover {
+    border-color: var(--ft-input-ring) !important;
+    opacity: 0.85;
+}
+
+/* Autofill: Chrome/Safari renk override */
+.ft-input:-webkit-autofill,
+.ft-input:-webkit-autofill:hover,
+.ft-input:-webkit-autofill:focus,
+.ft-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--ft-autofill-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--ft-autofill-bg) inset !important;
+    -webkit-text-fill-color: var(--ft-autofill-text) !important;
+    color: var(--ft-autofill-text) !important;
+    caret-color: var(--ft-autofill-text) !important;
+    background-color: var(--ft-autofill-bg) !important;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Input sol ikon */
+.ft-input-icon {
+    color: var(--ft-text-muted);
+    opacity: 0.5;
+}
+
+/* ── Metin Yardımcıları ── */
+.ft-text         { color: var(--ft-text); }
+.ft-text-muted   { color: var(--ft-text-muted); }
+.ft-text-faint   { color: var(--ft-text-faint); }
+
+/* Form etiketleri */
+.ft-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--ft-text-muted);
+}
+
+/* Kart içi ayraç çizgisi */
+.ft-divider {
+    border-top: 1px solid var(--ft-divider);
+}
+
+/* ── Hata Mesajı Kutusu ── */
+.ft-error-box {
+    background: rgba(255, 100, 100, 0.06);
+    border: 1px solid rgba(255, 100, 100, 0.15);
+    color: #f87171;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    text-align: center;
+    margin-top: 0.625rem;
+}
+[data-theme="light"] .ft-error-box {
+    background: rgba(220, 50, 50, 0.06);
+    border-color: rgba(220, 50, 50, 0.18);
+    color: #c0392b;
+}
+
+/* ── Tema Değiştirme Butonu (sağ üst sabit) ── */
+.ft-theme-toggle {
+    position: fixed;
+    top: 1.1rem;
+    right: 1.1rem;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 9999px;
+    background: var(--ft-toggle-bg);
+    border: 1px solid var(--ft-toggle-border);
+    color: var(--ft-toggle-text);
+    font-family: Inter, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--ft-toggle-shadow);
+    transition: background .2s, color .2s, box-shadow .2s;
+}
+.ft-theme-toggle:hover {
+    background: var(--ft-toggle-hover-bg);
+}
+.ft-theme-toggle .material-symbols-outlined {
+    font-size: 15px;
+}

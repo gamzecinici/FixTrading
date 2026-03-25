@@ -31,7 +31,7 @@ public class PricingAlertChecker : IPricingAlertChecker
     // Eğer limit aşımı varsa, WriteAlert metodunu çağırarak alert üretir ve true döner. Aksi halde false döner.
     public bool CheckAndLogIfBreach(DtoMarketData dto)
     {
-        var limit = _limitsProvider.GetLimit(dto.Symbol);
+        var limit = _limitsProvider.GetLimit(dto.Symbol);   //Limit çekiliyor
         if (limit == null) return false;
 
         var time = DateTime.UtcNow;
@@ -62,7 +62,7 @@ public class PricingAlertChecker : IPricingAlertChecker
     //  verilen parametrelerle bir DtoAlert nesnesi oluşturur ve bunu asenkron olarak IAlertStore'a yazar ve IAlertNotifier ile bildirir.
     private void WriteAlert(string symbol, string type, decimal value, decimal limitValue, DateTime time, DateTime timeTurkey)
     {
-        var alert = new DtoAlert
+        var alert = new DtoAlert     //alert objesi oluşturulur
         {
             Symbol = symbol,
             Type = type,
@@ -71,12 +71,12 @@ public class PricingAlertChecker : IPricingAlertChecker
             Time = time,
             TimeTurkey = timeTurkey
         };
-        _ = Task.Run(async () =>
+        _ = Task.Run(async () =>     //Alert’i yaz ve mail at ama ana akışı durdurma
         {
             try
             {
-                await _alertStore.WriteAsync(alert);
-                await _alertNotifier.NotifyAsync(alert);
+                await _alertStore.WriteAsync(alert);    //MongoDB’ye yazılır
+                await _alertNotifier.NotifyAsync(alert);   //mail atılır
             }
             catch (Exception ex)
             {

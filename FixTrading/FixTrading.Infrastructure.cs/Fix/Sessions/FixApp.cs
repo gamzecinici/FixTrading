@@ -370,7 +370,10 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 TimestampFormatted = turkeyTime.ToString("dd.MM.yyyy HH:mm")
             };
 
-            _fixMessageHandler.Handle(dto);
+            // FIX’ten gelen ve hesaplanan market verisini Application katmanına gönderir,
+            // burada alert kontrolü, cache ve diğer iş kuralları devreye girer
+            _fixMessageHandler.Handle(dto);     
+
         }
     }
 }

@@ -1,0 +1,18 @@
+@page
+@model FixTrading.API.cs.Pages.UserModel
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User</title>
+</head>
+<body style="background:#0f131c;color:#dfe2ef;font-family:Inter,Arial,sans-serif;padding:2rem;">
+    <h1>User Sayfası</h1>
+    <p>Hoş geldiniz, @User.Identity?.Name</p>
+    <form method="post" asp-page="/Logout">
+        <button type="submit">Çıkış Yap</button>
+    </form>
+</body>
+</html>
+

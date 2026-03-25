@@ -1,0 +1,188 @@
+@page
+@model FixTrading.API.cs.Pages.LoginModel
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <!--  Tema flash'ını önlemek için localStorage'dan tema okunur ve
+          sayfa render edilmeden önce data-theme attribute'u set edilir  -->
+    <script>
+        (function () {
+            var t = localStorage.getItem('ft-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="/css/theme.css" rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary":          "#3cddc7",
+                        "on-tertiary-fixed": "#00201c",
+                        "error":             "#ffb4ab",
+                        "outline-variant":   "#45474b",
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body":     ["Inter"],
+                        "label":    ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Layout yardımcıları — tema renginden bağımsız */
+        .dot-overlay { position: absolute; inset: 0; pointer-events: none; }
+    </style>
+</head>
+
+<body class="ft-body font-body min-h-screen overflow-x-hidden selection:bg-tertiary/30">
+
+    <!-- ── Tema Değiştirme Butonu ── -->
+    <button class="ft-theme-toggle" onclick="toggleTheme()" title="Temayı değiştir">
+        <span class="material-symbols-outlined" id="toggleIcon">light_mode</span>
+        <span id="toggleLabel">Light</span>
+    </button>
+
+    <main class="relative flex items-center justify-center min-h-screen ft-bg-mesh ft-dot-pattern p-6">
+
+        <!-- Arka plan efektleri -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="ft-blob animate-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                        w-[800px] h-[600px] rounded-full blur-[140px]"></div>
+            <img alt="Financial chart"
+                 class="ft-chart filter grayscale contrast-125 blur-sm
+                        absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                        w-[120%] max-w-none"
+                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5miGh6Scq7tJKC-RV3-WnQ5BFkIUMqvwplY9MD0tQqBSp45SrILb9174NnDCDLhaRIj1Pr5fT3Y_YQigfLLa9FXg8AV48moVcdbOUXH7FBUccCivWfq3NmlDcJg0S61bNF1z4TjW8EBoxuCnpXIVn_You8RD6f-vwvnKaPRbZtqe-xi5ohVaeO43d0SGWGzhWZhKOSHNZpFgT3a_1bnz7KrEmZELp4BhMipu5qGlDGYcmbace325s6Ml7tnJkhEEmhwmrIw0oYDU" />
+        </div>
+
+        <!-- ── İçerik ── -->
+        <div class="relative z-10 w-full max-w-[420px] flex flex-col items-center">
+
+            <!-- Logo -->
+            <div class="mb-8 text-center">
+                <h1 class="font-headline text-4xl font-extrabold tracking-tighter italic mb-1.5 ft-text"
+                    style="letter-spacing: -0.03em;">
+                    FixTrading
+                </h1>
+                <p class="ft-text-faint text-xs font-label uppercase tracking-[0.2em]">
+                    Institutional Grade Security
+                </p>
+            </div>
+
+            <!-- Kart -->
+            <div class="ft-card w-full p-8 rounded-2xl">
+
+                <div class="mb-7">
+                    <h2 class="font-headline text-2xl font-bold ft-text mb-2 text-center">
+                        Giriş Yap
+                    </h2>
+                    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+                    {
+                        <p class="ft-error-box">@Model.ErrorMessage</p>
+                    }
+                </div>
+
+                <form class="space-y-5" method="post">
+
+                    <!-- Email -->
+                    <div class="space-y-2">
+                        <label class="ft-label" for="email">E-posta</label>
+                        <input asp-for="Email"
+                               class="ft-input w-full rounded-xl py-3.5 px-5 text-sm font-body"
+                               id="email" placeholder="ad@sirket.com" type="email" />
+                    </div>
+
+                    <!-- Şifre -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="ft-label" for="password">Şifre</label>
+                            <a class="text-xs font-label text-tertiary/80 hover:text-tertiary transition-colors" href="#">
+                                Şifremi Unuttum
+                            </a>
+                        </div>
+                        <div class="relative">
+                            <input asp-for="Password"
+                                   class="ft-input w-full rounded-xl py-3.5 px-5 pr-12 text-sm font-body"
+                                   id="passwordInput" placeholder="••••••••" type="password" />
+                            <button class="absolute right-4 top-1/2 -translate-y-1/2 ft-input-icon
+                                           hover:opacity-100 transition-opacity"
+                                    type="button" onclick="togglePassword()">
+                                <span class="material-symbols-outlined text-xl" id="eyeIcon">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Giriş Yap Butonu -->
+                    <div class="pt-1">
+                        <button class="w-full py-3.5 rounded-xl font-headline font-bold text-sm tracking-wide
+                                       bg-gradient-to-br from-tertiary to-[#008c7d] text-on-tertiary-fixed
+                                       shadow-[0_3px_16px_-2px_rgba(60,221,199,0.20)]
+                                       hover:shadow-[0_6px_24px_-4px_rgba(60,221,199,0.28)]
+                                       active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                type="submit">
+                            Giriş Yap
+                            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-8 ft-divider pt-6 text-center">
+                    <p class="text-sm ft-text-faint">
+                        Hesabın yok mu?
+                        <a class="ft-text-muted font-semibold hover:text-tertiary transition-colors ml-1" href="/Register">
+                            Kayıt Ol
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* ── Tema Sistemi ── */
+        function toggleTheme() {
+            var curr = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = curr === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('ft-theme', next);
+            syncToggleUI(next);
+        }
+
+        function syncToggleUI(theme) {
+            var icon  = document.getElementById('toggleIcon');
+            var label = document.getElementById('toggleLabel');
+            if (!icon || !label) return;
+            if (theme === 'light') {
+                icon.textContent  = 'dark_mode';
+                label.textContent = 'Dark';
+            } else {
+                icon.textContent  = 'light_mode';
+                label.textContent = 'Light';
+            }
+        }
+
+        /* Sayfa açılınca toggle butonunu eşitle */
+        syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
+
+        /* ── Şifre göster/gizle ── */
+        function togglePassword() {
+            var input = document.getElementById('passwordInput');
+            var icon  = document.getElementById('eyeIcon');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.textContent = input.type === 'password' ? 'visibility' : 'visibility_off';
+        }
+    </script>
+</body>
+</html>

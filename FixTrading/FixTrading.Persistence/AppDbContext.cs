@@ -22,6 +22,8 @@ public class AppDbContext : DbContext
 
     public DbSet<PricingLimitEntity> PricingLimits { get; set; } = null!;
 
+    public DbSet<UserEntity> Users { get; set; } = null!;
+
     //OnModelCreating metodu, Entity Framework Core tarafından veritabanı modeli oluşturulurken çağrılır.
     //Bu metodun içinde, model yapılandırmalarını uygulamak için ApplyConfigurationsFromAssembly kullanılır.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
