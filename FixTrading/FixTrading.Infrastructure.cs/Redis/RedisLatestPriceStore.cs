@@ -15,6 +15,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
     private const string KeyPrefix = "latest:price:";
     private const string KeySet = "latest:price:symbols"; // Tüm sembollerin listesi 
 
+    private readonly IConnectionMultiplexer _redis;
     private readonly IDatabase _db;
     private readonly RedisOptions _options;
 
@@ -26,6 +27,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
     // Constructor, Redis bağlantısı ve ayarları alır
     public RedisLatestPriceStore(IConnectionMultiplexer redis, IOptions<RedisOptions> options)
     {
+        _redis = redis;
         _db = redis.GetDatabase();  
         _options = options.Value;
     }
@@ -34,6 +36,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
     // Belirtilen sembol için en son fiyatı Redis'e kaydeder. Sembol, bid ve ask fiyatları alınır.  
     public async Task SetLatestAsync(string symbol, decimal bid, decimal ask)
     {
+        if (!_redis.IsConnected) return; // Redis bağlı değilse işlem yapma
         if (bid <= 0 || ask <= 0) return;
         symbol = symbol.Trim().ToUpper().Replace("/", "");
 
@@ -65,6 +68,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
     // Belirtilen sembol için Redis'ten en son fiyat bilgisini alır. Sembol, küçük-büyük harf duyarlılığı olmayan şekilde işlenir.
     public async Task<DtoMarketData?> GetLatestAsync(string symbol)
     {
+        if (!_redis.IsConnected) return null;
         symbol = symbol.Trim().ToUpper().Replace("/", "");
         var key = KeyPrefix + symbol;   
         var value = await _db.StringGetAsync(key);
@@ -78,6 +82,7 @@ public class RedisLatestPriceStore : ILatestPriceStore
     // Sonuç, sembole göre sıralanır.
     public async Task<List<DtoMarketData>> GetAllLatestAsync() //*****
     {
+        if (!_redis.IsConnected) return [];
         var members = await _db.SetMembersAsync(KeySet);  // Tüm sembollerin listesi alınır
         if (members.Length == 0) return [];
 

@@ -1,18 +1,611 @@
 @page
 @model FixTrading.API.cs.Pages.AdminModel
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>FixTrading Admin</title>
+    <script>
+        (function () {
+            var t = localStorage.getItem('ft-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="/css/theme.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { background: var(--ft-bg); color: var(--ft-text); }
+        .nav-spacer { flex: 1; }
+        .ft-search-box {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem 0.4rem 2.25rem;
+            font-size: 0.8rem;
+            width: 180px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .ft-search-box:focus {
+            border-color: var(--ft-primary);
+            box-shadow: 0 0 0 3px var(--ft-input-ring);
+        }
+        .ft-search-box::placeholder { color: var(--ft-placeholder); }
+    </style>
 </head>
-<body style="background:#0f131c;color:#dfe2ef;font-family:Inter,Arial,sans-serif;padding:2rem;">
-    <h1>Admin Sayfası</h1>
-    <p>Hoş geldiniz, @User.Identity?.Name</p>
-    <form method="post" asp-page="/Logout">
-        <button type="submit">Çıkış Yap</button>
-    </form>
+<body class="ft-body min-h-screen overflow-x-hidden">
+
+    <!-- ══ NAVBAR ══ -->
+    <header class="ft-navbar">
+        <div class="flex items-center gap-10 flex-1">
+            <span class="ft-logo">FixTrading</span>
+            <nav class="ft-nav-links hidden md:flex">
+                <a class="ft-nav-link @(Model.ActiveTab == "home"   ? "active" : "")" href="/Admin?tab=home">Anasayfa</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "market" ? "active" : "")" href="/Admin?tab=market">Canlı Piyasa</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "users"  ? "active" : "")" href="/Admin?tab=users">Kullanıcılar</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="/Admin?tab=limits">Limit Ayarları</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "alerts" ? "active" : "")" href="/Admin?tab=alerts">Uyarılar</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+            <button class="ft-navbar-toggle" onclick="toggleTheme()" title="Tema değiştir" type="button">
+                <span class="material-symbols-outlined" id="toggleIcon" style="font-size:18px">light_mode</span>
+            </button>
+            <div style="width:1px;height:28px;background:var(--ft-outline);opacity:0.5"></div>
+            <div class="flex items-center gap-2" style="margin-left:4px">
+                <div class="text-right hidden sm:block">
+                    <div style="font-size:0.82rem;font-weight:700;color:var(--ft-text)">@(User.Identity?.Name ?? "Admin")</div>
+                    <div style="font-size:0.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-primary)">Verified</div>
+                </div>
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(105,218,255,0.1);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--ft-primary)">person</span>
+                </div>
+            </div>
+            <form method="post" asp-page="/Logout">
+                <button style="font-size:0.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ft-text-muted);background:none;border:none;cursor:pointer;padding:0.45rem 0.75rem;border-radius:8px;transition:color .2s"
+                        onmouseover="this.style.color='var(--ft-danger)'" onmouseout="this.style.color='var(--ft-text-muted)'"
+                        type="submit">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- ══ MARKET STRIP ══ -->
+    <div class="ft-market-strip" style="margin-top:88px">
+        <div class="ft-strip-container" id="marketStrip">
+            @foreach (var row in Model.MarketRows.Take(12))
+            {
+                <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
+                    <div class="ft-strip-symbol">@row.Symbol</div>
+                    <div class="ft-strip-price">@row.Mid.ToString("F5")</div>
+                    <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ══ MAIN ══ -->
+    <main style="min-height:calc(100vh - 130px);padding:2.5rem 2.5rem 4rem">
+
+        <!-- ─ HOME ─ -->
+        <section class="@(Model.ActiveTab == "home" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">Genel Bakış</div>
+                <h1 class="ft-section-title">Sistem Durumu</h1>
+            </div>
+
+            <!-- Service cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+                @foreach (var service in Model.HealthServices)
+                {
+                    <div class="ft-service-card @(service.IsHealthy ? "ft-service-card-ok" : "ft-service-card-bad")">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                            <div>
+                                <div style="font-size:0.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ft-text-faint);margin-bottom:4px">Servis</div>
+                                <div style="font-size:1.15rem;font-weight:800;color:var(--ft-text)">@service.Name</div>
+                            </div>
+                            <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:@(service.IsHealthy ? "rgba(0,253,147,0.1)" : "rgba(255,113,107,0.1)")">
+                                <span class="material-symbols-outlined" style="font-size:20px;color:@(service.IsHealthy ? "var(--ft-secondary)" : "var(--ft-danger)")" data-fill="1">@(service.IsHealthy ? "check_circle" : "cancel")</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:1.25rem">
+                            <span style="display:inline-flex;align-items:center;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;background:@(service.IsHealthy ? "rgba(0,253,147,0.1)" : "rgba(255,113,107,0.1)");color:@(service.IsHealthy ? "var(--ft-secondary)" : "var(--ft-danger)")">
+                                @(service.IsHealthy ? "Çalışıyor" : "Çalışmıyor")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Global health widget -->
+            <div style="background:linear-gradient(135deg,rgba(105,218,255,0.08) 0%,transparent 70%);border:1px solid rgba(105,218,255,0.15);border-radius:16px;padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;max-width:900px">
+                <div>
+                    <div style="font-size:0.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ft-primary);margin-bottom:0.5rem">Global Health Pulse</div>
+                    <div style="font-size:3.5rem;font-weight:900;letter-spacing:-.04em;color:var(--ft-text)">
+                        @(Model.HealthServices.All(s => s.IsHealthy) ? "100%" : Model.HealthServices.Count(s => s.IsHealthy) * 100 / (Model.HealthServices.Count > 0 ? Model.HealthServices.Count : 1) + "%")
+                    </div>
+                    <div style="font-size:0.88rem;color:var(--ft-text-muted);margin-top:0.4rem">Sistem operasyonel durumda.</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ft-secondary);animation:pulse 1.5s infinite;box-shadow:0 0 10px var(--ft-secondary)"></span>
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--ft-secondary);letter-spacing:.08em;text-transform:uppercase">Live</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─ MARKET ─ -->
+        <section class="@(Model.ActiveTab == "market" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <h1 class="ft-section-title">Canlı Piyasa</h1>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;font-weight:700;color:var(--ft-primary);text-transform:uppercase;letter-spacing:.1em">
+                        <span class="material-symbols-outlined" style="font-size:16px">monitoring</span>
+                        Canlı Fiyatlar
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <span style="width:7px;height:7px;border-radius:50%;background:var(--ft-secondary);animation:pulse 1.5s infinite;display:inline-block"></span>
+                        <span style="font-size:0.7rem;font-weight:700;color:var(--ft-secondary);letter-spacing:.06em">LIVE</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" id="marketTable">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Bid</th>
+                                <th>Ask</th>
+                                <th>Mid</th>
+                                <th>Spread</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.MarketRows.OrderBy(x => x.Symbol))
+                            {
+                                <tr data-symbol="@row.Symbol">
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:10px">
+                                            <div class="ft-symbol-box">@(row.Symbol.Length > 4 ? row.Symbol.Substring(0,4) : row.Symbol)</div>
+                                            <span style="font-weight:700;font-size:0.88rem">@row.Symbol</span>
+                                        </div>
+                                    </td>
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem">@row.Bid</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem">@row.Ask</td>
+                                    <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;font-weight:700">
+                                        <span>@row.Mid</span>
+                                        <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
+                                    </td>
+                                    <td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted)">@row.Spread</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─ USERS ─ -->
+        <section class="@(Model.ActiveTab == "users" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">Yönetim Paneli</div>
+                    <h1 class="ft-section-title">Kullanıcılar</h1>
+                </div>
+                <button class="ft-btn-primary-sm" onclick="openUserModal()" type="button">
+                    <span class="material-symbols-outlined" style="font-size:18px">person_add</span>
+                    Kullanıcı Ekle
+                </button>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);background:rgba(105,218,255,0.02)">
+                    <div style="font-size:0.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-text-faint)">
+                        Toplam @Model.Users.Count kullanıcı
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:700px">
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>Email Adresi</th>
+                                <th>Kullanıcı Rolü</th>
+                                <th style="text-align:right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.Users)
+                            {
+                                var initials = string.Join("", user.FullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0].ToString().ToUpper()));
+                                var isAdmin = user.Role?.ToLower() == "admin";
+                                var avatarColor = isAdmin ? "rgba(105,218,255,0.12)" : "rgba(0,253,147,0.1)";
+                                var avatarText = isAdmin ? "var(--ft-primary)" : "var(--ft-secondary)";
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:12px">
+                                            <div class="ft-avatar" style="background:@avatarColor;color:@avatarText">@initials</div>
+                                            <span style="font-weight:600;font-size:0.88rem">@user.FullName</span>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--ft-text-muted);font-size:0.875rem">@user.Email</td>
+                                    <td>
+                                        <span class="ft-role-chip @(isAdmin ? "admin" : "user")">@user.Role</span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;justify-content:flex-end;gap:6px">
+                                            <form method="post" asp-page-handler="ToggleUserRole">
+                                                <input name="id" type="hidden" value="@user.Id" />
+                                                <button class="ft-btn-secondary" style="font-size:0.7rem;padding:.4rem .9rem" type="submit">
+                                                    <span class="material-symbols-outlined" style="font-size:14px">swap_horiz</span>
+                                                    Rol
+                                                </button>
+                                            </form>
+                                            <form method="post" asp-page-handler="DeleteUser" onsubmit="return confirm('Kullanıcı silinsin mi?')">
+                                                <input name="id" type="hidden" value="@user.Id" />
+                                                <button class="ft-btn-danger" style="font-size:0.7rem;padding:.4rem .9rem" type="submit">
+                                                    <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+                                                    Sil
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─ LIMITS ─ -->
+        <section class="@(Model.ActiveTab == "limits" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">System Configuration</div>
+                    <h1 class="ft-section-title">Limit Ayarları</h1>
+                    <p style="color:var(--ft-text-muted);font-size:0.875rem;margin-top:0.5rem;max-width:480px">Semboller için minimum, maksimum orta nokta ve spread limitlerini yönetin.</p>
+                </div>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:900px">
+                        <thead>
+                            <tr>
+                                <th>Symbol & Assets</th>
+                                <th>Min Mid Point</th>
+                                <th>Max Mid Point</th>
+                                <th>Max Spread</th>
+                                <th style="text-align:right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var limit in Model.PricingLimits)
+                            {
+                                var sym = limit.Symbol?.Length > 4 ? limit.Symbol.Substring(0, 4) : limit.Symbol ?? "—";
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:12px">
+                                            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">
+                                                @sym
+                                            </div>
+                                            <div>
+                                                <div style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">@limit.Symbol</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input class="ft-input" id="min-@limit.Id" step="0.00001" type="number"
+                                               value="@limit.MinMid.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)"
+                                               style="width:140px;border-radius:8px;padding:.45rem .75rem;font-size:0.82rem;font-family:monospace;color:var(--ft-secondary)" />
+                                    </td>
+                                    <td>
+                                        <input class="ft-input" id="max-@limit.Id" step="0.00001" type="number"
+                                               value="@limit.MaxMid.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)"
+                                               style="width:140px;border-radius:8px;padding:.45rem .75rem;font-size:0.82rem;font-family:monospace;color:var(--ft-text)" />
+                                    </td>
+                                    <td>
+                                        <input class="ft-input" id="spread-@limit.Id" step="0.00001" type="number"
+                                               value="@limit.MaxSpread.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)"
+                                               style="width:140px;border-radius:8px;padding:.45rem .75rem;font-size:0.82rem;font-family:monospace;color:var(--ft-danger)" />
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;justify-content:flex-end;gap:6px">
+                                            <form method="post" asp-page-handler="UpdateLimit">
+                                                <input name="id" type="hidden" value="@limit.Id" />
+                                                <input id="hidden-min-@limit.Id" name="minMid" type="hidden" value="@limit.MinMid" />
+                                                <input id="hidden-max-@limit.Id" name="maxMid" type="hidden" value="@limit.MaxMid" />
+                                                <input id="hidden-spread-@limit.Id" name="maxSpread" type="hidden" value="@limit.MaxSpread" />
+                                                <button class="ft-btn-icon" title="Güncelle" onclick="bindLimitValues('@limit.Id')" type="submit"
+                                                        style="width:34px;height:34px;border-radius:10px;background:rgba(105,218,255,0.08);border-color:rgba(105,218,255,0.2);color:var(--ft-primary)"
+                                                        onmouseover="this.style.background='var(--ft-primary)';this.style.color='var(--ft-primary-on)'"
+                                                        onmouseout="this.style.background='rgba(105,218,255,0.08)';this.style.color='var(--ft-primary)'">
+                                                    <span class="material-symbols-outlined" style="font-size:16px">save</span>
+                                                </button>
+                                            </form>
+                                            <form method="post" asp-page-handler="DeleteLimit" onsubmit="return confirm('Limit silinsin mi?')">
+                                                <input name="id" type="hidden" value="@limit.Id" />
+                                                <button class="ft-btn-icon" title="Sil" type="submit"
+                                                        style="width:34px;height:34px;border-radius:10px;background:rgba(255,113,107,0.08);border-color:rgba(255,113,107,0.2);color:var(--ft-danger)"
+                                                        onmouseover="this.style.background='var(--ft-danger)';this.style.color='#fff'"
+                                                        onmouseout="this.style.background='rgba(255,113,107,0.08)';this.style.color='var(--ft-danger)'">
+                                                    <span class="material-symbols-outlined" style="font-size:16px">delete</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:1rem 1.5rem;border-top:1px solid var(--ft-divider);background:rgba(255,255,255,0.01)">
+                    <span style="font-size:0.75rem;color:var(--ft-text-muted);font-weight:500">@Model.PricingLimits.Count aktif limit ayarı</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─ ALERTS ─ -->
+        <section class="@(Model.ActiveTab == "alerts" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">Monitoring Hub</div>
+                    <h1 class="ft-section-title">Uyarılar</h1>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    @{
+                        var criticalCount = Model.Alerts.Count(a => a.Type == "SPREAD_LIMIT" || a.Type == "MID_TOO_HIGH" || a.Type == "MID_TOO_LOW");
+                    }
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:12px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px">
+                        <span style="font-size:0.82rem;color:var(--ft-text-muted);font-weight:500">Toplam Uyarı</span>
+                        <span style="font-size:1.5rem;font-weight:800;color:var(--ft-secondary)">@Model.Alerts.Count</span>
+                    </div>
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:12px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px">
+                        <span style="font-size:0.82rem;color:var(--ft-text-muted);font-weight:500">Kritik</span>
+                        <span style="font-size:1.5rem;font-weight:800;color:var(--ft-danger)">@criticalCount</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between;background:rgba(105,218,255,0.02)">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:var(--ft-text)">
+                        <span class="material-symbols-outlined" style="font-size:18px;color:var(--ft-primary)">sort</span>
+                        Son Bildirimler
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:750px">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Limit</th>
+                                <th style="text-align:right">Time</th>
+                                <th style="text-align:center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var alert in Model.Alerts)
+                            {
+                                var isCritical = alert.Type == "SPREAD_LIMIT" || alert.Type == "MID_TOO_HIGH" || alert.Type == "MID_TOO_LOW";
+                                var symShort = alert.Symbol?.Length > 4 ? alert.Symbol.Substring(0, 4) : alert.Symbol ?? "—";
+                                <tr class="@(isCritical ? "ft-row-critical" : "ft-row-warn")">
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:10px">
+                                            <div class="ft-symbol-box">@symShort</div>
+                                            <span style="font-weight:700;font-size:0.88rem">@alert.Symbol</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="ft-alert-badge @(isCritical ? "critical" : "warn")">@alert.Type</span>
+                                    </td>
+                                    <td style="font-family:monospace;font-size:0.875rem">@alert.Value</td>
+                                    <td style="font-family:monospace;font-size:0.875rem;color:var(--ft-text-muted)">@alert.Limit</td>
+                                    <td style="font-size:0.82rem;color:var(--ft-text-muted);text-align:right">@alert.TimeTurkey.ToString("HH:mm:ss")</td>
+                                    <td style="text-align:center">
+                                        @if (isCritical)
+                                        {
+                                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ft-danger);box-shadow:0 0 8px var(--ft-danger)"></span>
+                                        }
+                                        else
+                                        {
+                                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ft-warning);box-shadow:0 0 6px var(--ft-warning)"></span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ══ MODAL: Kullanıcı Ekle ══ -->
+    <div class="ft-modal hidden" id="addUserModal">
+        <div class="ft-modal-content" style="background:var(--ft-surface);border:1px solid var(--ft-card-border);border-radius:18px;padding:2rem;width:100%;max-width:420px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+                <h3 style="font-size:1.15rem;font-weight:800;color:var(--ft-text)">Kullanıcı Ekle</h3>
+                <button class="ft-btn-icon" onclick="closeUserModal()" type="button">
+                    <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                </button>
+            </div>
+            <form class="space-y-4" method="post" asp-page-handler="AddUser">
+                <input name="tab" type="hidden" value="users" />
+                <div>
+                    <label class="ft-label" style="margin-bottom:6px;display:block">Ad Soyad</label>
+                    <input asp-for="NewUser.FullName" class="ft-input w-full" style="border-radius:10px;padding:.65rem 1rem" />
+                </div>
+                <div>
+                    <label class="ft-label" style="margin-bottom:6px;display:block">Email</label>
+                    <input asp-for="NewUser.Email" class="ft-input w-full" style="border-radius:10px;padding:.65rem 1rem" type="email" />
+                </div>
+                <div>
+                    <label class="ft-label" style="margin-bottom:6px;display:block">Şifre</label>
+                    <input asp-for="NewUser.Password" class="ft-input w-full" style="border-radius:10px;padding:.65rem 1rem" type="password" />
+                </div>
+                <button class="ft-btn-primary" style="margin-top:0.5rem" type="submit">Kullanıcı Oluştur</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══ DECORATIVE ══ -->
+    <div style="position:fixed;top:0;right:0;width:40%;height:50%;background:rgba(105,218,255,0.04);filter:blur(120px);pointer-events:none;z-index:-1"></div>
+    <div style="position:fixed;bottom:0;left:0;width:30%;height:40%;background:rgba(255,113,107,0.03);filter:blur(100px);pointer-events:none;z-index:-1"></div>
+
+    <script>
+        /* ── Theme ── */
+        function toggleTheme() {
+            var curr = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = curr === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('ft-theme', next);
+            syncToggleUI(next);
+        }
+        function syncToggleUI(theme) {
+            var icon = document.getElementById('toggleIcon');
+            if (!icon) return;
+            icon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+        }
+        syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
+
+        /* ── Modal ── */
+        function openUserModal()  { document.getElementById('addUserModal').classList.remove('hidden'); }
+        function closeUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
+        document.getElementById('addUserModal').addEventListener('click', function (e) {
+            if (e.target.id === 'addUserModal') closeUserModal();
+        });
+
+        /* ── Limit bind ── */
+        function bindLimitValues(id) {
+            var min    = document.getElementById('min-' + id);
+            var max    = document.getElementById('max-' + id);
+            var spread = document.getElementById('spread-' + id);
+            document.getElementById('hidden-min-' + id).value    = min    ? min.value    : 0;
+            document.getElementById('hidden-max-' + id).value    = max    ? max.value    : 0;
+            document.getElementById('hidden-spread-' + id).value = spread ? spread.value : 0;
+        }
+
+        /* ── Market live ── */
+        var BADGE_KEY = 'ft-badges';
+
+        function loadBadgeCache() {
+            try { return JSON.parse(localStorage.getItem(BADGE_KEY) || '{}'); } catch(e) { return {}; }
+        }
+        function saveBadgeCache(cache) {
+            try { localStorage.setItem(BADGE_KEY, JSON.stringify(cache)); } catch(e) {}
+        }
+
+        /* Apply persisted badges immediately on page load */
+        (function applyStoredBadges() {
+            var cache = loadBadgeCache();
+            Object.keys(cache).forEach(function(symbol) {
+                var b = cache[symbol];
+                // Strip badge
+                var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+                if (sBadge && b.cls && b.text) {
+                    sBadge.className = 'ft-badge-stock ' + b.cls;
+                    sBadge.textContent = b.text;
+                    sBadge.style.display = 'inline-flex';
+                }
+                // Table badge
+                var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+                if (cBadge && b.cls && b.text) {
+                    cBadge.className = 'ft-badge-stock ' + b.cls;
+                    cBadge.textContent = b.text;
+                    cBadge.style.display = 'inline-flex';
+                }
+            });
+        })();
+
+        function toNum(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
+        function pulseCell(td, cls) {
+            td.classList.remove('ft-cell-up', 'ft-cell-down');
+            if (cls) td.classList.add(cls);
+            setTimeout(function () { td.classList.remove('ft-cell-up', 'ft-cell-down'); }, 800);
+        }
+
+        function applyBadge(symbol, cls, text) {
+            // Table badge
+            var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+            if (cBadge) {
+                cBadge.className = 'ft-badge-stock ' + cls;
+                cBadge.textContent = text;
+                cBadge.style.display = 'inline-flex';
+            }
+            // Strip badge
+            var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+            if (sBadge) {
+                sBadge.className = 'ft-badge-stock ' + cls;
+                sBadge.textContent = text;
+                sBadge.style.display = 'inline-flex';
+            }
+            // Persist
+            var cache = loadBadgeCache();
+            cache[symbol] = { cls: cls, text: text };
+            saveBadgeCache(cache);
+        }
+
+        async function refreshMarket() {
+            var table = document.getElementById('marketTable');
+            if (!table) return;
+            try {
+                var res = await fetch('/Admin?handler=LiveMarket', { cache: 'no-store' });
+                if (!res.ok) return;
+                var rows = await res.json();
+                var body = table.querySelector('tbody');
+                rows.forEach(function (row) {
+                    var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
+                    if (!tr) {
+                        tr = document.createElement('tr');
+                        tr.setAttribute('data-symbol', row.symbol);
+                        tr.innerHTML =
+                            '<td><div style="display:flex;align-items:center;gap:10px"><div class="ft-symbol-box">' + row.symbol.substring(0,4) + '</div><span style="font-weight:700;font-size:.88rem">' + row.symbol + '</span></div></td>' +
+                            '<td data-field="Bid" style="font-family:monospace;font-size:.88rem"></td>' +
+                            '<td data-field="Ask" style="font-family:monospace;font-size:.88rem"></td>' +
+                            '<td data-field="Mid" style="font-family:monospace;font-size:.88rem;font-weight:700"><span></span><span class="ft-badge-stock" data-change-badge="' + row.symbol + '"></span></td>' +
+                            '<td data-field="Spread" style="font-family:monospace;font-size:.88rem;color:var(--ft-text-muted)"></td>';
+                        body.appendChild(tr);
+                    }
+                    // Update strip card price
+                    var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
+                    if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(5);
+
+                    ['Bid', 'Ask', 'Mid', 'Spread'].forEach(function (field) {
+                        var td = tr.querySelector('td[data-field="' + field + '"]');
+                        var textContainer = field === 'Mid' ? td.querySelector('span:first-child') : td;
+                        var current = toNum(td.getAttribute('data-prev') || textContainer.textContent);
+                        var next = toNum(row[field.toLowerCase()]);
+                        if (field === 'Mid') {
+                            if (current > 0 && next !== current) {
+                                var diff = next - current;
+                                var pct = ((diff / current) * 100).toFixed(2);
+                                var isUp = diff > 0;
+                                var cls = isUp ? 'ft-badge-up' : 'ft-badge-down';
+                                var text = (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓');
+                                applyBadge(row.symbol, cls, text);
+                            }
+                            textContainer.textContent = next.toFixed(5);
+                        } else {
+                            td.textContent = next.toFixed(5);
+                        }
+                        if (next > current) pulseCell(td, 'ft-cell-up');
+                        if (next < current) pulseCell(td, 'ft-cell-down');
+                        td.setAttribute('data-prev', String(next));
+                    });
+                });
+            } catch (e) { console.warn('Market refresh error', e); }
+        }
+        refreshMarket();
+        setInterval(refreshMarket, 3000);
+    </script>
 </body>
 </html>
-

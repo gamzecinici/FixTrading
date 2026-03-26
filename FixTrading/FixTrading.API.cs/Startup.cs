@@ -43,6 +43,10 @@ public class Startup
     {
         services.AddRazorPages();
 
+        // Her restart'ta yeni bir token üretilir; eski oturumlar bu token'ı taşımadığından reddedilir.
+        var startupToken = new StartupTokenService();
+        services.AddSingleton(startupToken);
+
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
@@ -51,8 +55,19 @@ public class Startup
                 options.Cookie.Name = "FixTrading.Auth";
                 options.Cookie.IsEssential = true;
                 options.SlidingExpiration = false;
-                // Tarayıcı kapanınca da silinsin
                 options.Cookie.MaxAge = null;
+                // Her restart'ta oluşturulan token claim'e karşı doğrulama yap.
+                // Eski token taşıyan cookie'ler otomatik reddedilir → kullanıcı login'e yönlendirilir.
+                options.Events = new CookieAuthenticationEvents
+                {
+                    OnValidatePrincipal = ctx =>
+                    {
+                        var tokenClaim = ctx.Principal?.FindFirst("app_start")?.Value;
+                        if (tokenClaim != startupToken.Token)
+                            ctx.RejectPrincipal();
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         services.AddAuthorization();
@@ -96,7 +111,8 @@ public class Startup
             var opts = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
             var config = ConfigurationOptions.Parse(opts.ConnectionString);
             config.AbortOnConnectFail = false;
-            config.ConnectTimeout = 3000;
+            config.ConnectTimeout = 2000; // Timeout'u biraz daha düşürelim
+            config.ConnectRetry = 1;      // Çok fazla tekrar denemesin
             return ConnectionMultiplexer.Connect(config);
         });
         services.AddSingleton<ILatestPriceStore, RedisLatestPriceStore>();

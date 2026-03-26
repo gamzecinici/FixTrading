@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FixTrading.API;
 using FixTrading.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,11 +15,13 @@ public class LoginModel : PageModel
 {
     private readonly AppDbContext _dbContext;
     private readonly ILogger<LoginModel> _logger;
+    private readonly StartupTokenService _startupToken;
 
-    public LoginModel(AppDbContext dbContext, ILogger<LoginModel> logger)
+    public LoginModel(AppDbContext dbContext, ILogger<LoginModel> logger, StartupTokenService startupToken)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _startupToken = startupToken;
     }
 
     [BindProperty]
@@ -92,7 +95,8 @@ public class LoginModel : PageModel
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.FullName),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, user.Role)
+            new(ClaimTypes.Role, user.Role),
+            new("app_start", _startupToken.Token)   // restart doğrulaması için
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -1,4 +1,4 @@
-@page
+@page              
 @model FixTrading.API.cs.Pages.RegisterModel
 <!DOCTYPE html>
 <html lang="tr">
@@ -41,7 +41,7 @@
 <body class="ft-body font-body min-h-screen overflow-x-hidden selection:bg-tertiary/30">
 
     <!-- ── Tema Değiştirme Butonu ── -->
-    <button class="ft-theme-toggle" onclick="toggleTheme()" title="Temayı değiştir">
+    <button class="ft-theme-toggle" onclick="toggleTheme()" title="Temayı değiştir">     
         <span class="material-symbols-outlined" id="toggleIcon">light_mode</span>
         <span id="toggleLabel">Light</span>
     </button>
@@ -76,8 +76,7 @@
                 <header class="mb-7">
                     <!-- Geri butonu -->
                     <a href="/Login"
-                       class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest
-                              ft-text-faint hover:text-tertiary transition-colors mb-4">
+                       class="ft-link-accent inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mb-4">
                         <span class="material-symbols-outlined text-sm">arrow_back</span>
                         Geri
                     </a>
@@ -145,19 +144,14 @@
                                       bg-transparent border-current"
                                id="terms" type="checkbox" style="border-color: var(--ft-input-border);" />
                         <label class="text-xs ft-text-faint leading-relaxed" for="terms">
-                            <span class="hover:text-tertiary transition-colors cursor-pointer">Kullanım koşullarını</span>
+                            <span class="ft-link-accent cursor-pointer">Kullanım koşullarını</span>
                             ve gizlilik politikasını kabul ediyorum.
                         </label>
                     </div>
 
-                    <!-- Kayıt Ol Butonu — Login ile birebir aynı stil -->
+                    <!-- Kayıt Ol Butonu -->
                     <div class="pt-1">
-                        <button class="w-full py-3.5 rounded-xl font-headline font-bold text-sm tracking-wide
-                                       bg-gradient-to-br from-tertiary to-[#008c7d] text-on-tertiary-fixed
-                                       shadow-[0_3px_16px_-2px_rgba(60,221,199,0.20)]
-                                       hover:shadow-[0_6px_24px_-4px_rgba(60,221,199,0.28)]
-                                       active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                type="submit">
+                        <button class="ft-btn-primary" type="submit">
                             Kayıt Ol
                             <span class="material-symbols-outlined text-lg">arrow_forward</span>
                         </button>
@@ -167,7 +161,7 @@
                 <div class="mt-6 ft-divider pt-5 text-center">
                     <p class="text-sm ft-text-faint">
                         Zaten hesabın var mı?
-                        <a class="ft-text-muted font-semibold hover:text-tertiary transition-colors ml-1" href="/Login">
+                        <a class="ft-link-accent font-semibold ml-1" href="/Login">
                             Giriş Yap
                         </a>
                     </p>

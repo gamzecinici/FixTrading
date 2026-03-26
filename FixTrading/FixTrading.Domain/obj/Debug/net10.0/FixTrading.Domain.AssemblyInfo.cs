@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FixTrading.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8839315fe8dc6c0059f7909f2ea3354f1d3a8c31")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+508eb4dea26340ba6b32855869bcf0a735aaddaa")]
 [assembly: System.Reflection.AssemblyProductAttribute("FixTrading.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FixTrading.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

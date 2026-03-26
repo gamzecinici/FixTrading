@@ -17,6 +17,9 @@ public class PricingLimitConfiguration : IEntityTypeConfiguration<PricingLimitEn
 
         builder.HasKey(e => e.Id);   // Id property'sinin birincil anahtar olduğunu belirtir.
 
+        builder.Property(e => e.Id)
+            .HasColumnName("id");
+
         builder.Property(e => e.InstrumentId)     // InstrumentId property'sinin veritabanındaki sütun adını ve türünü belirtir.
             .HasColumnName("instrument_id");
 
