@@ -1,75 +1,100 @@
-/*
-  FixTrading — Theme System
-  Dark default. Light → [data-theme="light"]
-*/
 
-/* ── DARK (default) ── */
+/* 
+   KOYU TEMA DEĞİŞKENLERİ (:root)
+   :root → tüm sayfa için geçerli, en üst düzey CSS kapsayıcısı.
+   Buradaki değişkenler var(--ft-...) şeklinde her yerde kullanılır.
+    */
 :root {
-    --ft-bg:              #0b0e11;
-    --ft-surface-low:     #101417;
-    --ft-surface:         #161a1e;
-    --ft-surface-high:    #1c2024;
-    --ft-surface-highest: #22262b;
-    --ft-bright:          #282d31;
+    /* ── ARKA PLAN RENKLERİ ──
+       Farklı yüzey seviyeleri: low (en koyu) → highest (en açık)
+       Katmanlı derinlik hissi yaratır (kart üstü kart gibi). */
+    --ft-bg:              #0b0e11;  /* Ana sayfa arka planı — en koyu */
+    --ft-surface-low:     #101417;  /* Kart ve tablo arka planı */
+    --ft-surface:         #161a1e;  /* Modal ve orta yüzey */
+    --ft-surface-high:    #1c2024;  /* Input arka planı, yükseltilmiş yüzey */
+    --ft-surface-highest: #22262b;  /* Input focus durumu, en aydınlık yüzey */
+    --ft-bright:          #282d31;  /* Hover durumları için en parlak yüzey */
 
-    --ft-primary:         #69daff;
-    --ft-primary-dim:     #00c0ea;
-    --ft-primary-on:      #003544;
-    --ft-secondary:       #00fd93;
-    --ft-secondary-dim:   #00c874;
-    --ft-danger:          #ff716b;
-    --ft-danger-dim:      #ff928b;
-    --ft-warning:         #f59e0b;
+    --ft-primary:         #69daff;  /* Açık mavi (navbar, aktif sekme, link) */
+    --ft-primary-dim:     #00c0ea;  /* Biraz daha koyu mavi (hover efektleri) */
+    --ft-primary-on:      #003544;  /* Mavi üstüne yazı — koyu lacivert */
+    --ft-secondary:       #00fd93;  /* Parlak yeşil (başarı, artış, canlı gösterge) */
+    --ft-secondary-dim:   #00c874;  /* Koyu yeşil (hover) */
+    --ft-danger:          #ff716b;  /* Kırmızı (hata, silme, düşüş) */
+    --ft-danger-dim:      #ff928b;  /* Açık kırmızı */
+    --ft-warning:         #f59e0b;  /* Amber sarı (uyarı rozeti) */
 
-    --ft-text:            #f8f9fe;
-    --ft-text-muted:      #a9abaf;
-    --ft-text-faint:      #737679;
-    --ft-divider:         rgba(255,255,255,0.06);
-    --ft-outline:         rgba(69,72,76,0.6);
+    /* ── YAZI RENKLERİ ──
+       3 seviyeli hiyerarşi: tam görünür → soluk → çok soluk */
+    --ft-text:            #f8f9fe;  /* Ana metin — neredeyse beyaz */
+    --ft-text-muted:      #a9abaf;  /* İkincil metin — orta gri */
+    --ft-text-faint:      #737679;  /* Üçüncül metin — soluk gri (etiketler, placeholder) */
 
-    --ft-chart-opacity:   0.04;
-    --ft-chart-blend:     screen;
-    --ft-dot:             rgba(255,255,255,0.025);
-    --ft-blob-from:       rgba(105,218,255,0.05);
-    --ft-blob-to:         rgba(0,192,234,0.02);
+    /* ── AYIRICI VE KENARLIK ──
+       Yarı saydam beyaz — koyu zeminde hafif görünür çizgiler */
+    --ft-divider:         rgba(255,255,255,0.06);  /* Yatay çizgi ayırıcı */
+    --ft-outline:         rgba(69,72,76,0.6);       /* Input ve buton kenarlığı */
 
+    /* ── ARKAPLAN EFEKTLERİ (Login/Register sayfaları) ── */
+    --ft-chart-opacity:   0.04;              /* Dekoratif grafik görselinin saydamlığı */
+    --ft-chart-blend:     screen;            /* Blend mod: screen → açık piksel birleşimi */
+    --ft-dot:             rgba(255,255,255,0.025); /* Nokta deseni rengi */
+    --ft-blob-from:       rgba(105,218,255,0.05);  /* Merkez ışık hüzmesi başlangıç rengi */
+    --ft-blob-to:         rgba(0,192,234,0.02);    /* Merkez ışık hüzmesi bitiş rengi */
+
+    /* ── KART STİLİ ──
+       ft-card sınıfı bu değişkenleri kullanır */
     --ft-card-bg:         var(--ft-surface-low);
-    --ft-card-blur:       0px;
-    --ft-card-border:     rgba(255,255,255,0.05);
-    --ft-card-shadow:     0 4px 24px rgba(0,0,0,0.4);
+    --ft-card-blur:       0px;                       /* Glassmorphism için blur (dark modda CSS ile override edilir) */
+    --ft-card-border:     rgba(255,255,255,0.05);    /* Kartın çok ince şeffaf kenarlığı */
+    --ft-card-shadow:     0 4px 24px rgba(0,0,0,0.4); /* Derinlik gölgesi */
     --ft-card-glow:       none;
 
-    --ft-input-bg:        var(--ft-surface-high);
-    --ft-input-bg-focus:  var(--ft-surface-highest);
-    --ft-input-border:    rgba(69,72,76,0.6);
-    --ft-input-ring:      rgba(105,218,255,0.3);
-    --ft-autofill-bg:     #0a0e17;
-    --ft-autofill-text:   #f8f9fe;
-    --ft-placeholder:     #737679;
+    /* ── INPUT ALANI STİLİ ── */
+    --ft-input-bg:           var(--ft-surface-high);
+    --ft-input-bg-focus:     var(--ft-surface-highest); /* Tıklandığında biraz daha açılır */
+    --ft-input-border:       rgba(69,72,76,0.6);
+    --ft-input-ring:         rgba(105,218,255,0.3);     /* Focus halkası (mavi ışıltı) */
+    --ft-autofill-bg:        #0a0e17;    /* Tarayıcı otomatik doldurma arka planı */
+    --ft-autofill-text:      #f8f9fe;   /* Tarayıcı otomatik doldurma metin rengi */
+    --ft-placeholder:        #737679;   /* Placeholder metin rengi */
 
-    --ft-nav-bg:          #101417;
-    --ft-nav-border:      rgba(255,255,255,0.05);
+    /* ── NAVBAR ── */
+    --ft-nav-bg:     #101417;                    /* Navbar arka planı */
+    --ft-nav-border: rgba(255,255,255,0.05);     /* Navbar alt çizgisi */
 
-    --ft-toggle-bg:       var(--ft-surface-high);
-    --ft-toggle-border:   rgba(255,255,255,0.08);
-    --ft-toggle-text:     #a9abaf;
-    --ft-toggle-hover-bg: rgba(105,218,255,0.08);
-    --ft-toggle-shadow:   0 2px 8px rgba(0,0,0,0.4);
+    /* ── TEMA BUTONUNUN STİLİ (sağ üst köşedeki buton) ── */
+    --ft-toggle-bg:         var(--ft-surface-high);
+    --ft-toggle-border:     rgba(255,255,255,0.08);
+    --ft-toggle-text:       #a9abaf;
+    --ft-toggle-hover-bg:   rgba(105,218,255,0.08);   /* Hover'da hafif mavi */
+    --ft-toggle-shadow:     0 2px 8px rgba(0,0,0,0.4);
 
-    --ft-btn-gradient:      linear-gradient(110deg,#69daff 0%,#00c0ea 40%,#0099bb 70%,#69daff 100%);
-    --ft-btn-text:          #003544;
-    --ft-btn-glow:          rgba(105,218,255,0.2);
-    --ft-btn-glow-hover:    rgba(105,218,255,0.4);
-    --ft-link-accent:       #69daff;
-    --ft-link-accent-hover: #00cffc;
+    /* ── ANA BUTON (ft-btn-primary) GRADİENT VE RENK ──
+       gradient arka plan → sağa doğru kayarak hover animasyonu yapar */
+    --ft-btn-gradient:        linear-gradient(110deg,#69daff 0%,#00c0ea 40%,#0099bb 70%,#69daff 100%);
+    --ft-btn-text:            #003544;                      /* Buton üstündeki yazı rengi */
+    --ft-btn-glow:            rgba(105,218,255,0.2);        /* Normal gölge */
+    --ft-btn-glow-hover:      rgba(105,218,255,0.4);        /* Hover gölgesi (daha parlak) */
 
-    /* Mesh (login bg) */
-    --ft-mesh-a: #13192e;
-    --ft-mesh-b: #070b14;
+    /* Renkli linkler */
+    --ft-link-accent:         #69daff;
+    --ft-link-accent-hover:   #00cffc;
+
+    /* ── LOGIN/REGISTER SAYFASI ARKA PLAN DEGRADESİ ──
+       ft-bg-mesh sınıfında kullanılır: sol üstte mesh-a, sağ altta mesh-b */
+    --ft-mesh-a: #13192e;  /* Koyu lacivert leke */
+    --ft-mesh-b: #070b14;  /* Daha koyu lacivert leke */
 }
+ 
 
-/* ── LIGHT ── */
+/* 
+   AÇIK TEMA DEĞİŞKENLERİ
+   [data-theme="light"] → <html data-theme="light"> olunca aktif.
+   Koyu tema değişkenlerinin üzerine yazar, sınıflar aynı kalır.
+    */
 [data-theme="light"] {
+    /* Açık, beyazımsı arka planlar */
     --ft-bg:              #f4f7fb;
     --ft-surface-low:     #ffffff;
     --ft-surface:         #f4f7fb;
@@ -77,33 +102,40 @@
     --ft-surface-highest: #e2e8f0;
     --ft-bright:          #ffffff;
 
-    --ft-primary:         #006880;
+    /* Açık temada renkler daha koyu/doygun — beyaz üstünde okunabilmeli */
+    --ft-primary:         #006880;   /* Koyu teal (mavi-yeşil) */
     --ft-primary-dim:     #004a5d;
-    --ft-primary-on:      #ffffff;
-    --ft-secondary:       #006d3c;
+    --ft-primary-on:      #ffffff;   /* Mavi üstüne beyaz yazı */
+    --ft-secondary:       #006d3c;   /* Koyu yeşil */
     --ft-secondary-dim:   #004d29;
-    --ft-danger:          #b3261e;
+    --ft-danger:          #b3261e;   /* Koyu kırmızı */
     --ft-danger-dim:      #8c1d18;
-    --ft-warning:         #92400e;
+    --ft-warning:         #92400e;   /* Koyu turuncu */
 
+    /* Açık tema metin renkleri — koyu tonda */
     --ft-text:            #1a1c1e;
     --ft-text-muted:      #44474f;
     --ft-text-faint:      #737679;
+
+    /* Açık tema kenarlık/çizgiler — görünür gri tonlar */
     --ft-divider:         #e2e8f0;
     --ft-outline:         #c9cdd4;
 
+    /* Arkaplan efektleri açık temada çok belirgin olmasın */
     --ft-chart-opacity:   0.03;
-    --ft-chart-blend:     multiply;
+    --ft-chart-blend:     multiply;  /* multiply → piksel renkleri çarpar, karartır (açık zeminde daha doğal) */
     --ft-dot:             rgba(0,104,128,0.04);
     --ft-blob-from:       rgba(0,104,128,0.04);
     --ft-blob-to:         rgba(0,104,128,0.01);
 
+    /* Açık tema kartlar beyaz arka plan */
     --ft-card-bg:         #ffffff;
     --ft-card-blur:       0px;
     --ft-card-border:     #e2e8f0;
     --ft-card-shadow:     0 2px 12px rgba(0,0,0,0.06);
     --ft-card-glow:       none;
 
+    /* Açık tema input'lar tamamen beyaz */
     --ft-input-bg:        #ffffff;
     --ft-input-bg-focus:  #ffffff;
     --ft-input-border:    #d1d5db;
@@ -115,89 +147,130 @@
     --ft-nav-bg:          #ffffff;
     --ft-nav-border:      #e2e8f0;
 
+    /* Açık tema toggle butonu */
     --ft-toggle-bg:       #f4f7fb;
     --ft-toggle-border:   #d1d5db;
     --ft-toggle-text:     #44474f;
     --ft-toggle-hover-bg: rgba(0,104,128,0.06);
     --ft-toggle-shadow:   0 2px 8px rgba(0,0,0,0.08);
 
-    --ft-btn-gradient:      linear-gradient(110deg,#006880 0%,#004a5d 40%,#003544 70%,#006880 100%);
-    --ft-btn-text:          #ffffff;
-    --ft-btn-glow:          rgba(0,104,128,0.2);
-    --ft-btn-glow-hover:    rgba(0,104,128,0.35);
-    --ft-link-accent:       #006880;
-    --ft-link-accent-hover: #004a5d;
+    /* Açık tema buton gradientleri koyu renkte */
+    --ft-btn-gradient:        linear-gradient(110deg,#006880 0%,#004a5d 40%,#003544 70%,#006880 100%);
+    --ft-btn-text:            #ffffff;
+    --ft-btn-glow:            rgba(0,104,128,0.2);
+    --ft-btn-glow-hover:      rgba(0,104,128,0.35);
+    --ft-link-accent:         #006880;
+    --ft-link-accent-hover:   #004a5d;
 
+    /* Açık tema mesh renkleri — mavi tonlu açık zemin */
     --ft-mesh-a: #e4ecfa;
     --ft-mesh-b: #dce8ff;
 }
 
-/* ══════════════════════════════════════
-   SHARED COMPONENTS
-══════════════════════════════════════ */
+/* 
+   PAYLAŞILAN BILEŞENLER
+   Login, Register ve Admin sayfalarında ortak kullanılan stiller.
+    */
 
+/* ── Material Symbols (Google İkon Seti) ──
+   FILL, wght, GRAD, opsz → ikon kalınlığı ve dolgu ayarları
+   user-select: none → ikonlar yanlışlıkla seçilemesin
+   vertical-align: middle → metin içindeki ikonlar dikey ortada */
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     user-select: none;
     vertical-align: middle;
 }
 
+/* ── ft-body: <body> için temel stiller ──
+   Tüm sayfalar bu sınıfı kullanır. */
 .ft-body {
     background-color: var(--ft-bg);
     color: var(--ft-text);
     font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased; /* macOS'ta yazılar daha ince ve keskin görünür */
 }
 
-/* Login/Register bg */
+/* 
+   LOGIN / REGISTER SAYFASI ARKAPLAN EFEKTLERİ
+    */
+
+/* ft-bg-mesh: İki radyal degrade — sol üst + sağ alt köşede renkli leke efekti */
 .ft-bg-mesh {
     background:
         radial-gradient(ellipse at 15% 25%, var(--ft-mesh-a) 0%, transparent 55%),
         radial-gradient(ellipse at 85% 75%, var(--ft-mesh-b) 0%, transparent 55%);
 }
+
+/* ft-dot-pattern: 28px aralıklı ince nokta deseni
+   radial-gradient(1px nokta, şeffaf arka) tekrarlanır */
 .ft-dot-pattern {
     background-image: radial-gradient(var(--ft-dot) 1px, transparent 1px);
     background-size: 28px 28px;
 }
+
+/* ft-blob: Ortada büyük, yumuşak ışık hüzmesi (animate-pulse ile nefes alır) */
 .ft-blob {
     background: radial-gradient(ellipse at center,
         var(--ft-blob-from) 0%, var(--ft-blob-to) 45%, transparent 70%);
 }
+
+/* ft-chart: Dekoratif finansal grafik görseli için stil
+   opacity + mix-blend-mode → arka planla uyumlu, göz yormayan görsel */
 .ft-chart {
     opacity: var(--ft-chart-opacity);
     mix-blend-mode: var(--ft-chart-blend);
     filter: blur(2px);
 }
 
-/* Card (glassmorphism for login) */
+/* 
+   KART (Glassmorphism)
+   Login ve Register sayfalarındaki form kartı.
+   Dark modda: yarı saydam arka plan + backdrop-filter blur → cam efekti
+   Light modda: düz beyaz arka plan
+    */
 .ft-card {
     background: var(--ft-card-bg);
     border: 1px solid var(--ft-card-border);
     box-shadow: var(--ft-card-shadow);
 }
+/* Koyu tema için glassmorphism override */
 [data-theme="dark"] .ft-card {
-    background: rgba(22,26,30,0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(22,26,30,0.7);            /* Yarı saydam koyu */
+    backdrop-filter: blur(20px);              /* Arka plandaki nesneleri bulanıklaştır */
+    -webkit-backdrop-filter: blur(20px);      /* Safari uyumluluğu */
 }
 
-/* Inputs */
+/* 
+   INPUT ALANLARI
+   ft-input: Her form input'una uygulanan temel stil.
+   !important → Tailwind'in ve tarayıcı varsayılanlarının üzerine yazar.
+    */
 .ft-input {
     background: var(--ft-input-bg) !important;
     border: 1px solid var(--ft-input-border) !important;
     color: var(--ft-text) !important;
     box-shadow: none !important;
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color .2s, box-shadow .2s;  /* Yumuşak geçiş animasyonu */
 }
 .ft-input::placeholder { color: var(--ft-placeholder) !important; opacity: 1; }
+
+/* Focus durumu: kenarlık primary renge döner + mavi halka belirer */
 .ft-input:focus,
 .ft-input:focus-visible {
-    outline: none !important;
-    background: var(--ft-input-bg-focus) !important;
-    border-color: var(--ft-primary) !important;
-    box-shadow: 0 0 0 3px var(--ft-input-ring) !important;
+    outline: none !important;                              /* Tarayıcı varsayılan outline kaldırılır */
+    background: var(--ft-input-bg-focus) !important;      /* Biraz daha açık arka plan */
+    border-color: var(--ft-primary) !important;            /* Mavi kenarlık */
+    box-shadow: 0 0 0 3px var(--ft-input-ring) !important; /* Mavi glow halkası */
 }
+
+/* Hover: kenarlık rengi primary ile mevcut arasında karışım */
 .ft-input:hover { border-color: color-mix(in srgb, var(--ft-primary) 50%, var(--ft-input-border)) !important; }
+
+/* ── Tarayıcı Otomatik Doldurma (Autofill) Düzeltmesi ──
+   Tarayıcı form alanlarını otomatik doldurduğunda sarı/mavi arka plan uyguluyor.
+   -webkit-box-shadow ile arka plan rengi üzerine yazılarak bu engellenir.
+   transition:9999s → renk değişimini uzun süreye yayarak gizler. */
 .ft-input:-webkit-autofill,
 .ft-input:-webkit-autofill:hover,
 .ft-input:-webkit-autofill:focus,
@@ -208,14 +281,20 @@ input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--ft-autofill-text) !important;
     transition: background-color 9999s;
 }
+
+/* Input içindeki ikonlar (kişi, mail, kilit simgeleri) için renk */
 .ft-input-icon { color: var(--ft-text-muted); opacity: 0.5; }
 .ft-input-sm { min-width: 100px; }
 
-/* Text helpers */
-.ft-text        { color: var(--ft-text); }
-.ft-text-muted  { color: var(--ft-text-muted); }
-.ft-text-faint  { color: var(--ft-text-faint); }
+/* 
+   METİN YARDIMCILARI
+    */
+.ft-text        { color: var(--ft-text); }        /* Ana metin rengi */
+.ft-text-muted  { color: var(--ft-text-muted); }  /* Gri/soluk metin */
+.ft-text-faint  { color: var(--ft-text-faint); }  /* Çok soluk metin (etiketler) */
 
+/* ft-label: Form alan etiketleri (E-POSTA, ŞİFRE gibi)
+   Büyük harf + geniş harf aralığı → kurumsal/teknik görünüm */
 .ft-label {
     display: block;
     font-size: 0.65rem;
@@ -224,8 +303,12 @@ input:-webkit-autofill:focus {
     letter-spacing: 0.09em;
     color: var(--ft-text-muted);
 }
+
+/* Yatay çizgi ayırıcı (örn. "Hesabın yok mu?" alanının üstü) */
 .ft-divider-el { border-top: 1px solid var(--ft-divider); }
 
+/* ft-error-box: Sunucudan gelen hata mesajı kutusu
+   Kırmızı kenarlık + soluk kırmızı arka plan */
 .ft-error-box {
     background: rgba(255,113,107,0.07);
     border: 1px solid rgba(255,113,107,0.2);
@@ -238,7 +321,10 @@ input:-webkit-autofill:focus {
 }
 [data-theme="light"] .ft-error-box { color: var(--ft-danger); }
 
-/* Primary button */
+/* 
+   ANA BUTON (ft-btn-primary)
+   Login ve Register'daki "Giriş Yap" / "Kayıt Ol" butonları.
+  */
 .ft-btn-primary {
     display: flex; align-items: center; justify-content: center; gap: 0.5rem;
     width: 100%;
@@ -246,30 +332,43 @@ input:-webkit-autofill:focus {
     border-radius: 0.75rem;
     font-family: 'Inter', sans-serif;
     font-weight: 700; font-size: 0.875rem; letter-spacing: 0.03em;
+
+    /* Degrade arka plan — 200% genişlikte, sola hizalı başlar */
     background: var(--ft-btn-gradient) !important;
     background-size: 200% auto !important;
     background-position: left center !important;
     color: var(--ft-btn-text) !important;
-    box-shadow: 0 2px 14px -2px var(--ft-btn-glow);
+
+    box-shadow: 0 2px 14px -2px var(--ft-btn-glow);  /* Yumuşak mavi alt gölge */
     border: none; cursor: pointer; position: relative; overflow: hidden;
     transition: background-position .5s ease, box-shadow .2s ease, transform .15s ease;
 }
+/* Hover: gradient sağa kayar (parlama efekti), gölge büyür */
 .ft-btn-primary:hover {
     background-position: right center !important;
     box-shadow: 0 6px 22px -3px var(--ft-btn-glow-hover);
 }
+/* Tıklama: hafif küçülür (basılma hissi) */
 .ft-btn-primary:active { transform: scale(0.97); }
+
+/* ::after → üzerinden geçen parlama animasyonu (shine effect)
+   Sol dışından sağ dışına doğru kayar */
 .ft-btn-primary::after {
     content:''; position:absolute; top:0; left:-75%; width:50%; height:100%;
     background: linear-gradient(120deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%);
     transform: skewX(-20deg); transition: left .5s ease; pointer-events:none;
 }
-.ft-btn-primary:hover::after { left: 130%; }
+.ft-btn-primary:hover::after { left: 130%; } /* Hover'da parlama sağa çıkar */
 
+/* Renkli link (örn: "Kayıt Ol", "Şifremi Unuttum") */
 .ft-link-accent { color: var(--ft-link-accent); transition: color .2s; text-decoration: none; }
 .ft-link-accent:hover { color: var(--ft-link-accent-hover); }
 
-/* Theme toggle (login pages - fixed position) */
+/* 
+   TEMA DEĞİŞTİRME BUTONU (Login/Register sayfaları)
+   position:fixed → sağ üst köşede sabit
+   Yuvarlak hap şekli (border-radius:9999px)
+   */
 .ft-theme-toggle {
     position: fixed; top: 1.1rem; right: 1.1rem; z-index: 200;
     display: inline-flex; align-items: center; gap: 0.35rem;
@@ -278,18 +377,24 @@ input:-webkit-autofill:focus {
     border: 1px solid var(--ft-toggle-border);
     color: var(--ft-toggle-text);
     font-size: 0.7rem; font-weight: 600;
-    cursor: pointer; backdrop-filter: blur(16px);
+    cursor: pointer;
+    backdrop-filter: blur(16px);        /* Arkasındaki içeriği bulanıklaştırır */
     box-shadow: var(--ft-toggle-shadow);
     transition: background .2s, color .2s;
 }
 .ft-theme-toggle:hover { background: var(--ft-toggle-hover-bg); }
 .ft-theme-toggle .material-symbols-outlined { font-size: 16px; }
 
-/* ══════════════════════════════════════
-   ADMIN PANEL COMPONENTS
-══════════════════════════════════════ */
 
-/* ── Navbar ── */
+/*
+   ADMIN PANELİ BİLEŞENLERİ
+   Aşağıdaki tüm sınıflar Admin.cshtml tarafından kullanılır.
+   */
+
+/* ── NAVBAR (Sabit Üst Menü) ──
+   position:fixed → sayfa scroll edilse de yukarıda sabit kalır.
+   z-index:150 → market strip'in (z:100) üstünde, modal'ın (z:300) altında.
+   height:88px → market strip margin-top değeriyle eşleşmelidir. */
 .ft-navbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 150;
     height: 88px;
@@ -299,6 +404,9 @@ input:-webkit-autofill:focus {
     padding: 0 2.5rem;
 }
 
+/* ft-logo: "FixTrading" yazısına uygulanan gradient metin efekti
+   -webkit-background-clip: text → gradient arka plan metin şeklinde kesilir
+   -webkit-text-fill-color: transparent → gerçek metin rengi şeffaf, gradient görünür */
 .ft-logo {
     font-family: 'Inter', sans-serif;
     font-size: 1.8rem;
@@ -309,15 +417,16 @@ input:-webkit-autofill:focus {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     white-space: nowrap;
-    flex-shrink: 0;
+    flex-shrink: 0;  /* Navbar daraldığında logo küçülmesin */
 }
+/* Açık temada logo koyu teal renk gradientle */
 [data-theme="light"] .ft-logo {
     background: linear-gradient(125deg, #006880 0%, #004a5d 60%);
     -webkit-background-clip: text;
     background-clip: text;
 }
 
-/* Nav links — left aligned (after logo) */
+/* ── NAV LİNK GRUBU (logo'nun sağında) ── */
 .ft-nav-links {
     display: flex;
     gap: 2.5rem;
@@ -325,34 +434,40 @@ input:-webkit-autofill:focus {
     margin-left: 3rem;
 }
 
+/* Tek bir nav linki */
 .ft-nav-link {
     font-size: 1.05rem;
     font-weight: 600;
-    color: var(--ft-text-muted);
+    color: var(--ft-text-muted);     /* Normal: gri */
     text-decoration: none;
     padding: 0.5rem 0;
-    position: relative;
+    position: relative;               /* ::after için pozisyon referansı */
     transition: color 0.2s;
     white-space: nowrap;
 }
+
+/* Link altındaki renkli çizgi (başlangıçta görünmez, scaleX:0) */
 .ft-nav-link::after {
     content: "";
     position: absolute;
     bottom: -4px; left: 0; right: 0;
     height: 2px;
-    background: var(--ft-primary);
+    background: var(--ft-primary);  /* Mavi çizgi */
     border-radius: 2px;
-    transform: scaleX(0);
+    transform: scaleX(0);            /* Başlangıçta gizli */
     transition: transform 0.2s ease;
 }
+/* Hover: yazı beyaza döner, çizgi kısmen görünür */
 .ft-nav-link:hover { color: var(--ft-text); }
 .ft-nav-link:hover::after { transform: scaleX(0.4); }
+
+/* Aktif sekme: mavi renk + tam genişlikte alt çizgi */
 .ft-nav-link.active {
     color: var(--ft-primary);
 }
 .ft-nav-link.active::after { transform: scaleX(1); }
 
-/* Navbar inline toggle (not fixed) */
+/* Navbar'daki tema toggle butonu (yuvarlak, ikon tek başına) */
 .ft-navbar-toggle {
     display: inline-flex; align-items: center; justify-content: center;
     width: 36px; height: 36px; border-radius: 50%;
@@ -363,14 +478,18 @@ input:-webkit-autofill:focus {
     transition: background .2s, color .2s;
 }
 .ft-navbar-toggle:hover {
-    background: rgba(105,218,255,0.08);
+    background: rgba(105,218,255,0.08);   /* Mavi hover efekti */
     color: var(--ft-primary);
 }
 [data-theme="light"] .ft-navbar-toggle:hover {
     background: rgba(0,104,128,0.06);
 }
 
-/* ── Market Strip ── */
+/* 
+   MARKET STRIP (FİYAT BANDI)
+   Navbar'ın hemen altında yatay kayan fiyat kartları.
+   scrollbar-width:none → kaydırma çubuğu gizlenir.
+   */
 .ft-market-strip {
     background: var(--ft-nav-bg);
     border-bottom: 1px solid var(--ft-nav-border);
@@ -380,26 +499,28 @@ input:-webkit-autofill:focus {
     display: flex;
     gap: 0.5rem;
     padding: 0 2.5rem;
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow-x: auto;      /* Yatay kaydırılabilir */
+    scrollbar-width: none; /* Firefox'ta scrollbar gizle */
 }
-.ft-strip-container::-webkit-scrollbar { display: none; }
+.ft-strip-container::-webkit-scrollbar { display: none; } /* Chrome/Safari'de gizle */
+
+/* Her bir sembol kartı */
 .ft-strip-card {
     display: flex;
     flex-direction: column;
     justify-content: center;
     min-width: 130px;
     padding: 0.6rem 1rem;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255,255,255,0.02);  /* Çok hafif beyaz arka plan */
     border: 1px solid var(--ft-nav-border);
     border-radius: 10px;
-    flex-shrink: 0;
+    flex-shrink: 0;         /* Kart küçülmesin */
     transition: background .2s, border-color .2s;
     cursor: default;
     gap: 0.15rem;
 }
 .ft-strip-card:hover {
-    background: rgba(105,218,255,0.05);
+    background: rgba(105,218,255,0.05);        /* Hover: hafif mavi */
     border-color: rgba(105,218,255,0.2);
 }
 [data-theme="light"] .ft-strip-card {
@@ -410,6 +531,8 @@ input:-webkit-autofill:focus {
     background: rgba(0,104,128,0.06);
     border-color: rgba(0,104,128,0.2);
 }
+
+/* Sembol adı (EURUSD gibi) */
 .ft-strip-symbol {
     font-size: 0.65rem;
     font-weight: 700;
@@ -417,6 +540,7 @@ input:-webkit-autofill:focus {
     text-transform: uppercase;
     color: var(--ft-text-muted);
 }
+/* Fiyat değeri (1.08750 gibi) */
 .ft-strip-price {
     font-size: 1rem;
     font-weight: 800;
@@ -425,7 +549,7 @@ input:-webkit-autofill:focus {
     letter-spacing: -0.02em;
 }
 
-/* ── Section title ── */
+/* ── BÖLÜM BAŞLIĞI STİLLERİ ── */
 .ft-section-title {
     font-size: 2.75rem;
     font-weight: 900;
@@ -433,20 +557,24 @@ input:-webkit-autofill:focus {
     color: var(--ft-text);
     line-height: 1.1;
 }
+/* Küçük üst başlık ("Genel Bakış", "Yönetim Paneli" gibi) */
 .ft-section-subtitle {
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    color: var(--ft-primary);
+    color: var(--ft-primary);   /* Mavi renk */
     margin-bottom: 0.4rem;
 }
 
-/* ── Service Cards (Home) ── */
+/*
+   SERVİS KARTLARI (Anasayfa - Sistem Durumu)
+   Sol kenarda renkli çizgi ile durum belirtilir.
+   */
 .ft-service-card {
     background: var(--ft-surface-low);
     border: 1px solid var(--ft-card-border);
-    border-left: 4px solid;
+    border-left: 4px solid;           /* Sol kenarlık kalın, rengi alt sınıflardan gelir */
     border-radius: 14px;
     padding: 1.75rem;
     display: flex;
@@ -455,21 +583,26 @@ input:-webkit-autofill:focus {
     min-height: 160px;
     transition: transform .2s, box-shadow .2s;
 }
+/* Hover: kart yukarı yükselir ve gölgesi büyür */
 .ft-service-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.25); }
-.ft-service-card-ok   { border-left-color: var(--ft-secondary); }
-.ft-service-card-bad  { border-left-color: var(--ft-danger); }
+.ft-service-card-ok   { border-left-color: var(--ft-secondary); }  /* Yeşil: çalışıyor */
+.ft-service-card-bad  { border-left-color: var(--ft-danger); }     /* Kırmızı: çalışmıyor */
 
-/* ── Tables ── */
+/* 
+   TABLOLAR (Canlı Piyasa, Kullanıcılar, Limitler, Uyarılar)
+   border-collapse:separate + border-spacing:0 → hücre kenarlıkları
+   birleşmeden ayrı tutulur (rounded corner için gerekli).
+    */
 .ft-table { border-collapse: separate; border-spacing: 0; }
 .ft-table th {
     padding: 1rem 1.5rem;
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.14em;
-    text-transform: uppercase;
+    text-transform: uppercase;     /* Büyük harf sütun başlıkları */
     color: var(--ft-text-faint);
     border-bottom: 1px solid var(--ft-divider);
-    background: rgba(255,255,255,0.015);
+    background: rgba(255,255,255,0.015);  /* Çok hafif beyaz başlık arka planı */
 }
 [data-theme="light"] .ft-table th {
     background: rgba(0,0,0,0.015);
@@ -480,8 +613,9 @@ input:-webkit-autofill:focus {
     font-size: 0.875rem;
     color: var(--ft-text);
     border-bottom: 1px solid var(--ft-divider);
-    vertical-align: middle;
+    vertical-align: middle;  /* Hücre içeriği dikey ortada */
 }
+/* Satır hover: çok hafif mavi arka plan */
 .ft-table tbody tr {
     transition: background .15s;
 }
@@ -492,7 +626,7 @@ input:-webkit-autofill:focus {
     background: rgba(0,104,128,0.04);
 }
 
-/* Symbol icon box */
+/* Sembol kutusu: EURUSD için "EURU" gibi kısa kod gösteren kare ikon */
 .ft-symbol-box {
     width: 36px; height: 36px;
     border-radius: 10px;
@@ -507,7 +641,7 @@ input:-webkit-autofill:focus {
     border-color: rgba(0,104,128,0.15);
 }
 
-/* User avatar */
+/* Kullanıcı avatarı: ismin baş harfleri (örn: "AV") içeren yuvarlak daire */
 .ft-avatar {
     width: 38px; height: 38px;
     border-radius: 50%;
@@ -515,7 +649,9 @@ input:-webkit-autofill:focus {
     font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
 }
 
-/* Role chip */
+/* ── Rol Etiketi (chip) ──
+   Admin → mavi, User → yeşil
+   Kullanıcı tablosunda kullanıcının rolünü gösterir. */
 .ft-role-chip {
     display: inline-block;
     font-size: 0.65rem;
@@ -534,12 +670,12 @@ input:-webkit-autofill:focus {
 }
 .ft-role-chip.admin {
     background: rgba(105,218,255,0.1);
-    color: var(--ft-primary);
+    color: var(--ft-primary);      /* Mavi — yönetici */
     border-color: rgba(105,218,255,0.2);
 }
 .ft-role-chip.user {
     background: rgba(0,253,147,0.08);
-    color: var(--ft-secondary);
+    color: var(--ft-secondary);    /* Yeşil — normal kullanıcı */
     border-color: rgba(0,253,147,0.15);
 }
 [data-theme="light"] .ft-role-chip.user {
@@ -548,18 +684,20 @@ input:-webkit-autofill:focus {
     border-color: rgba(0,109,60,0.15);
 }
 
-/* Status dot */
+/* Durum noktası (kullanılan servis durum göstergesi için) */
 .ft-status-dot {
     width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
 }
-.ft-status-dot.ok  { background: var(--ft-secondary); box-shadow: 0 0 6px var(--ft-secondary); }
+.ft-status-dot.ok  { background: var(--ft-secondary); box-shadow: 0 0 6px var(--ft-secondary); } /* Yeşil parlayan */
 .ft-status-dot.bad { background: var(--ft-danger); }
 
-/* Status text */
+/* Durum metni */
 .ft-status-ok  { color: var(--ft-secondary); font-weight: 700; font-size: 0.9rem; }
 .ft-status-bad { color: var(--ft-danger);    font-weight: 700; font-size: 0.9rem; }
 
-/* Type badges (alerts) */
+/* ── Uyarı Tipi Etiketi (Alerts tablosu) ──
+   critical → kırmızı (SPREAD_LIMIT, MID_TOO_HIGH, MID_TOO_LOW)
+   warn     → sarı (diğer uyarılar) */
 .ft-alert-badge {
     display: inline-flex; align-items: center;
     padding: 0.2rem 0.65rem;
@@ -578,7 +716,12 @@ input:-webkit-autofill:focus {
     border: 1px solid rgba(245,158,11,0.2);
 }
 
-/* ── Buttons ── */
+/* 
+   BUTONLAR (Admin Paneli)
+   */
+
+/* ── Küçük Ana Buton (Kullanıcı Ekle gibi) ──
+   Tek renk, köşeli — daha kompakt versiyon */
 .ft-btn-primary-sm {
     display: inline-flex; align-items: center; gap: 0.5rem;
     padding: 0.65rem 1.25rem;
@@ -589,10 +732,12 @@ input:-webkit-autofill:focus {
     border: none; cursor: pointer;
     transition: filter .2s, transform .15s;
 }
-.ft-btn-primary-sm:hover { filter: brightness(1.1); }
-.ft-btn-primary-sm:active { transform: scale(0.97); }
+.ft-btn-primary-sm:hover { filter: brightness(1.1); }   /* Hover: biraz parlar */
+.ft-btn-primary-sm:active { transform: scale(0.97); }   /* Tıklama: küçülür */
 [data-theme="light"] .ft-btn-primary-sm { background: var(--ft-primary); color: #fff; }
 
+/* ── İkincil Buton (Rol Değiştir gibi) ──
+   Nötr gri, çerçeveli */
 .ft-btn-secondary {
     display: inline-flex; align-items: center; gap: 0.4rem;
     padding: 0.55rem 1rem;
@@ -607,6 +752,8 @@ input:-webkit-autofill:focus {
 .ft-btn-secondary:hover { background: var(--ft-bright); color: var(--ft-text); }
 [data-theme="light"] .ft-btn-secondary { background: var(--ft-surface-high); }
 
+/* ── Tehlikeli Buton (Sil) ──
+   Kırmızı tonlu, hover'da daha kırmızı */
 .ft-btn-danger {
     display: inline-flex; align-items: center; gap: 0.4rem;
     padding: 0.55rem 1rem;
@@ -626,6 +773,8 @@ input:-webkit-autofill:focus {
 }
 [data-theme="light"] .ft-btn-danger:hover { background: rgba(179,38,30,0.14); }
 
+/* ── İkon Butonu (save, delete küçük ikonlu butonlar) ──
+   Kare şeklinde, yalnızca bir ikon içerir */
 .ft-btn-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 32px; height: 32px; border-radius: 8px;
@@ -635,39 +784,53 @@ input:-webkit-autofill:focus {
 }
 .ft-btn-icon:hover { background: var(--ft-surface-high); color: var(--ft-text); }
 
-/* ── Stock badges ── */
+/* 
+   HİSSE/KUR DEĞİŞİM ROZETLERİ (Market tablosu ve Strip)
+   JavaScript tarafından doldurulur.
+   Başlangıçta gizli (display:none), JS ile görünür yapılır.
+   */
 .ft-badge-stock {
-    display: none;
+    display: none;                /* Başlangıçta görünmez */
     align-items: center; gap: 2px;
     padding: 2px 7px; border-radius: 5px;
     font-size: 0.7rem; font-weight: 700;
     margin-left: 4px; vertical-align: middle;
 }
-.ft-badge-up   { display: inline-flex; background: rgba(0,253,147,0.1); color: var(--ft-secondary); }
-.ft-badge-down { display: inline-flex; background: rgba(255,113,107,0.1); color: var(--ft-danger); }
+.ft-badge-up   { display: inline-flex; background: rgba(0,253,147,0.1); color: var(--ft-secondary); }  /* Artış → yeşil */
+.ft-badge-down { display: inline-flex; background: rgba(255,113,107,0.1); color: var(--ft-danger); }   /* Düşüş → kırmızı */
 [data-theme="light"] .ft-badge-up   { color: var(--ft-secondary); }
 [data-theme="light"] .ft-badge-down { color: var(--ft-danger); }
+/* Strip rozetleri sol boşluk istemez (zaten kart içinde hizalı) */
 [data-strip-badge] { margin-left: 0; align-self: flex-start; }
 
-/* ── Live cell animations ── */
-.ft-cell-up   { color: var(--ft-secondary) !important; transition: color .4s; }
-.ft-cell-down { color: var(--ft-danger) !important;    transition: color .4s; }
+/* 
+   CANLI HÜCRE ANİMASYONLARI (Market tablosu)
+   Fiyat değişince kısa süre renk değişir, sonra normale döner.
+   JS'de setTimeout ile 800ms sonra sınıf kaldırılır.
+    */
+.ft-cell-up   { color: var(--ft-secondary) !important; transition: color .4s; }  /* Artış → yeşil yanıp söner */
+.ft-cell-down { color: var(--ft-danger) !important;    transition: color .4s; }  /* Düşüş → kırmızı yanıp söner */
 
-/* ── Alert row colors ── */
+/* ── Uyarı Satır Renkleri (Alerts tablosu) ──
+   Kritik satırlar hafif kırmızımsı, uyarı satırlar hafif sarımsı arka plan */
 .ft-row-critical td { background: rgba(255,113,107,0.05) !important; }
 .ft-row-warn     td { background: rgba(245,158,11,0.04) !important; }
 
-/* ── Modal ── */
+/* 
+   MODAL (Kullanıcı Ekle Penceresi)
+   Tam ekranı kaplar, arkasını karartır + bulanıklaştırır.
+   "hidden" sınıfı kaldırılınca görünür olur.
+    */
 .ft-modal {
-    position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(6px);
+    position: fixed; inset: 0; z-index: 300;  /* z:300 → her şeyin üstünde */
+    background: rgba(0,0,0,0.6);              /* Koyu yarı saydam overlay */
+    backdrop-filter: blur(6px);               /* Arkasındaki içeriği bulanıklaştır */
     display: flex; align-items: center; justify-content: center; padding: 1rem;
 }
-[data-theme="light"] .ft-modal { background: rgba(44,62,80,0.25); }
-.ft-modal-content { max-height: calc(100vh - 2rem); overflow: auto; }
+[data-theme="light"] .ft-modal { background: rgba(44,62,80,0.25); } /* Açık temada daha az koyu */
+.ft-modal-content { max-height: calc(100vh - 2rem); overflow: auto; } /* Uzun formlar scroll olabilsin */
 
-/* Surface helper classes */
+/* ── Yüzey Yardımcı Sınıfları ── */
 .ft-surface     { background: var(--ft-surface); }
 .ft-surface-low { background: var(--ft-surface-low); }
 .ft-border      { border: 1px solid var(--ft-card-border); }

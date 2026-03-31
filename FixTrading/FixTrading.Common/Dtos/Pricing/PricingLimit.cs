@@ -4,7 +4,7 @@ namespace FixTrading.Common.Dtos.Pricing;
 public class PricingLimit
 {
     public string Symbol { get; set; } = string.Empty;    // Sembol adı, örneğin "EURUSD"
-    public decimal MinMid { get; set; }                   // MID fiyatı için minimum limit, örneğin 1.0000
-    public decimal MaxMid { get; set; }                   // MID fiyatı için maksimum limit, örneğin 1.5000
-    public decimal MaxSpread { get; set; }                // Spread için maksimum limit
+    public decimal MinMid { get; set; }                   // MID fiyatı için minimum limit, örneğin 1.08500
+    public decimal MaxMid { get; set; }                   // MID fiyatı için maksimum limit, örneğin 1.50000
+    public decimal MaxSpread { get; set; }                // Spread için maksimum limit, örneğin 0.00050
 }

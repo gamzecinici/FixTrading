@@ -215,10 +215,99 @@
           }
         }
       }
+    },
+    "/api/admin/symbols": {
+      "get": {
+        "tags": [
+          "FixTrading.API.cs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FixTrading.API.cs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSymbolApiRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/symbols/{instrumentId}": {
+      "delete": {
+        "tags": [
+          "FixTrading.API.cs"
+        ],
+        "parameters": [
+          {
+            "name": "instrumentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/test-email": {
+      "post": {
+        "tags": [
+          "FixTrading.API.cs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AddSymbolApiRequest": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "nullable": true
+          },
+          "minMid": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxMid": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxSpread": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "DtoInstrument": {
         "type": "object",
         "properties": {

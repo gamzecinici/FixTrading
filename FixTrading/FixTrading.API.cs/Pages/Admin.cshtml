@@ -1,3 +1,17 @@
+@* ============================================================
+   Admin.cshtml — Yönetici Paneli
+   Sisteme giriş yapmış admin kullanıcıların kullandığı sayfa.
+   5 sekme içerir: Anasayfa | Canlı Piyasa | Kullanıcılar | Limit Ayarları | Uyarılar
+   
+   Model: Pages/Admin.cshtml.cs → AdminModel sınıfı
+   AdminModel şu verileri sağlar:
+     - ActiveTab        : Aktif sekme adı (URL'deki ?tab= parametresi)
+     - MarketRows       : FIX bağlantısından gelen canlı piyasa verileri
+     - HealthServices   : Servis sağlık durumları (FIX, DB vb.)
+     - Users            : Sistemdeki tüm kullanıcılar listesi
+     - PricingLimits    : Sembol bazlı min/max fiyat limitleri
+     - Alerts           : Limit aşım uyarıları
+   ============================================================ *@
 @page
 @model FixTrading.API.cs.Pages.AdminModel
 <!DOCTYPE html>
@@ -6,19 +20,31 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>FixTrading Admin</title>
+
     <script>
         (function () {
             var t = localStorage.getItem('ft-theme') || 'dark';
             document.documentElement.setAttribute('data-theme', t);
         })();
     </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    @* Inter: Admin paneli için tek font ailesi (farklı kalınlıklarda: 400-900)
+       Material Symbols: Navbar ve tablolardaki ikonlar için *@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link href="/css/theme.css" rel="stylesheet" />
+
     <style>
+        /* Tüm elementlerde box-sizing: border-box;
+           padding/border genişliği toplam genişliğe dahil olur → layout kırılmaz */
         * { box-sizing: border-box; }
+
+        /* body arka planı ve yazı rengi CSS değişkenlerinden gelir */
         body { background: var(--ft-bg); color: var(--ft-text); }
+
+        /* Navbar'da logo ile nav-linkleri arasındaki esnek boşluk doldurucu */
         .nav-spacer { flex: 1; }
+
         .ft-search-box {
             background: var(--ft-surface-high);
             border: 1px solid var(--ft-outline);
@@ -35,27 +61,88 @@
             box-shadow: 0 0 0 3px var(--ft-input-ring);
         }
         .ft-search-box::placeholder { color: var(--ft-placeholder); }
+
+        /* Limit input'larının yanındaki vertical spinner butonları (Ok tarzı) */
+        .ft-spin-container {
+            display: inline-flex;
+            align-items: stretch;
+            position: relative;
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            border-radius: 8px;
+            overflow: hidden;
+            width: 135px;
+            height: 38px;
+        }
+        .ft-spin-input {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 30px 0 10px !important;
+            width: 100% !important;
+            font-family: monospace;
+            font-size: 0.82rem;
+            text-align: right;
+        }
+        .ft-spin-controls {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 26px;
+            border-left: 1px solid var(--ft-outline);
+            background: var(--ft-surface-low);
+        }
+        .ft-spin-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--ft-text-muted);
+            cursor: pointer;
+            padding: 0;
+            transition: background .1s, color .1s;
+        }
+        .ft-spin-btn:hover { background: var(--ft-primary); color: white; }
+        .ft-spin-btn:active { background: var(--ft-primary-active); }
+        .ft-spin-btn:first-child { border-bottom: 1px solid var(--ft-outline); }
+        .ft-spin-btn span { font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body class="ft-body min-h-screen overflow-x-hidden">
 
-    <!-- ══ NAVBAR ══ -->
+    <div id="ft-af-hold" style="display:none">@Html.AntiForgeryToken()</div>
+
     <header class="ft-navbar">
         <div class="flex items-center gap-10 flex-1">
+            @* Logo: CSS gradient ile mavi renk tonu, text-fill ile metin rengi gradient yapılmış *@
             <span class="ft-logo">FixTrading</span>
+
             <nav class="ft-nav-links hidden md:flex">
                 <a class="ft-nav-link @(Model.ActiveTab == "home"   ? "active" : "")" href="/Admin?tab=home">Anasayfa</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "market" ? "active" : "")" href="/Admin?tab=market">Canlı Piyasa</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "users"  ? "active" : "")" href="/Admin?tab=users">Kullanıcılar</a>
-                <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="/Admin?tab=limits">Limit Ayarları</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="/Admin?tab=limits">Enstrüman & Limit</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "alerts" ? "active" : "")" href="/Admin?tab=alerts">Uyarılar</a>
             </nav>
         </div>
+
+        @* ── NAVBAR SAĞ KISIM: tema butonu + kullanıcı bilgisi + logout ── *@
         <div class="flex items-center gap-3 shrink-0">
+            @* Yuvarlak tema değiştirme butonu (saat simgeli değil, sadece ikon) *@
             <button class="ft-navbar-toggle" onclick="toggleTheme()" title="Tema değiştir" type="button">
                 <span class="material-symbols-outlined" id="toggleIcon" style="font-size:18px">light_mode</span>
             </button>
+
+            @* İnce dikey çizgi ayırıcı *@
             <div style="width:1px;height:28px;background:var(--ft-outline);opacity:0.5"></div>
+
+            @* ── KULLANICI BİLGİSİ ──
+               User.Identity?.Name → oturum açmış kullanıcının adı (null ise "Admin" gösterilir).
+               "Verified" etiketi sabit — gerçek doğrulama durumu değil, görsel.
+               Avatar: person simgesi içeren yuvarlak daire. *@
             <div class="flex items-center gap-2" style="margin-left:4px">
                 <div class="text-right hidden sm:block">
                     <div style="font-size:0.82rem;font-weight:700;color:var(--ft-text)">@(User.Identity?.Name ?? "Admin")</div>
@@ -65,6 +152,11 @@
                     <span class="material-symbols-outlined" style="font-size:18px;color:var(--ft-primary)">person</span>
                 </div>
             </div>
+
+            @* ── LOGOUT BUTONU ──
+               POST ile /Logout sayfasına gönderir.
+               asp-page="/Logout" → AntiForgery token otomatik eklenir (güvenlik).
+               hover'da renk kırmızıya döner (onmouseover/onmouseout ile inline stil değişimi). *@
             <form method="post" asp-page="/Logout">
                 <button style="font-size:0.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ft-text-muted);background:none;border:none;cursor:pointer;padding:0.45rem 0.75rem;border-radius:8px;transition:color .2s"
                         onmouseover="this.style.color='var(--ft-danger)'" onmouseout="this.style.color='var(--ft-text-muted)'"
@@ -73,44 +165,60 @@
         </div>
     </header>
 
-    <!-- ══ MARKET STRIP ══ -->
+    @* ══════════════════════════════════════════════════════════
+       MARKET STRIP (FİYAT BANDI)
+       Navbar'ın hemen altında (margin-top:88px = navbar yüksekliği).
+       Canlı piyasa verilerinin hızlı özeti: sembol + orta fiyat.
+       Model.MarketRows'dan ilk 12 kayıt gösterilir.
+       JS tarafından her 3 saniyede güncellenir (refreshMarket fonksiyonu).
+       ══════════════════════════════════════════════════════════ *@
     <div class="ft-market-strip" style="margin-top:88px">
         <div class="ft-strip-container" id="marketStrip">
+            @* Her sembol için bir kart oluşturuluyor:
+               data-strip-symbol → JS bu attribute'u kullanarak doğru kartı bulur ve fiyatı günceller *@
             @foreach (var row in Model.MarketRows.Take(12))
             {
                 <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
-                    <div class="ft-strip-symbol">@row.Symbol</div>
+                    @* Sembol adı (EURUSD gibi) - araya slash koy *@
+                    <div class="ft-strip-symbol">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</div>
+                    @* Orta fiyat (bid+ask ortalaması), 5 ondalık basamak *@
                     <div class="ft-strip-price">@row.Mid.ToString("F5")</div>
+                    @* Değişim rozeti (yüzde artış/azalış) — JS tarafından doldurulur.
+                       data-strip-badge → applyBadge() fonksiyonu bu attribute'u hedefler. *@
                     <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
                 </div>
             }
         </div>
     </div>
 
-    <!-- ══ MAIN ══ -->
     <main style="min-height:calc(100vh - 130px);padding:2.5rem 2.5rem 4rem">
 
-        <!-- ─ HOME ─ -->
+        @*
+           SEKMELİ PANEL: ANASAYFA (home)
+           Sistem servislerinin sağlık durumunu gösterir. *@
+        @* Model.ActiveTab "home" değilse bu section gizlenir *@
         <section class="@(Model.ActiveTab == "home" ? "" : "hidden")">
             <div style="margin-bottom:2.5rem">
                 <div class="ft-section-subtitle">Genel Bakış</div>
                 <h1 class="ft-section-title">Sistem Durumu</h1>
             </div>
 
-            <!-- Service cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
                 @foreach (var service in Model.HealthServices)
                 {
+                    @* service.IsHealthy → true ise yeşil kart, false ise kırmızı kart *@
                     <div class="ft-service-card @(service.IsHealthy ? "ft-service-card-ok" : "ft-service-card-bad")">
                         <div style="display:flex;justify-content:space-between;align-items:flex-start">
                             <div>
                                 <div style="font-size:0.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ft-text-faint);margin-bottom:4px">Servis</div>
                                 <div style="font-size:1.15rem;font-weight:800;color:var(--ft-text)">@service.Name</div>
                             </div>
+                            @* Durum ikonu: check_circle (yeşil) veya cancel (kırmızı) *@
                             <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:@(service.IsHealthy ? "rgba(0,253,147,0.1)" : "rgba(255,113,107,0.1)")">
                                 <span class="material-symbols-outlined" style="font-size:20px;color:@(service.IsHealthy ? "var(--ft-secondary)" : "var(--ft-danger)")" data-fill="1">@(service.IsHealthy ? "check_circle" : "cancel")</span>
                             </div>
                         </div>
+                        @* Durum etiketi: "Çalışıyor" veya "Çalışmıyor" *@
                         <div style="display:flex;align-items:center;gap:10px;margin-top:1.25rem">
                             <span style="display:inline-flex;align-items:center;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;background:@(service.IsHealthy ? "rgba(0,253,147,0.1)" : "rgba(255,113,107,0.1)");color:@(service.IsHealthy ? "var(--ft-secondary)" : "var(--ft-danger)")">
                                 @(service.IsHealthy ? "Çalışıyor" : "Çalışmıyor")
@@ -120,15 +228,20 @@
                 }
             </div>
 
-            <!-- Global health widget -->
+            @*
+               Tüm servislerin genel sağlık yüzdesini büyük rakamla gösterir.
+               Razor: Tüm servisler sağlıklıysa %100, değilse hesaplanmış yüzde.
+               Yanıp sönen yeşil nokta → "LIVE" ifadesi gerçek zamanlı hissi verir. *@
             <div style="background:linear-gradient(135deg,rgba(105,218,255,0.08) 0%,transparent 70%);border:1px solid rgba(105,218,255,0.15);border-radius:16px;padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;max-width:900px">
                 <div>
                     <div style="font-size:0.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ft-primary);margin-bottom:0.5rem">Global Health Pulse</div>
                     <div style="font-size:3.5rem;font-weight:900;letter-spacing:-.04em;color:var(--ft-text)">
+                        @* Tüm sağlıklıysa %100, değilse: sağlıklı sayısı / toplam * 100 *@
                         @(Model.HealthServices.All(s => s.IsHealthy) ? "100%" : Model.HealthServices.Count(s => s.IsHealthy) * 100 / (Model.HealthServices.Count > 0 ? Model.HealthServices.Count : 1) + "%")
                     </div>
                     <div style="font-size:0.88rem;color:var(--ft-text-muted);margin-top:0.4rem">Sistem operasyonel durumda.</div>
                 </div>
+                @* Canlı gösterge: CSS animation:pulse ile yeşil nokta yanıp söner *@
                 <div style="display:flex;align-items:center;gap:8px">
                     <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ft-secondary);animation:pulse 1.5s infinite;box-shadow:0 0 10px var(--ft-secondary)"></span>
                     <span style="font-size:0.75rem;font-weight:700;color:var(--ft-secondary);letter-spacing:.08em;text-transform:uppercase">Live</span>
@@ -136,51 +249,64 @@
             </div>
         </section>
 
-        <!-- ─ MARKET ─ -->
+        @*
+           SEKMELİ PANEL: CANLI PİYASA (market)
+           FIX protokolü üzerinden gelen Bid/Ask/Mid/Spread verileri.
+           JavaScript her 3 saniyede /Admin?handler=LiveMarket endpoint'ini çağırır
+           ve tabloyu anlık günceller.  *@
         <section class="@(Model.ActiveTab == "market" ? "" : "hidden")">
             <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">Piyasa İzleme</div>
                 <h1 class="ft-section-title">Canlı Piyasa</h1>
             </div>
 
+            @* Tablo kartı *@
             <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                @* Kart başlığı + LIVE göstergesi *@
                 <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
                     <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;font-weight:700;color:var(--ft-primary);text-transform:uppercase;letter-spacing:.1em">
                         <span class="material-symbols-outlined" style="font-size:16px">monitoring</span>
                         Canlı Fiyatlar
                     </div>
+                    @* Yanıp sönen yeşil nokta → canlı veri akışını simgeler *@
                     <div style="display:flex;align-items:center;gap:6px">
                         <span style="width:7px;height:7px;border-radius:50%;background:var(--ft-secondary);animation:pulse 1.5s infinite;display:inline-block"></span>
                         <span style="font-size:0.7rem;font-weight:700;color:var(--ft-secondary);letter-spacing:.06em">LIVE</span>
                     </div>
                 </div>
+
+                @* Tablo: yatay kaydırılabilir (küçük ekranlarda sığmaz)
+                   id="marketTable" → JS bu id ile tabloyu bulur ve günceller *@
                 <div class="overflow-x-auto">
                     <table class="ft-table w-full" id="marketTable">
                         <thead>
                             <tr>
-                                <th>Symbol</th>
-                                <th>Bid</th>
-                                <th>Ask</th>
-                                <th>Mid</th>
-                                <th>Spread</th>
+                                <th style="text-align:center">Symbol</th>   @* Kur çifti adı (EURUSD gibi) *@
+                                <th style="text-align:center">Bid</th>       @* Alış fiyatı *@
+                                <th style="text-align:center">Ask</th>       @* Satış fiyatı *@
+                                <th style="text-align:center">Mid</th>       @* Orta fiyat = (Bid+Ask)/2 *@
+                                <th style="text-align:center">Spread</th>    @* Fark = Ask - Bid *@
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var row in Model.MarketRows.OrderBy(x => x.Symbol))
                             {
                                 <tr data-symbol="@row.Symbol">
-                                    <td>
-                                        <div style="display:flex;align-items:center;gap:10px">
+                                    <td style="text-align:center">
+                                        @* Sembol kutusu (ilk 4 harf) + tam sembol adı *@
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
                                             <div class="ft-symbol-box">@(row.Symbol.Length > 4 ? row.Symbol.Substring(0,4) : row.Symbol)</div>
-                                            <span style="font-weight:700;font-size:0.88rem">@row.Symbol</span>
+                                            <span style="font-weight:700;font-size:0.88rem">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</span>
                                         </div>
                                     </td>
-                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem">@row.Bid</td>
-                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem">@row.Ask</td>
-                                    <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;font-weight:700">
+                                    @* data-field attribute'u → JS hangi hücrenin hangi veri olduğunu tanır *@
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask</td>
+                                    <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center">
                                         <span>@row.Mid</span>
                                         <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
                                     </td>
-                                    <td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted)">@row.Spread</td>
+                                    <td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted);text-align:center">@row.Spread</td>
                                 </tr>
                             }
                         </tbody>
@@ -189,13 +315,20 @@
             </div>
         </section>
 
-        <!-- ─ USERS ─ -->
+        @* 
+           SEKMELİ PANEL: KULLANICILAR (users)
+           Sistemdeki tüm kullanıcılar listelenir.
+           Her kullanıcı için:
+             - Rol değiştirme (admin ↔ user) → ToggleUserRole handler
+             - Silme → DeleteUser handler
+           "Kullanıcı Ekle" butonu modal pencereyi açar. *@
         <section class="@(Model.ActiveTab == "users" ? "" : "hidden")">
             <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
                 <div>
                     <div class="ft-section-subtitle">Yönetim Paneli</div>
                     <h1 class="ft-section-title">Kullanıcılar</h1>
                 </div>
+                @* "Kullanıcı Ekle" butonu → openUserModal() ile modal açılır *@
                 <button class="ft-btn-primary-sm" onclick="openUserModal()" type="button">
                     <span class="material-symbols-outlined" style="font-size:18px">person_add</span>
                     Kullanıcı Ekle
@@ -203,11 +336,13 @@
             </div>
 
             <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                @* Toplam kullanıcı sayısı başlık bilgisi *@
                 <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);background:rgba(105,218,255,0.02)">
                     <div style="font-size:0.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-text-faint)">
                         Toplam @Model.Users.Count kullanıcı
                     </div>
                 </div>
+
                 <div class="overflow-x-auto">
                     <table class="ft-table w-full" style="min-width:700px">
                         <thead>
@@ -223,21 +358,27 @@
                             {
                                 var initials = string.Join("", user.FullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0].ToString().ToUpper()));
                                 var isAdmin = user.Role?.ToLower() == "admin";
+                                @* Admin → mavi avatar, User → yeşil avatar *@
                                 var avatarColor = isAdmin ? "rgba(105,218,255,0.12)" : "rgba(0,253,147,0.1)";
                                 var avatarText = isAdmin ? "var(--ft-primary)" : "var(--ft-secondary)";
                                 <tr>
                                     <td>
                                         <div style="display:flex;align-items:center;gap:12px">
+                                            @* Yuvarlak avatar dairesi, içinde baş harfler *@
                                             <div class="ft-avatar" style="background:@avatarColor;color:@avatarText">@initials</div>
                                             <span style="font-weight:600;font-size:0.88rem">@user.FullName</span>
                                         </div>
                                     </td>
                                     <td style="color:var(--ft-text-muted);font-size:0.875rem">@user.Email</td>
                                     <td>
+                                        @* Rol etiketi (chip): admin → mavi, user → yeşil *@
                                         <span class="ft-role-chip @(isAdmin ? "admin" : "user")">@user.Role</span>
                                     </td>
                                     <td>
                                         <div style="display:flex;justify-content:flex-end;gap:6px">
+                                            @* ── ROL DEĞİŞTİRME FORMU ──
+                                               asp-page-handler="ToggleUserRole" → OnPostToggleUserRoleAsync() çağrılır.
+                                               Gizli input ile kullanıcı id'si sunucuya gönderilir. *@
                                             <form method="post" asp-page-handler="ToggleUserRole">
                                                 <input name="id" type="hidden" value="@user.Id" />
                                                 <button class="ft-btn-secondary" style="font-size:0.7rem;padding:.4rem .9rem" type="submit">
@@ -245,6 +386,9 @@
                                                     Rol
                                                 </button>
                                             </form>
+                                            @* ── KULLANICI SİLME FORMU ──
+                                               onsubmit → tarayıcı onay dialogu açar. Hayır'a basılırsa form gönderilmez.
+                                               asp-page-handler="DeleteUser" → OnPostDeleteUserAsync() çağrılır. *@
                                             <form method="post" asp-page-handler="DeleteUser" onsubmit="return confirm('Kullanıcı silinsin mi?')">
                                                 <input name="id" type="hidden" value="@user.Id" />
                                                 <button class="ft-btn-danger" style="font-size:0.7rem;padding:.4rem .9rem" type="submit">
@@ -262,14 +406,45 @@
             </div>
         </section>
 
-        <!-- ─ LIMITS ─ -->
         <section class="@(Model.ActiveTab == "limits" ? "" : "hidden")">
-            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
-                <div>
-                    <div class="ft-section-subtitle">System Configuration</div>
-                    <h1 class="ft-section-title">Limit Ayarları</h1>
-                    <p style="color:var(--ft-text-muted);font-size:0.875rem;margin-top:0.5rem;max-width:480px">Semboller için minimum, maksimum orta nokta ve spread limitlerini yönetin.</p>
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">Enstrüman Risk Parametreleri</div>
+                <h1 class="ft-section-title">Enstrüman & Limit Yönetimi</h1>
+            </div>
+            @if (TempData["LimitError"] is string limitError)
+            {
+                <div style="background:rgba(255,113,107,0.1);border:1px solid rgba(255,113,107,0.35);border-radius:10px;padding:0.75rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;color:var(--ft-danger);font-size:0.85rem;font-weight:600">
+                    <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">error</span>
+                    @limitError
                 </div>
+            }
+
+            <div id="limits-symbol-msg" class="hidden" style="border-radius:10px;padding:0.75rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600"></div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;box-shadow:var(--ft-card-shadow)">
+                <div style="font-size:0.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-text-faint);margin-bottom:1rem">Yeni Enstrüman Ekle</div>
+                <form id="addSymbolForm" class="flex flex-wrap gap-4 items-end" style="gap:1rem">
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">Enstrüman</label>
+                        <input id="addSymbolField" class="ft-input" placeholder="EURUSD" type="text" maxlength="20" autocomplete="off" style="border-radius:10px;padding:.55rem 1rem;width:140px;text-transform:uppercase" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">Min Mid</label>
+                        <input id="addMinMid" class="ft-input" inputmode="decimal" type="text" style="border-radius:10px;padding:.55rem 1rem;width:150px;font-family:monospace" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">Max Mid</label>
+                        <input id="addMaxMid" class="ft-input" inputmode="decimal" type="text" style="border-radius:10px;padding:.55rem 1rem;width:150px;font-family:monospace" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">Max Spread</label>
+                        <input id="addMaxSpread" class="ft-input" inputmode="decimal" type="text" style="border-radius:10px;padding:.55rem 1rem;width:150px;font-family:monospace" />
+                    </div>
+                    <button class="ft-btn-primary-sm" id="addSymbolBtn" type="submit" style="margin-bottom:2px">
+                        <span class="material-symbols-outlined" style="font-size:18px">add</span>
+                        Enstrüman Ekle
+                    </button>
+                </form>
             </div>
 
             <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
@@ -277,66 +452,96 @@
                     <table class="ft-table w-full" style="min-width:900px">
                         <thead>
                             <tr>
-                                <th>Symbol & Assets</th>
-                                <th>Min Mid Point</th>
-                                <th>Max Mid Point</th>
-                                <th>Max Spread</th>
-                                <th style="text-align:right">Actions</th>
+                                <th>ENSTRÜMAN</th>
+                                <th>MIN MID</th>   @* Minimum orta fiyat *@
+                                <th>MAX MID</th>   @* Maksimum orta fiyat *@
+                                <th>MAX SPREAD</th>      @* İzin verilen maksimum spread *@
+                                <th style="text-align:right">İŞLEMLER</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="limitsTableBody">
                             @foreach (var limit in Model.PricingLimits)
                             {
+                                @* Sembol adının ilk 4 karakteri avatar kutusunda gösterilir *@
                                 var sym = limit.Symbol?.Length > 4 ? limit.Symbol.Substring(0, 4) : limit.Symbol ?? "—";
                                 <tr>
                                     <td>
                                         <div style="display:flex;align-items:center;gap:12px">
+                                            @* Mavi gradient sembol kutusu *@
                                             <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">
                                                 @sym
                                             </div>
                                             <div>
-                                                <div style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">@limit.Symbol</div>
+                                                <div style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">
+                                                    @* Sembol arasına slash koy (EURUSD -> EUR/USD) *@
+                                                    @(limit.Symbol != null && limit.Symbol.Length == 6 ? limit.Symbol.Insert(3, "/") : limit.Symbol)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    @* ── DÜZENLENEBİLİR LİMİT INPUT'LARI (DBeaver Formatı: Binlik Virgül, Ondalık Nokta) ── *@
+                                    <td>
+                                        <div class="ft-spin-container">
+                                            @* en-US formatı: 20,005.50 (DBeaver ile aynı) *@
+                                            <input class="ft-input ft-spin-input" id="min-@limit.Id" inputmode="decimal" type="text"
+                                                   value="@limit.MinMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))"
+                                                   style="color:var(--ft-secondary)" />
+                                            <div class="ft-spin-controls">
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('min-@limit.Id', 1)">▲</button>
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('min-@limit.Id', -1)">▼</button>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <input class="ft-input" id="min-@limit.Id" step="0.00001" type="number"
-                                               value="@limit.MinMid.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)"
-                                               style="width:140px;border-radius:8px;padding:.45rem .75rem;font-size:0.82rem;font-family:monospace;color:var(--ft-secondary)" />
+                                        <div class="ft-spin-container">
+                                            <input class="ft-input ft-spin-input" id="max-@limit.Id" inputmode="decimal" type="text"
+                                                   value="@limit.MaxMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))"
+                                                   style="color:var(--ft-text)" />
+                                            <div class="ft-spin-controls">
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('max-@limit.Id', 1)">▲</button>
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('max-@limit.Id', -1)">▼</button>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
-                                        <input class="ft-input" id="max-@limit.Id" step="0.00001" type="number"
-                                               value="@limit.MaxMid.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)"
-                                               style="width:140px;border-radius:8px;padding:.45rem .75rem;font-size:0.82rem;font-family:monospace;color:var(--ft-text)" />
-                                    </td>
-                                    <td>
-                                        <input class="ft-input" id="spread-@limit.Id" step="0.00001" type="number"
-                                               value="@limit.MaxSpread.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)"
-                                               style="width:140px;border-radius:8px;padding:.45rem .75rem;font-size:0.82rem;font-family:monospace;color:var(--ft-danger)" />
+                                        <div class="ft-spin-container">
+                                            <input class="ft-input ft-spin-input" id="spread-@limit.Id" inputmode="decimal" type="text"
+                                                   value="@limit.MaxSpread.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))"
+                                                   style="color:var(--ft-danger)" />
+                                            <div class="ft-spin-controls">
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('spread-@limit.Id', 1)">▲</button>
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('spread-@limit.Id', -1)">▼</button>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <div style="display:flex;justify-content:flex-end;gap:6px">
-                                            <form method="post" asp-page-handler="UpdateLimit">
+                                            @* ── LİMİT GÜNCELLEME FORMU ──
+                                               onsubmit="bindLimitValues(...)" → form gönderilmeden önce
+                                               görünür input değerleri gizli input'lara kopyalanır.
+                                               asp-page-handler="UpdateLimit" → OnPostUpdateLimitAsync() çağrılır.
+                                               Gizli input değerleri InvariantCulture ile yazılır (locale bağımsız nokta ayırıcı). *@
+                                            <form method="post" asp-page-handler="UpdateLimit" onsubmit="bindLimitValues('@limit.Id')">
                                                 <input name="id" type="hidden" value="@limit.Id" />
-                                                <input id="hidden-min-@limit.Id" name="minMid" type="hidden" value="@limit.MinMid" />
-                                                <input id="hidden-max-@limit.Id" name="maxMid" type="hidden" value="@limit.MaxMid" />
-                                                <input id="hidden-spread-@limit.Id" name="maxSpread" type="hidden" value="@limit.MaxSpread" />
-                                                <button class="ft-btn-icon" title="Güncelle" onclick="bindLimitValues('@limit.Id')" type="submit"
+                                                @* Gizli input'lar — form verisi bu name'lerle sunucuya gider *@
+                                                <input id="hidden-min-@limit.Id" name="minMid" type="hidden" value="@limit.MinMid.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                <input id="hidden-max-@limit.Id" name="maxMid" type="hidden" value="@limit.MaxMid.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                <input id="hidden-spread-@limit.Id" name="maxSpread" type="hidden" value="@limit.MaxSpread.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                <button class="ft-btn-icon" title="Güncelle" type="submit"
                                                         style="width:34px;height:34px;border-radius:10px;background:rgba(105,218,255,0.08);border-color:rgba(105,218,255,0.2);color:var(--ft-primary)"
                                                         onmouseover="this.style.background='var(--ft-primary)';this.style.color='var(--ft-primary-on)'"
                                                         onmouseout="this.style.background='rgba(105,218,255,0.08)';this.style.color='var(--ft-primary)'">
                                                     <span class="material-symbols-outlined" style="font-size:16px">save</span>
                                                 </button>
                                             </form>
-                                            <form method="post" asp-page-handler="DeleteLimit" onsubmit="return confirm('Limit silinsin mi?')">
-                                                <input name="id" type="hidden" value="@limit.Id" />
-                                                <button class="ft-btn-icon" title="Sil" type="submit"
-                                                        style="width:34px;height:34px;border-radius:10px;background:rgba(255,113,107,0.08);border-color:rgba(255,113,107,0.2);color:var(--ft-danger)"
-                                                        onmouseover="this.style.background='var(--ft-danger)';this.style.color='#fff'"
-                                                        onmouseout="this.style.background='rgba(255,113,107,0.08)';this.style.color='var(--ft-danger)'">
-                                                    <span class="material-symbols-outlined" style="font-size:16px">delete</span>
-                                                </button>
-                                            </form>
+                                            <button class="ft-btn-icon ft-btn-delete-symbol" title="Sembolü sil (FIX + DB)" type="button"
+                                                    data-instrument-id="@limit.InstrumentId"
+                                                    style="width:34px;height:34px;border-radius:10px;background:rgba(255,113,107,0.08);border-color:rgba(255,113,107,0.2);color:var(--ft-danger)"
+                                                    onmouseover="this.style.background='var(--ft-danger)';this.style.color='#fff'"
+                                                    onmouseout="this.style.background='rgba(255,113,107,0.08)';this.style.color='var(--ft-danger)'">
+                                                <span class="material-symbols-outlined" style="font-size:16px">delete</span>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -344,27 +549,31 @@
                         </tbody>
                     </table>
                 </div>
+                @* Tablo altı: toplam aktif limit sayısı *@
                 <div style="padding:1rem 1.5rem;border-top:1px solid var(--ft-divider);background:rgba(255,255,255,0.01)">
-                    <span style="font-size:0.75rem;color:var(--ft-text-muted);font-weight:500">@Model.PricingLimits.Count aktif limit ayarı</span>
+                    <span id="limitsCountFoot" style="font-size:0.75rem;color:var(--ft-text-muted);font-weight:500">@Model.PricingLimits.Count aktif limit ayarı</span>
                 </div>
             </div>
         </section>
 
-        <!-- ─ ALERTS ─ -->
         <section class="@(Model.ActiveTab == "alerts" ? "" : "hidden")">
             <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;margin-bottom:2.5rem">
                 <div>
-                    <div class="ft-section-subtitle">Monitoring Hub</div>
+                    <div class="ft-section-subtitle">Bildirim Merkezi</div>
                     <h1 class="ft-section-title">Uyarılar</h1>
                 </div>
+                @* ── ÖZET SAYAÇLAR ──
+                   criticalCount: kritik tip uyarıların sayısı (Razor'da hesaplanır) *@
                 <div style="display:flex;gap:12px;flex-wrap:wrap">
                     @{
                         var criticalCount = Model.Alerts.Count(a => a.Type == "SPREAD_LIMIT" || a.Type == "MID_TOO_HIGH" || a.Type == "MID_TOO_LOW");
                     }
+                    @* Toplam uyarı sayısı → yeşil *@
                     <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:12px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px">
                         <span style="font-size:0.82rem;color:var(--ft-text-muted);font-weight:500">Toplam Uyarı</span>
                         <span style="font-size:1.5rem;font-weight:800;color:var(--ft-secondary)">@Model.Alerts.Count</span>
                     </div>
+                    @* Kritik uyarı sayısı → kırmızı *@
                     <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:12px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px">
                         <span style="font-size:0.82rem;color:var(--ft-text-muted);font-weight:500">Kritik</span>
                         <span style="font-size:1.5rem;font-weight:800;color:var(--ft-danger)">@criticalCount</span>
@@ -383,33 +592,39 @@
                     <table class="ft-table w-full" style="min-width:750px">
                         <thead>
                             <tr>
-                                <th>Symbol</th>
-                                <th>Type</th>
-                                <th>Value</th>
-                                <th>Limit</th>
-                                <th style="text-align:right">Time</th>
-                                <th style="text-align:center">Status</th>
+                                <th>Symbol</th>     @* Döviz çifti *@
+                                <th>Type</th>       @* Uyarı tipi (SPREAD_LIMIT vb.) *@
+                                <th>Value</th>      @* Gerçek değer *@
+                                <th>Limit</th>      @* Aşılan limit değeri *@
+                                <th style="text-align:right">Time</th>     @* Türkiye saatiyle zaman *@
+                                <th style="text-align:center">Status</th>  @* Kırmızı/sarı durum noktası *@
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var alert in Model.Alerts)
                             {
+                                @* isCritical: 3 ana kritik tipten biri mi kontrolü *@
                                 var isCritical = alert.Type == "SPREAD_LIMIT" || alert.Type == "MID_TOO_HIGH" || alert.Type == "MID_TOO_LOW";
                                 var symShort = alert.Symbol?.Length > 4 ? alert.Symbol.Substring(0, 4) : alert.Symbol ?? "—";
+                                @* Kritik satırlar → kırmızımsı arka plan (ft-row-critical)
+                                   Uyarı satırlar  → sarımsı arka plan (ft-row-warn) *@
                                 <tr class="@(isCritical ? "ft-row-critical" : "ft-row-warn")">
                                     <td>
                                         <div style="display:flex;align-items:center;gap:10px">
                                             <div class="ft-symbol-box">@symShort</div>
-                                            <span style="font-weight:700;font-size:0.88rem">@alert.Symbol</span>
+                                            <span style="font-weight:700;font-size:0.88rem">@(alert.Symbol != null && alert.Symbol.Length == 6 ? alert.Symbol.Insert(3, "/") : alert.Symbol)</span>
                                         </div>
                                     </td>
                                     <td>
+                                        @* Uyarı tipi rozeti: kritik → kırmızı, uyarı → sarı *@
                                         <span class="ft-alert-badge @(isCritical ? "critical" : "warn")">@alert.Type</span>
                                     </td>
                                     <td style="font-family:monospace;font-size:0.875rem">@alert.Value</td>
                                     <td style="font-family:monospace;font-size:0.875rem;color:var(--ft-text-muted)">@alert.Limit</td>
+                                    @* alert.TimeTurkey → UTC+3 dönüştürülmüş Türkiye saati *@
                                     <td style="font-size:0.82rem;color:var(--ft-text-muted);text-align:right">@alert.TimeTurkey.ToString("HH:mm:ss")</td>
                                     <td style="text-align:center">
+                                        @* Küçük renkli durum noktası: kırmızı (kritik) veya sarı (uyarı) *@
                                         @if (isCritical)
                                         {
                                             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ft-danger);box-shadow:0 0 8px var(--ft-danger)"></span>
@@ -429,15 +644,25 @@
 
     </main>
 
-    <!-- ══ MODAL: Kullanıcı Ekle ══ -->
+    @* ══════════════════════════════════════════════════════════
+       MODAL: KULLANICI EKLE
+       ft-modal → tam ekranı kaplayan yarı saydam katman (overlay).
+       "hidden" Tailwind sınıfıyla başlangıçta gizli.
+       openUserModal() çağrılınca "hidden" kaldırılır.
+       Modal dışına tıklanınca (e.target kontrolüyle) kapanır.
+       ══════════════════════════════════════════════════════════ *@
     <div class="ft-modal hidden" id="addUserModal">
+        @* İç kart: beyaz/koyu arka plan, yuvarlatılmış köşeler *@
         <div class="ft-modal-content" style="background:var(--ft-surface);border:1px solid var(--ft-card-border);border-radius:18px;padding:2rem;width:100%;max-width:420px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
                 <h3 style="font-size:1.15rem;font-weight:800;color:var(--ft-text)">Kullanıcı Ekle</h3>
+                @* Kapat (X) butonu → closeUserModal() çağrılır *@
                 <button class="ft-btn-icon" onclick="closeUserModal()" type="button">
                     <span class="material-symbols-outlined" style="font-size:16px">close</span>
                 </button>
             </div>
+            @* asp-page-handler="AddUser" → OnPostAddUserAsync() çağrılır.
+               Gizli tab input'u → işlem sonrası kullanıcılar sekmesine dönmek için. *@
             <form class="space-y-4" method="post" asp-page-handler="AddUser">
                 <input name="tab" type="hidden" value="users" />
                 <div>
@@ -457,12 +682,18 @@
         </div>
     </div>
 
-    <!-- ══ DECORATIVE ══ -->
+    @* ── DEKORATIF ARKA PLAN IŞIK EFEKTLERİ ──
+       position:fixed → sayfa scroll'una bağlı değil, sabit.
+       filter:blur → yumuşak geçiş.
+       pointer-events:none → tıklanamaz.
+       z-index:-1 → tüm içeriğin arkasında. *@
     <div style="position:fixed;top:0;right:0;width:40%;height:50%;background:rgba(105,218,255,0.04);filter:blur(120px);pointer-events:none;z-index:-1"></div>
     <div style="position:fixed;bottom:0;left:0;width:30%;height:40%;background:rgba(255,113,107,0.03);filter:blur(100px);pointer-events:none;z-index:-1"></div>
 
     <script>
-        /* ── Theme ── */
+        /* ══════════════════════════════════════════════════════
+           TEMA SİSTEMİ
+           ══════════════════════════════════════════════════════ */
         function toggleTheme() {
             var curr = document.documentElement.getAttribute('data-theme') || 'dark';
             var next = curr === 'dark' ? 'light' : 'dark';
@@ -470,6 +701,7 @@
             localStorage.setItem('ft-theme', next);
             syncToggleUI(next);
         }
+        /* Admin navbar'ında yalnızca ikon var (yazı yok), bu yüzden label kontrolü yok */
         function syncToggleUI(theme) {
             var icon = document.getElementById('toggleIcon');
             if (!icon) return;
@@ -477,46 +709,288 @@
         }
         syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
 
-        /* ── Modal ── */
+        /* 
+           MODAL KONTROL FONKSİYONLARI
+           */
+
+        /** Kullanıcı ekle modalını açar — "hidden" sınıfını kaldırır */
         function openUserModal()  { document.getElementById('addUserModal').classList.remove('hidden'); }
+
+        /** Kullanıcı ekle modalını kapatır — "hidden" sınıfını geri ekler */
         function closeUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
+
+        /* Modal dışına (arka plan overlay'e) tıklanınca kapan.
+           e.target === addUserModal → tıklanan şey modal iç kartı değil, arka plan katmanı. */
         document.getElementById('addUserModal').addEventListener('click', function (e) {
             if (e.target.id === 'addUserModal') closeUserModal();
         });
 
-        /* ── Limit bind ── */
-        function bindLimitValues(id) {
-            var min    = document.getElementById('min-' + id);
-            var max    = document.getElementById('max-' + id);
-            var spread = document.getElementById('spread-' + id);
-            document.getElementById('hidden-min-' + id).value    = min    ? min.value    : 0;
-            document.getElementById('hidden-max-' + id).value    = max    ? max.value    : 0;
-            document.getElementById('hidden-spread-' + id).value = spread ? spread.value : 0;
+        /**
+         * stepLimit(elId, delta): +/− butonuna basınca mevcut değere delta ekler.
+         * Binlik virgülleri siler, ondalık noktasıyla işlem yapar ve geri formatlar.
+         */
+        function stepLimit(elId, delta) {
+            var el = document.getElementById(elId);
+            if (!el) return;
+            var val = parseLimit(el);
+            if (isNaN(val)) val = 0;
+            
+            var step = 1;
+            if (val < 0.01) step = 0.00001;
+            else if (val < 1) step = 0.001;
+            else if (val < 10) step = 0.01;
+            else if (val < 100) step = 0.1;
+            
+            var result = val + (delta * step);
+            if (result < 0) result = 0;
+            
+            // DBeaver formatı ile geri yaz: 20,005.50 (Binlik Virgül, Ondalık Nokta)
+            el.value = result.toLocaleString('en-US', { 
+                minimumFractionDigits: 0, 
+                maximumFractionDigits: 8 
+            });
         }
 
-        /* ── Market live ── */
-        var BADGE_KEY = 'ft-badges';
+        /**
+         * parseLimit(el): Ekranda görünen DBeaver formatlı sayıyı (örn: 20,005.50) JavaScript sayısına çevirir.
+         */
+        function parseLimit(el) {
+            if (!el) return NaN;
+            var raw = el.value.trim().replace(/\s/g, '');
+            if (!raw) return 0;
 
+            // DBeaver format (20,005.50): virgülleri sil (binlik), noktayı ondalık al
+            // Eğer virgül varsa binlik ayırıcı kabul ediyoruz
+            raw = raw.replace(/,/g, '');
+            
+            return parseFloat(raw);
+        }
+
+        /* ═════ Limit sekmesi: sembol ekle / sil (REST, sayfa yenilenmeden) ═════ */
+        function getAfToken() {
+            var inp = document.querySelector('#ft-af-hold input[name="__RequestVerificationToken"]');
+            return inp ? inp.value : '';
+        }
+        function showLimitsMsg(text, isError) {
+            var box = document.getElementById('limits-symbol-msg');
+            if (!box) return;
+            if (!text) { box.classList.add('hidden'); box.textContent = ''; return; }
+            box.classList.remove('hidden');
+            box.textContent = text;
+            box.style.background = isError ? 'rgba(255,113,107,0.1)' : 'rgba(0,253,147,0.08)';
+            box.style.border = '1px solid ' + (isError ? 'rgba(255,113,107,0.35)' : 'rgba(0,253,147,0.28)');
+            box.style.color = isError ? 'var(--ft-danger)' : 'var(--ft-secondary)';
+        }
+        function fmtLimitNum(n) {
+            var x = Number(n);
+            if (!Number.isFinite(x)) x = 0;
+            return x.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 });
+        }
+        function escHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function buildLimitTableRow(r) {
+            var sym = r.symbol || '';
+            var symShort = sym.length > 4 ? sym.substring(0, 4) : sym;
+            var symDisp = sym.length === 6 ? sym.substring(0, 3) + '/' + sym.substring(3) : sym;
+            var lid = r.limitId;
+            var iid = r.instrumentId;
+            var minS = fmtLimitNum(r.minMid);
+            var maxS = fmtLimitNum(r.maxMid);
+            var sprS = fmtLimitNum(r.maxSpread);
+            var hMin = Number(r.minMid);
+            var hMax = Number(r.maxMid);
+            var hSp = Number(r.maxSpread);
+            if (!Number.isFinite(hMin)) hMin = 0;
+            if (!Number.isFinite(hMax)) hMax = 0;
+            if (!Number.isFinite(hSp)) hSp = 0;
+            return (
+                '<tr>' +
+                '<td><div style="display:flex;align-items:center;gap:12px">' +
+                '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">' + escHtml(symShort) + '</div>' +
+                '<div><div style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">' + escHtml(symDisp) + '</div></div></div></td>' +
+                '<td><div class="ft-spin-container"><input class="ft-input ft-spin-input" id="min-' + lid + '" inputmode="decimal" type="text" value="' + minS + '" style="color:var(--ft-secondary)" />' +
+                '<div class="ft-spin-controls"><button type="button" class="ft-spin-btn" onclick="stepLimit(\'min-' + lid + '\', 1)">▲</button><button type="button" class="ft-spin-btn" onclick="stepLimit(\'min-' + lid + '\', -1)">▼</button></div></div></td>' +
+                '<td><div class="ft-spin-container"><input class="ft-input ft-spin-input" id="max-' + lid + '" inputmode="decimal" type="text" value="' + maxS + '" style="color:var(--ft-text)" />' +
+                '<div class="ft-spin-controls"><button type="button" class="ft-spin-btn" onclick="stepLimit(\'max-' + lid + '\', 1)">▲</button><button type="button" class="ft-spin-btn" onclick="stepLimit(\'max-' + lid + '\', -1)">▼</button></div></div></td>' +
+                '<td><div class="ft-spin-container"><input class="ft-input ft-spin-input" id="spread-' + lid + '" inputmode="decimal" type="text" value="' + sprS + '" style="color:var(--ft-danger)" />' +
+                '<div class="ft-spin-controls"><button type="button" class="ft-spin-btn" onclick="stepLimit(\'spread-' + lid + '\', 1)">▲</button><button type="button" class="ft-spin-btn" onclick="stepLimit(\'spread-' + lid + '\', -1)">▼</button></div></div></td>' +
+                '<td><div style="display:flex;justify-content:flex-end;gap:6px">' +
+                '<form method="post" action="/Admin?handler=UpdateLimit" onsubmit="return bindLimitValues(\'' + lid + '\')">' +
+                '<input name="__RequestVerificationToken" type="hidden" value="' + escHtml(getAfToken()) + '" />' +
+                '<input name="id" type="hidden" value="' + lid + '" />' +
+                '<input id="hidden-min-' + lid + '" name="minMid" type="hidden" value="' + hMin + '" />' +
+                '<input id="hidden-max-' + lid + '" name="maxMid" type="hidden" value="' + hMax + '" />' +
+                '<input id="hidden-spread-' + lid + '" name="maxSpread" type="hidden" value="' + hSp + '" />' +
+                '<button class="ft-btn-icon" title="Güncelle" type="submit" style="width:34px;height:34px;border-radius:10px;background:rgba(105,218,255,0.08);border-color:rgba(105,218,255,0.2);color:var(--ft-primary)" onmouseover="this.style.background=\'var(--ft-primary)\';this.style.color=\'var(--ft-primary-on)\'" onmouseout="this.style.background=\'rgba(105,218,255,0.08)\';this.style.color=\'var(--ft-primary)\'"><span class="material-symbols-outlined" style="font-size:16px">save</span></button></form>' +
+                '<button class="ft-btn-icon ft-btn-delete-symbol" title="Sembolü sil (FIX + DB)" type="button" data-instrument-id="' + iid + '" style="width:34px;height:34px;border-radius:10px;background:rgba(255,113,107,0.08);border-color:rgba(255,113,107,0.2);color:var(--ft-danger)" onmouseover="this.style.background=\'var(--ft-danger)\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'rgba(255,113,107,0.08)\';this.style.color=\'var(--ft-danger)\'"><span class="material-symbols-outlined" style="font-size:16px">delete</span></button>' +
+                '</div></td></tr>'
+            );
+        }
+        async function refreshLimitsTableFromApi() {
+            var tb = document.getElementById('limitsTableBody');
+            if (!tb) return;
+            try {
+                var res = await fetch('/api/admin/symbols', { credentials: 'same-origin', cache: 'no-store' });
+                if (res.status === 401 || res.status === 403) { showLimitsMsg('Oturum gerekli veya yetkisiz.', true); return; }
+                if (!res.ok) { showLimitsMsg('Sembol listesi alınamadı.', true); return; }
+                var rows = await res.json();
+                tb.innerHTML = (rows || []).map(buildLimitTableRow).join('');
+                var foot = document.getElementById('limitsCountFoot');
+                if (foot) foot.textContent = (rows || []).length + ' aktif limit ayarı';
+            } catch (e) {
+                console.warn(e);
+                showLimitsMsg('Ağ hatası: liste güncellenemedi.', true);
+            }
+        }
+        /**
+         * Yeni Enstrüman Ekleme Formu Dinleyicisi
+         * Form "submit" olduğunda (buton tıklandığında) devreye girer.
+         */
+        document.getElementById('addSymbolForm') && document.getElementById('addSymbolForm').addEventListener('submit', async function (e) {
+            e.preventDefault(); // Sayfanın yenilenmesini engelle 
+            
+            var symInp = document.getElementById('addSymbolField');
+            var symbol = symInp ? symInp.value.trim() : '';
+            if (!symbol) { showLimitsMsg('Sembol girin.', true); return; }
+            
+            // Ekranda (virgüllü vb.) yazan sayıları saf sayıya çevir
+            var minV = parseLimit({ value: document.getElementById('addMinMid').value });
+            var maxV = parseLimit({ value: document.getElementById('addMaxMid').value });
+            var spV = parseLimit({ value: document.getElementById('addMaxSpread').value });
+            
+            // Geçerli sayı olup olmadıklarını kontrol et
+            if (isNaN(minV) || isNaN(maxV) || isNaN(spV)) { showLimitsMsg('Limit değerleri geçersiz.', true); return; }
+            
+            var btn = document.getElementById('addSymbolBtn');
+            if (btn) btn.disabled = true; // İşlem bitene kadar butonu kilitle
+            
+            try {
+                // POST isteği ile yeni sembolü arka plana (Backend) gönder
+                var res = await fetch('/api/admin/symbols', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: symbol, minMid: minV, maxMid: maxV, maxSpread: spV })
+                });
+                
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) { showLimitsMsg(data.error || 'Eklenemedi.', true); return; }
+                
+                // Başarı mesajı göster ve form alanlarını temizle
+                showLimitsMsg('Sembol eklendi.', false);
+                symInp.value = '';
+                document.getElementById('addMinMid').value = '';
+                document.getElementById('addMaxMid').value = '';
+                document.getElementById('addMaxSpread').value = '';
+                
+                // Tabloyu yeni eklenen sembolle beraber güncelle
+                await refreshLimitsTableFromApi();
+            } catch (err) {
+                showLimitsMsg('Ağ hatası.', true);
+            } finally {
+                if (btn) btn.disabled = false; // Buton kilidini kaldır
+            }
+        });
+
+        /**
+         * Tablodaki "Sil" butonlarından birine tıklandığında çalışır.
+         */
+        document.addEventListener('click', async function (ev) {
+            var t = ev.target;
+            if (!t.closest) return;
+            
+            // Tıklanan yer bir silme butonu mu?
+            var del = t.closest('.ft-btn-delete-symbol');
+            if (!del || !del.getAttribute('data-instrument-id')) return;
+            
+            var iid = del.getAttribute('data-instrument-id');
+            // Kullanıcıdan son onay al
+            if (!confirm('Sembol ve limitler tamamen silinsin mi? ')) return;
+            
+            del.disabled = true;
+            try {
+                // DELETE isteği ile sembolü arka plandan kaldır
+                var res = await fetch('/api/admin/symbols/' + encodeURIComponent(iid), { method: 'DELETE', credentials: 'same-origin' });
+                if (res.status === 401 || res.status === 403) { showLimitsMsg('Yetkisiz işlem.', true); return; }
+                if (!res.ok) { showLimitsMsg('Silinemedi.', true); return; }
+                
+                showLimitsMsg('Sembol silindi.', false);
+                // Tabloyu güncel listeyle yenile
+                await refreshLimitsTableFromApi();
+            } catch (e) {
+                showLimitsMsg('Ağ hatası.', true);
+            } finally {
+                del.disabled = false;
+            }
+        });
+
+        /**
+         * bindLimitValues(id): Limit GÜNCELLEME işlemi öncesi çalışır.
+         * Ekranda görünen sayıları doğrular ve Backend'in beklediği formatta gizli inputlara aktarır.
+         */
+        function bindLimitValues(id) {
+            var MAX_LIMIT = 9999999999;
+            var minEl    = document.getElementById('min-' + id);
+            var maxEl    = document.getElementById('max-' + id);
+            var spreadEl = document.getElementById('spread-' + id);
+
+            // Ekranda yazan sayıları sayı formatına çevir
+            var minVal    = parseLimit(minEl);
+            var maxVal    = parseLimit(maxEl);
+            var spreadVal = parseLimit(spreadEl);
+
+            // Değerlerin mantıklı aralıklarda olduğunu doğrula
+            if (isNaN(minVal)    || minVal    < 0 || minVal    > MAX_LIMIT ||
+                isNaN(maxVal)    || maxVal    < 0 || maxVal    > MAX_LIMIT ||
+                isNaN(spreadVal) || spreadVal < 0 || spreadVal > MAX_LIMIT) {
+                alert('Değerler 0 ile 9,999,999,999 arasında olmalıdır.\nOndalık: nokta (1.085) veya virgül (1,085) kullanabilirsiniz.');
+                return false;
+            }
+            if (minVal > maxVal) {
+                alert('Min Mid değeri Max Mid değerinden büyük olamaz.');
+                return false;
+            }
+
+            // Doğrulanmış değerleri, form submit olduğunda gönderilecek olan gizli (hidden) inputlara aktar
+            document.getElementById('hidden-min-' + id).value    = minVal.toString();
+            document.getElementById('hidden-max-' + id).value    = maxVal.toString();
+            document.getElementById('hidden-spread-' + id).value = spreadVal.toString();
+            return true; // Her şey tamamsa formun gönderilmesine (submit) izin ver
+        }
+
+        var BADGE_KEY = 'ft-badges'; /* localStorage anahtarı */
+
+        /** localStorage'dan rozet önbelleğini okur */
         function loadBadgeCache() {
             try { return JSON.parse(localStorage.getItem(BADGE_KEY) || '{}'); } catch(e) { return {}; }
         }
+
+        /** Rozet önbelleğini localStorage'a yazar */
         function saveBadgeCache(cache) {
             try { localStorage.setItem(BADGE_KEY, JSON.stringify(cache)); } catch(e) {}
         }
 
-        /* Apply persisted badges immediately on page load */
+        /* ── SAYFA AÇILINCA KAYITLI ROZETLERİ UYGULA ──
+           Sayfa yenilense bile son bilinen değişim yönü gösterilir.
+           Her sembol için hem tablo rozeti (data-change-badge)
+           hem de strip rozeti (data-strip-badge) güncellenir. */
         (function applyStoredBadges() {
             var cache = loadBadgeCache();
             Object.keys(cache).forEach(function(symbol) {
                 var b = cache[symbol];
-                // Strip badge
+                /* Market strip kartındaki rozet */
                 var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
                 if (sBadge && b.cls && b.text) {
                     sBadge.className = 'ft-badge-stock ' + b.cls;
                     sBadge.textContent = b.text;
                     sBadge.style.display = 'inline-flex';
                 }
-                // Table badge
+                /* Canlı piyasa tablosundaki rozet */
                 var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
                 if (cBadge && b.cls && b.text) {
                     cBadge.className = 'ft-badge-stock ' + b.cls;
@@ -526,56 +1000,96 @@
             });
         })();
 
+        /**
+         * toNum(v): Herhangi bir değeri sayıya çevirir.
+         * Geçersiz değer (NaN, undefined) gelirse 0 döner.
+         */
         function toNum(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
+
+        /**
+         * pulseCell(td, cls): Hücreye geçici renk animasyonu ekler.
+         * cls = 'ft-cell-up' (yeşil) veya 'ft-cell-down' (kırmızı)
+         * 800ms sonra animasyon sınıfı kaldırılır → yumuşak geçiş.
+         */
         function pulseCell(td, cls) {
             td.classList.remove('ft-cell-up', 'ft-cell-down');
             if (cls) td.classList.add(cls);
             setTimeout(function () { td.classList.remove('ft-cell-up', 'ft-cell-down'); }, 800);
         }
 
+        /**
+         * applyBadge(symbol, cls, text)
+         * Belirtilen sembole ait tüm rozet elementlerini günceller.
+         * cls  → 'ft-badge-up' veya 'ft-badge-down'
+         * text → '+0.05% ↑' veya '-0.03% ↓' gibi metin
+         * Değerler localStorage önbelleğine de kaydedilir.
+         */
         function applyBadge(symbol, cls, text) {
-            // Table badge
+            /* Tablo içi rozet */
             var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
             if (cBadge) {
                 cBadge.className = 'ft-badge-stock ' + cls;
                 cBadge.textContent = text;
                 cBadge.style.display = 'inline-flex';
             }
-            // Strip badge
+            /* Strip (fiyat bandı) rozeti */
             var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
             if (sBadge) {
                 sBadge.className = 'ft-badge-stock ' + cls;
                 sBadge.textContent = text;
                 sBadge.style.display = 'inline-flex';
             }
-            // Persist
+            /* localStorage önbelleğini güncelle */
             var cache = loadBadgeCache();
             cache[symbol] = { cls: cls, text: text };
             saveBadgeCache(cache);
         }
 
+        // refreshMarket(): Canlı piyasa verilerini sunucudan alır ve tablo ile strip kartlarını günceller
         async function refreshMarket() {
             var table = document.getElementById('marketTable');
-            if (!table) return;
+            if (!table) return; 
             try {
                 var res = await fetch('/Admin?handler=LiveMarket', { cache: 'no-store' });
                 if (!res.ok) return;
                 var rows = await res.json();
                 var body = table.querySelector('tbody');
+
+                var activeSymbols = new Set(rows.map(function(r) { return r.symbol; }));
+
+                // 1) Market Strip (üstteki kartlar) temizliği
+                var stripCards = document.querySelectorAll('.ft-strip-card');
+                stripCards.forEach(function(card) {
+                    var sym = card.getAttribute('data-strip-symbol');
+                    if (!activeSymbols.has(sym)) {
+                        card.remove(); // Listede yoksa kartı sil
+                    }
+                });
+
+                // 2) Market Tablosu (alt kısımdaki tablo) temizliği
+                var tableRows = body.querySelectorAll('tr[data-symbol]');
+                tableRows.forEach(function(tr) {
+                    var sym = tr.getAttribute('data-symbol');
+                    if (!activeSymbols.has(sym)) {
+                        tr.remove(); // Listede yoksa satırı sil
+                    }
+                });
+
                 rows.forEach(function (row) {
                     var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
                     if (!tr) {
                         tr = document.createElement('tr');
                         tr.setAttribute('data-symbol', row.symbol);
+                        var symWithSlash = row.symbol.length === 6 ? row.symbol.substring(0,3) + '/' + row.symbol.substring(3) : row.symbol;
                         tr.innerHTML =
-                            '<td><div style="display:flex;align-items:center;gap:10px"><div class="ft-symbol-box">' + row.symbol.substring(0,4) + '</div><span style="font-weight:700;font-size:.88rem">' + row.symbol + '</span></div></td>' +
-                            '<td data-field="Bid" style="font-family:monospace;font-size:.88rem"></td>' +
-                            '<td data-field="Ask" style="font-family:monospace;font-size:.88rem"></td>' +
-                            '<td data-field="Mid" style="font-family:monospace;font-size:.88rem;font-weight:700"><span></span><span class="ft-badge-stock" data-change-badge="' + row.symbol + '"></span></td>' +
-                            '<td data-field="Spread" style="font-family:monospace;font-size:.88rem;color:var(--ft-text-muted)"></td>';
+                            '<td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:10px"><div class="ft-symbol-box">' + row.symbol.substring(0,4) + '</div><span style="font-weight:700;font-size:.88rem">' + symWithSlash + '</span></div></td>' +
+                            '<td data-field="Bid" style="font-family:monospace;font-size:.88rem;text-align:center"></td>' +
+                            '<td data-field="Ask" style="font-family:monospace;font-size:.88rem;text-align:center"></td>' +
+                            '<td data-field="Mid" style="font-family:monospace;font-size:.88rem;text-align:center"><span></span><span class="ft-badge-stock" data-change-badge="' + row.symbol + '"></span></td>' +
+                            '<td data-field="Spread" style="font-family:monospace;font-size:.88rem;color:var(--ft-text-muted);text-align:center"></td>';
                         body.appendChild(tr);
                     }
-                    // Update strip card price
+
                     var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
                     if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(5);
 
@@ -584,6 +1098,7 @@
                         var textContainer = field === 'Mid' ? td.querySelector('span:first-child') : td;
                         var current = toNum(td.getAttribute('data-prev') || textContainer.textContent);
                         var next = toNum(row[field.toLowerCase()]);
+
                         if (field === 'Mid') {
                             if (current > 0 && next !== current) {
                                 var diff = next - current;
@@ -597,13 +1112,17 @@
                         } else {
                             td.textContent = next.toFixed(5);
                         }
+
                         if (next > current) pulseCell(td, 'ft-cell-up');
                         if (next < current) pulseCell(td, 'ft-cell-down');
+
                         td.setAttribute('data-prev', String(next));
                     });
                 });
             } catch (e) { console.warn('Market refresh error', e); }
         }
+
+        /* İlk yüklemede hemen çalıştır, sonra 3 saniyede bir tekrarla */
         refreshMarket();
         setInterval(refreshMarket, 3000);
     </script>

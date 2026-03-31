@@ -110,5 +110,5 @@ C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\n
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\FixTrading.API.cs.RazorAssemblyInfo.cache
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\FixTrading.API.cs.RazorAssemblyInfo.cs
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\bin\Debug\net10.0\FixTrading.API.cs.staticwebassets.runtime.json
-C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\compressed\xozr97sxcy-{0}-tv3tqkvcg1-tv3tqkvcg1.gz
+C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\compressed\xozr97sxcy-{0}-wvk3tmja5a-wvk3tmja5a.gz
 C:\Users\GAMZECINICI\Desktop\FixTrading\FixTrading\FixTrading.API.cs\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

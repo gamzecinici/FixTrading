@@ -38,5 +38,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         public void Start() => _initiator.Start();  //FIX bağlantısını başlatır. 
         public void Stop() => _initiator.Stop();   //FIX bağlantısını durdurur.
         public void Subscribe(string symbol) => _app.Subscribe(symbol);    //Verilen sembol için Market Data isteği gönder.
+
+        public void Unsubscribe(string symbol) => _app.Unsubscribe(symbol);  //Market Data akışını durdurur.
     }
 }

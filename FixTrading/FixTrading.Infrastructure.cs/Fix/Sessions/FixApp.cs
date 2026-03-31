@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using FixTrading.Application.Interfaces.Fix;
 using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
@@ -19,6 +20,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private readonly FixMarketDataOptions _fixOptions;
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
         private readonly Dictionary<string, string> _mdReqIdToSymbol = new();  // MDReqID -> Symbol (X mesajlarında grup içinde olmayabiliyor)
+        private readonly ConcurrentDictionary<string, string> _symbolToMdReqId = new(StringComparer.OrdinalIgnoreCase);
 
         private bool _firstMarketDataLogged;
         private static bool _debugLogged;
@@ -66,6 +68,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             {
                 _session = null;
                 lock (_mdReqIdToSymbol) { _mdReqIdToSymbol.Clear(); }
+                _symbolToMdReqId.Clear();
             }
         }
 
@@ -142,13 +145,82 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             symbolGroup.SetField(new Symbol(fixSymbol));
             request.AddGroup(symbolGroup);
 
+            var normalizedForMap = NormalizeSymbol(fixSymbol);
             lock (_mdReqIdToSymbol)
             {
-                _mdReqIdToSymbol[mdReqId] = NormalizeSymbol(fixSymbol);
+                _mdReqIdToSymbol[mdReqId] = normalizedForMap;
             }
 
+            _symbolToMdReqId[normalizedForMap] = mdReqId;
 
             Session.SendToTarget(request, _session);         // FIX mesajı aktif session üzerinden server'a gönderilir
+        }
+
+        // Belirli bir sembol için market data akışını durdurur. Bu metot, server'a market data aboneliğini iptal etme isteği gönderir.
+        public void Unsubscribe(string symbol)
+        {
+            // Bağlantı yoksa sadece sembolü temizle
+            if (_session == null)
+            {
+                var normEarly = NormalizeSymbol(symbol);
+                _symbolToMdReqId.TryRemove(normEarly, out _);
+                lock (_lock)
+                {
+                    _symbols.Remove(normEarly);
+                }
+                return;
+            }
+
+            // Önceki çalışan format: slash yok (EURUSD, XAUUSD). SPOTEX bu formatı kullanıyor.
+            var fixSymbol = symbol.Trim().ToUpper().Replace("/", "");
+            if (_fixOptions.UseSlashSymbolFormat && fixSymbol.Length == 6)
+                fixSymbol = $"{fixSymbol[..3]}/{fixSymbol[3..]}";
+
+            // Market data aboneliğini iptal etmek için önce sembole karşılık gelen MDReqID bulunur, sonra bu ID kullanılarak iptal isteği gönderilir.
+            var normalized = NormalizeSymbol(fixSymbol);
+            if (!_symbolToMdReqId.TryRemove(normalized, out var mdReqId))
+                mdReqId = null;
+
+            if (mdReqId is not null)
+            {
+                lock (_mdReqIdToSymbol)
+                {
+                    _mdReqIdToSymbol.Remove(mdReqId);
+                }
+
+                // Market data aboneliğini iptal etmek için MarketDataRequest mesajı oluşturulur ve gönderilir. 
+                //MDReqID iptal edilecek aboneliği tanımlamak için kullanılır. SubscriptionRequestType ise iptal isteği olduğunu belirtir.
+                var request = new QuickFix.FIX44.MarketDataRequest(
+                    new MDReqID(mdReqId),
+                    new SubscriptionRequestType(SubscriptionRequestType.DISABLE_PREVIOUS_SNAPSHOT_PLUS_UPDATE_REQUEST),
+                    new MarketDepth(1));
+
+                request.Set(new MDUpdateType(0));
+                request.Set(new AggregatedBook(true));
+
+                var bidGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+                bidGroup.SetField(new MDEntryType(MDEntryType.BID));
+                request.AddGroup(bidGroup);
+
+                var askGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+                askGroup.SetField(new MDEntryType(MDEntryType.OFFER));
+                request.AddGroup(askGroup);
+
+                var tradeGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+                tradeGroup.SetField(new MDEntryType(MDEntryType.TRADE));
+                request.AddGroup(tradeGroup);
+
+                var symbolGroup = new QuickFix.FIX44.MarketDataRequest.NoRelatedSymGroup();
+                symbolGroup.SetField(new Symbol(fixSymbol));
+                request.AddGroup(symbolGroup);
+
+                Session.SendToTarget(request, _session);
+            }
+
+            lock (_lock)
+            {
+                _symbols.Remove(normalized);
+            }
         }
 
 

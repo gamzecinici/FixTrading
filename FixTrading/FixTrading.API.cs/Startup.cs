@@ -1,6 +1,7 @@
 using FixTrading.API.BackgroundServices;
 using FixTrading.API.Controllers;
 using FixTrading.API.HealthChecks;
+using FixTrading.API.Services;
 using FixTrading.Common.Dtos.Instrument;
 using FixTrading.Application;
 using FixTrading.Application.Interfaces.Fix;
@@ -70,7 +71,10 @@ public class Startup
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole("admin"));
+        });
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
@@ -153,6 +157,7 @@ public class Startup
 
         services.AddScoped<InstrumentHandler>();
         services.AddScoped<LatestPriceHandler>();
+        services.AddScoped<InstrumentSymbolAdminService>();
 
         services.AddHostedService<FixListenerWorker>();
         services.AddHostedService<PricingLimitsCacheRefreshWorker>();
@@ -192,6 +197,50 @@ public class Startup
 
         app.MapGet("/", () => Results.Redirect("/Login"));
         app.MapRazorPages();
+
+        var adminApi = app.MapGroup("/api/admin").RequireAuthorization("AdminOnly");
+        adminApi.MapGet("/symbols", async (InstrumentSymbolAdminService svc, CancellationToken ct) =>
+            Results.Ok(await svc.ListAsync(ct)));
+        adminApi.MapPost("/symbols", async (AddSymbolApiRequest body, InstrumentSymbolAdminService svc, HttpContext ctx, CancellationToken ct) =>
+        {
+            if (body is null || string.IsNullOrWhiteSpace(body.Symbol))
+                return Results.BadRequest(new { error = "Sembol gerekli." });
+            var (ok, error, created) = await svc.AddAsync(
+                body.Symbol,
+                body.MinMid,
+                body.MaxMid,
+                body.MaxSpread,
+                ctx.User.Identity?.Name,
+                ct);
+            return ok
+                ? Results.Ok(new { ok = true, item = created })
+                : Results.BadRequest(new { error });
+        });
+        adminApi.MapDelete("/symbols/{instrumentId:guid}", async (Guid instrumentId, InstrumentSymbolAdminService svc, CancellationToken ct) =>
+        {
+            var (ok, error) = await svc.DeleteAsync(instrumentId, ct);
+            return ok ? Results.Ok(new { ok = true }) : Results.NotFound(new { error });
+        });
+
+        adminApi.MapPost("/test-email", async (IOptionsMonitor<EmailAlertOptions> monitor, CancellationToken ct) =>
+        {
+            var opts = monitor.CurrentValue;
+            if (!opts.Enabled) return Results.BadRequest(new { error = "EmailAlert devre dışı (Enabled: false)." });
+            try
+            {
+                using var client = new MailKit.Net.Smtp.SmtpClient();
+                var ssl = opts.UseSsl ? MailKit.Security.SecureSocketOptions.StartTls : MailKit.Security.SecureSocketOptions.None;
+                await client.ConnectAsync(opts.SmtpHost, opts.SmtpPort, ssl, ct);
+                var password = (opts.Password ?? "").Trim().Replace(" ", "");
+                await client.AuthenticateAsync(opts.Username.Trim(), password, ct);
+                await client.DisconnectAsync(true, ct);
+                return Results.Ok(new { ok = true, message = "SMTP bağlantısı ve kimlik doğrulaması başarılı." });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
 
         // Health Check endpoint: PostgreSQL, MongoDB, Redis ve FIX oturumu durumunu döner
         app.MapHealthChecks("/health", new HealthCheckOptions

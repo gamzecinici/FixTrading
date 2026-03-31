@@ -13,4 +13,7 @@ public interface ILatestPriceStore
 
     //Tüm semboller için Redis'ten en son fiyatları okur.
     Task<List<DtoMarketData>> GetAllLatestAsync();
+
+    //Belirtilen sembol için Redis'ten en son fiyat bilgisini siler.
+    Task RemoveLatestAsync(string symbol);
 }

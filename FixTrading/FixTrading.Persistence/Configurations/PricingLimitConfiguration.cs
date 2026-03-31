@@ -23,15 +23,15 @@ public class PricingLimitConfiguration : IEntityTypeConfiguration<PricingLimitEn
         builder.Property(e => e.InstrumentId)     // InstrumentId property'sinin veritabanındaki sütun adını ve türünü belirtir.
             .HasColumnName("instrument_id");
 
-        builder.Property(e => e.MinMid)           // MinMid property'sinin veritabanındaki sütun adını ve türünü belirtir.
+        builder.Property(e => e.MinMid)           // numeric(18,8): 8 ondalık basamağa kadar destekler.
             .HasPrecision(18, 8)
             .HasColumnName("min_mid");
 
-        builder.Property(e => e.MaxMid)           // MaxMid property'sinin veritabanındaki sütun adını ve türünü belirtir.
+        builder.Property(e => e.MaxMid)           // numeric(18,8): 8 ondalık basamağa kadar destekler.
             .HasPrecision(18, 8)
             .HasColumnName("max_mid");
 
-        builder.Property(e => e.MaxSpread)       // MaxSpread property'sinin veritabanındaki sütun adını ve türünü belirtir.
+        builder.Property(e => e.MaxSpread)       // numeric(18,8): 8 ondalık basamağa kadar destekler.
             .HasPrecision(18, 8)
             .HasColumnName("max_spread");
 

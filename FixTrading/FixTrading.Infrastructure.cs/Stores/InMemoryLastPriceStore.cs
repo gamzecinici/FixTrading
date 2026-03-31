@@ -46,4 +46,11 @@ public class InMemoryLastPriceStore : IInMemoryLastPriceStore
         var list = _store.Values.OrderBy(x => x.Symbol).ToList();
         return Task.FromResult(list);
     }
+
+    // Verilen sembolün RAM’deki fiyat bilgisini siler. Eğer sembol bulunamazsa işlem yapılmaz.
+    public void RemoveLatest(string symbol)
+    {
+        symbol = symbol.Trim().ToUpper().Replace("/", "");
+        _store.TryRemove(symbol, out _);      // Sembol RAM’den silinir
+    }
 }

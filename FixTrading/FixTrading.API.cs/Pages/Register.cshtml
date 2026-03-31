@@ -1,11 +1,26 @@
+@* ============================================================
+   Register.cshtml — Yeni Hesap Oluşturma Sayfası
+   Kullanıcıların sisteme kayıt olmasını sağlar.
+   ASP.NET Core Razor Pages kullanılmaktadır.
+   Model: Pages/Register.cshtml.cs → RegisterModel sınıfı
+   Form gönderilince RegisterModel.OnPostAsync() metodu çalışır.
+   ============================================================ *@
 @page              
 @model FixTrading.API.cs.Pages.RegisterModel
 <!DOCTYPE html>
+@* lang="tr" → ekran okuyucular ve tarayıcı dil algısı için Türkçe bildirir *@
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 
+    @* ──────────────────────────────────────────────────────
+       TEMA FLASH ÖNLEYİCİ
+       Sayfa render edilmeden önce localStorage'dan tema okunur
+       ve <html data-theme="..."> set edilir.
+       Böylece doğru CSS değişkenleri hemen devreye girer,
+       sayfa önce beyaz sonra siyah görünmez (flash önlenir).
+       ────────────────────────────────────────────────────── *@
     <script>
         (function () {
             var t = localStorage.getItem('ft-theme') || 'dark';
@@ -13,10 +28,24 @@
         })();
     </script>
 
+    @* Tailwind CSS — utility sınıflarla hızlı layout ve spacing *@
     <script src="https://cdn.tailwindcss.com"></script>
+
+    @* Google Fonts:
+       - Manrope  → başlık fontu (kalın, modern)
+       - Inter    → form ve gövde metni için
+       - Material Symbols Outlined → person, mail, lock, shield gibi ikonlar *@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    @* theme.css: Renk değişkenleri ve paylaşılan bileşen stilleri *@
     <link href="/css/theme.css" rel="stylesheet" />
 
+    @* ──────────────────────────────────────────────────────
+       TAILWIND ÖZEL RENK & FONT TANIMLAMALARI
+       Login.cshtml ile aynı yapı — proje genelinde tutarlı.
+       - tertiary rengi: turkuaz vurgu (#3cddc7)
+       - error rengi: hata mesajları için açık kırmızı
+       ────────────────────────────────────────────────────── *@
     <script id="tailwind-config">
         tailwind.config = {
             theme: {
@@ -38,20 +67,36 @@
     </script>
 </head>
 
+@* ft-body → arka plan rengi + yazı rengi + yazı tipi
+   overflow-x-hidden → yatay scroll çubuğu çıkmasın *@
 <body class="ft-body font-body min-h-screen overflow-x-hidden selection:bg-tertiary/30">
 
-    <!-- ── Tema Değiştirme Butonu ── -->
+    @* ── TEMA DEĞİŞTİRME BUTONU ──
+       Sağ üst köşede sabit (position:fixed).
+       toggleTheme() fonksiyonu sayfanın altında tanımlıdır.
+       toggleIcon ve toggleLabel id'leri JS tarafından güncellenir. *@
     <button class="ft-theme-toggle" onclick="toggleTheme()" title="Temayı değiştir">     
         <span class="material-symbols-outlined" id="toggleIcon">light_mode</span>
         <span id="toggleLabel">Light</span>
     </button>
 
+    @* ── ANA ALAN ──
+       flex + items-center + justify-center → içeriği tam ortalar
+       ft-bg-mesh → iki radyal degrade (sol üst + sağ alt köşe renk efekti)
+       ft-dot-pattern → küçük nokta deseni arka planı *@
     <main class="relative flex items-center justify-center min-h-screen ft-bg-mesh ft-dot-pattern p-6">
 
-        <!-- Arka plan efektleri -->
+        @* ── DEKORATIF ARKAPLAN EFEKTLERİ ──
+           pointer-events:none → üzerine tıklanamaz, sadece görsel *@
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            @* Ortada nefes alan (animate-pulse) bulanık ışık hüzmesi.
+               140px blur + radyal gradient → lüks efekt. *@
             <div class="ft-blob animate-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                         w-[800px] h-[600px] rounded-full blur-[140px]"></div>
+
+            @* Dekoratif finansal grafik görseli.
+               grayscale → siyah-beyaz  |  blur-sm → hafif bulanık
+               ft-chart → çok düşük opacity, mix-blend-mode screen/multiply *@
             <img alt="Financial chart"
                  class="ft-chart filter grayscale contrast-125 blur-sm
                         absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
@@ -59,10 +104,12 @@
                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5miGh6Scq7tJKC-RV3-WnQ5BFkIUMqvwplY9MD0tQqBSp45SrILb9174NnDCDLhaRIj1Pr5fT3Y_YQigfLLa9FXg8AV48moVcdbOUXH7FBUccCivWfq3NmlDcJg0S61bNF1z4TjW8EBoxuCnpXIVn_You8RD6f-vwvnKaPRbZtqe-xi5ohVaeO43d0SGWGzhWZhKOSHNZpFgT3a_1bnz7KrEmZELp4BhMipu5qGlDGYcmbace325s6Ml7tnJkhEEmhwmrIw0oYDU" />
         </div>
 
-        <!-- ── İçerik ── -->
+        @* ── MERKEZDEKİ İÇERİK ALANI ──
+           relative z-10 → arka plan efektlerinin önünde
+           max-w-[430px] → kart çok geniş olmasın *@
         <div class="relative z-10 w-full max-w-[430px]">
 
-            <!-- Logo -->
+            @* ── LOGO ALANI *@
             <div class="text-center mb-8">
                 <h1 class="font-headline text-4xl font-extrabold tracking-tighter italic ft-text"
                     style="letter-spacing: -0.03em;">
@@ -70,11 +117,15 @@
                 </h1>
             </div>
 
-            <!-- Kart -->
+            @* ── KAYIT KARTI ──
+               ft-card → glassmorphism kart (yarı saydam + blur)
+               p-7 md:p-8 → mobilde biraz daha az, masaüstünde daha fazla iç boşluk *@
             <div class="ft-card w-full p-7 md:p-8 rounded-2xl">
 
                 <header class="mb-7">
-                    <!-- Geri butonu -->
+                    @* ── GERİ BUTONU ──
+                       Login sayfasına döner.
+                       arrow_back ikonu + "Geri" yazısı → inline-flex ile yan yana. *@
                     <a href="/Login"
                        class="ft-link-accent inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mb-4">
                         <span class="material-symbols-outlined text-sm">arrow_back</span>
@@ -83,50 +134,66 @@
                     <h2 class="font-headline text-2xl font-bold ft-text mb-2 text-center">
                         Hesap Oluştur
                     </h2>
+                    @* Sunucudan hata mesajı geldiyse göster (örn. "Bu e-posta zaten kullanılıyor"). *@
                     @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
                     {
                         <p class="ft-error-box">@Model.ErrorMessage</p>
                     }
                 </header>
 
+                @* ── KAYIT FORMU ──
+                   method="post" → RegisterModel.OnPostAsync() çalışır.
+                   space-y-5 → form alanları arasında 20px boşluk. *@
                 <form class="space-y-5" method="post">
 
-                    <!-- Ad Soyad -->
+                    @* ── AD SOYAD ALANI ──
+                       person ikonu → relative konteyner içinde absolute ile sola yapıştırılmış.
+                       pl-11 → solda ikon kadar padding bırakır. *@
                     <div class="space-y-2">
                         <label class="ft-label" for="name">Ad Soyad</label>
                         <div class="relative">
                             <span class="material-symbols-outlined ft-input-icon absolute left-4 top-1/2
                                          -translate-y-1/2 text-[18px]">person</span>
+                            @* asp-for="Input.FullName" → RegisterModel.Input.FullName özelliğine bağlı *@
                             <input asp-for="Input.FullName"
                                    class="ft-input w-full rounded-xl py-3.5 pl-11 pr-5 text-sm font-body"
                                    id="name" placeholder="John Doe" type="text" />
                         </div>
                     </div>
 
-                    <!-- Email -->
+                    @* ── E-POSTA ALANI ──
+                       mail ikonu → sol iç kenar
+                       type="email" → tarayıcı format doğrulaması yapar *@
                     <div class="space-y-2">
                         <label class="ft-label" for="email">Email Adresi</label>
                         <div class="relative">
                             <span class="material-symbols-outlined ft-input-icon absolute left-4 top-1/2
                                          -translate-y-1/2 text-[18px]">mail</span>
+                            @* asp-for="Input.Email" → RegisterModel.Input.Email özelliğine bağlı *@
                             <input asp-for="Input.Email"
                                    class="ft-input w-full rounded-xl py-3.5 pl-11 pr-5 text-sm font-body"
                                    id="email" placeholder="ornek@fixtrading.com" type="email" />
                         </div>
                     </div>
 
-                    <!-- Şifre satırı -->
+                    @* ── ŞİFRE SATIRLARI ──
+                       grid-cols-2 → Şifre ve Tekrar yan yana (küçük ekranlarda alt alta: grid-cols-1).
+                       İki ayrı alan: biri lock ikonu, diğeri shield ikonu ile. *@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @* Şifre alanı *@
                         <div class="space-y-2">
                             <label class="ft-label" for="password">Şifre</label>
                             <div class="relative">
                                 <span class="material-symbols-outlined ft-input-icon absolute left-4 top-1/2
                                              -translate-y-1/2 text-[18px]">lock</span>
+                                @* asp-for="Input.Password" → RegisterModel.Input.Password özelliğine bağlı *@
                                 <input asp-for="Input.Password"
                                        class="ft-input w-full rounded-xl py-3.5 pl-11 pr-3 text-sm font-body"
                                        id="password" placeholder="••••••••" type="password" />
                             </div>
                         </div>
+                        @* Şifre tekrar alanı — yalnızca istemci tarafı doğrulama için,
+                           sunucu tarafına bağlı değil (asp-for yok). *@
                         <div class="space-y-2">
                             <label class="ft-label" for="password_confirm">Tekrar</label>
                             <div class="relative">
@@ -138,7 +205,11 @@
                         </div>
                     </div>
 
-                    <!-- Kullanım Koşulları -->
+                    @* ── KULLANIM KOŞULLARI ONAYI ──
+                       Checkbox: kullanıcı koşulları kabul ettiğini işaretler.
+                       type="checkbox" → onay kutusu.
+                       label'da "Kullanım koşullarını" metni ft-link-accent ile link gibi görünür
+                       (şu an gerçek link değil, sadece stil). *@
                     <div class="flex items-start gap-3 py-0.5">
                         <input class="mt-1 w-4 h-4 rounded text-tertiary focus:ring-tertiary/40 focus:ring-offset-0
                                       bg-transparent border-current"
@@ -149,7 +220,9 @@
                         </label>
                     </div>
 
-                    <!-- Kayıt Ol Butonu -->
+                    @* ── KAYIT OL BUTONU ──
+                       type="submit" → formu gönderir.
+                       ft-btn-primary → degrade + hover animasyonlu tam genişlikte buton. *@
                     <div class="pt-1">
                         <button class="ft-btn-primary" type="submit">
                             Kayıt Ol
@@ -158,6 +231,8 @@
                     </div>
                 </form>
 
+                @* ── GİRİŞ YAP LİNKİ ──
+                   Zaten hesabı olan kullanıcıyı Login sayfasına yönlendirir. *@
                 <div class="mt-6 ft-divider pt-5 text-center">
                     <p class="text-sm ft-text-faint">
                         Zaten hesabın var mı?
@@ -172,7 +247,16 @@
     </main>
 
     <script>
-        /* ── Tema Sistemi ── */
+        /* ══════════════════════════════════════════════════════
+           TEMA SİSTEMİ — Login.cshtml ile aynı mantık
+           ══════════════════════════════════════════════════════ */
+
+        /**
+         * toggleTheme()
+         * Sağ üst köşedeki tema butonuna basılınca çalışır.
+         * Mevcut tema dark ise light'a, light ise dark'a geçer.
+         * Seçim localStorage'a kaydedilir (sayfa yenilenince hatırlanır).
+         */
         function toggleTheme() {
             var curr = document.documentElement.getAttribute('data-theme') || 'dark';
             var next = curr === 'dark' ? 'light' : 'dark';
@@ -181,6 +265,12 @@
             syncToggleUI(next);
         }
 
+        /**
+         * syncToggleUI(theme)
+         * Tema butonunun simgesini ve yazısını mevcut duruma göre günceller.
+         * Açık modda iken "Dark" gösterir → koyu moda geçeceğini işaret eder.
+         * Koyu modda iken "Light" gösterir → açık moda geçeceğini işaret eder.
+         */
         function syncToggleUI(theme) {
             var icon  = document.getElementById('toggleIcon');
             var label = document.getElementById('toggleLabel');
@@ -194,6 +284,7 @@
             }
         }
 
+        /* Sayfa ilk yüklendiğinde buton görünümünü mevcut temayla eşitle */
         syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
     </script>
 </body>

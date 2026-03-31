@@ -103,6 +103,17 @@ public class RedisLatestPriceStore : ILatestPriceStore
         }
         return result.OrderBy(x => x.Symbol).ToList();
     }
+
+
+    // Belirtilen sembol için Redis'ten en son fiyat bilgisini siler. Sembol, küçük-büyük harf duyarlılığı olmayan şekilde işlenir.
+    public async Task RemoveLatestAsync(string symbol)
+    {
+        if (!_redis.IsConnected) return;
+        symbol = symbol.Trim().ToUpper().Replace("/", "");
+        var key = KeyPrefix + symbol;
+        //Redis'ten hem fiyat bilgisini siler hem de sembolün listeden kaldırır. İki işlem aynı anda yapılır.
+        await Task.WhenAll(_db.KeyDeleteAsync(key), _db.SetRemoveAsync(KeySet, symbol));
+    }
 }
 
 // Redis bağlantı ayarlarını tutan sınıf. ConnectionString, Redis sunucusunun adresini belirtir.

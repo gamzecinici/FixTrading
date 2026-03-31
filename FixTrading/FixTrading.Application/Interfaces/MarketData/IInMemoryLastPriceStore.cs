@@ -9,4 +9,5 @@ public interface IInMemoryLastPriceStore
     Task<DtoMarketData?> GetLatestAsync(string symbol);  //Tek sembolün son fiyatını döner
     Task<List<DtoMarketData>> GetAllLatestAsync();   //Tüm sembollerin son fiyatlarını döner
     void SetLatest(string symbol, decimal bid, decimal ask);    // Bellekte güncelleme yapar (senkron)
+    void RemoveLatest(string symbol);      // Bellekten silme yapar (senkron). 
 }

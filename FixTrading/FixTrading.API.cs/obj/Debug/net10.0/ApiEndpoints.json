@@ -17,7 +17,83 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_9",
+    "Method": "\u003CConfigure\u003Eb__5_1",
+    "RelativePath": "api/admin/symbols",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_2",
+    "RelativePath": "api/admin/symbols",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "body",
+        "Type": "FixTrading.API.Services.AddSymbolApiRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_3",
+    "RelativePath": "api/admin/symbols/{instrumentId:guid}",
+    "HttpMethod": "DELETE",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "instrumentId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_4",
+    "RelativePath": "api/admin/test-email",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
+    "Method": "\u003CConfigure\u003Eb__5_13",
     "RelativePath": "api/Alerts/Simulate",
     "HttpMethod": "GET",
     "IsController": false,
@@ -49,7 +125,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_3",
+    "Method": "\u003CConfigure\u003Eb__5_7",
     "RelativePath": "api/Instrument/{id:guid}",
     "HttpMethod": "GET",
     "IsController": false,
@@ -71,7 +147,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_4",
+    "Method": "\u003CConfigure\u003Eb__5_8",
     "RelativePath": "api/Instrument/add",
     "HttpMethod": "POST",
     "IsController": false,
@@ -93,7 +169,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_1",
+    "Method": "\u003CConfigure\u003Eb__5_5",
     "RelativePath": "api/Instrument/db-test",
     "HttpMethod": "GET",
     "IsController": false,
@@ -109,7 +185,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_6",
+    "Method": "\u003CConfigure\u003Eb__5_10",
     "RelativePath": "api/Instrument/delete/{id:guid}",
     "HttpMethod": "DELETE",
     "IsController": false,
@@ -131,7 +207,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_2",
+    "Method": "\u003CConfigure\u003Eb__5_6",
     "RelativePath": "api/Instrument/list",
     "HttpMethod": "GET",
     "IsController": false,
@@ -147,7 +223,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_5",
+    "Method": "\u003CConfigure\u003Eb__5_9",
     "RelativePath": "api/Instrument/update/{id:guid}",
     "HttpMethod": "PUT",
     "IsController": false,
@@ -174,7 +250,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_7",
+    "Method": "\u003CConfigure\u003Eb__5_11",
     "RelativePath": "api/LatestPrice",
     "HttpMethod": "GET",
     "IsController": false,
@@ -190,7 +266,7 @@
   },
   {
     "ContainingType": "FixTrading.API.Startup\u002B\u003C\u003Ec",
-    "Method": "\u003CConfigure\u003Eb__5_8",
+    "Method": "\u003CConfigure\u003Eb__5_12",
     "RelativePath": "api/LatestPrice/{symbol}",
     "HttpMethod": "GET",
     "IsController": false,
