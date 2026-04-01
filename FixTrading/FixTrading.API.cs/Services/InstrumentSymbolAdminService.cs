@@ -137,6 +137,8 @@ public class InstrumentSymbolAdminService
 
         await RefreshPricingCacheAsync(cancellationToken);
 
+        // Uygulama çalışırken yeni sembol eklenince FixListenerWorker tekrar çalışmaz;
+        // bu yüzden burada anında FIX subscribe gerekir (FixApp._activeSymbols'a da eklenir).
         if (_fixSession.IsConnected)
             _fixSession.Subscribe(normalized);
 
@@ -147,8 +149,14 @@ public class InstrumentSymbolAdminService
     }
 
 
-    //Bir sembol silindiğinde, ilgili enstrüman ve fiyatlama limitleri veritabanından kaldırılır,
-    //FIX oturumu güncellenir ve önbellekteki fiyat bilgileri temizlenir. Ayrıca, silinen sembolün bilgilerini konsola loglar.
+    /// <summary>
+    /// Admin panelinden "sil" ile enstrüman + limit satırlarını kaldırır ve dağıtık önbelleği temizler.
+    /// </summary>
+    /// <remarks>
+    /// Sıra önemli: önce <see cref="IFixSession.Unsubscribe"/> — FixApp içinde <c>_activeSymbols</c> düşer ve
+    /// sunucu gecikmeyle tick gönderse bile <see cref="FixApp"/> Render aşamasında elenir.
+    /// Ardından DB commit, Redis <c>latest:price:SYMBOL</c> ve RAM <see cref="IInMemoryLastPriceStore"/> silinir.
+    /// </remarks>
     public async Task<(bool Ok, string? Error)> DeleteAsync(Guid instrumentId, CancellationToken cancellationToken = default)
     {
         var instrument = await _db.Instruments.FirstOrDefaultAsync(i => i.Id == instrumentId, cancellationToken);
@@ -159,7 +167,8 @@ public class InstrumentSymbolAdminService
 
         var limits = await _db.PricingLimits.Where(p => p.InstrumentId == instrumentId).ToListAsync(cancellationToken);
 
-        _fixSession.Unsubscribe(symbol);    //FIX oturumundan sembolü kaldırır, böylece artık bu sembol için fiyat güncellemeleri alınmaz.
+        // Market data iptali + yerel abonelik whitelist'ten çıkarma (FixApp)
+        _fixSession.Unsubscribe(symbol);
 
         _db.PricingLimits.RemoveRange(limits);
         _db.Instruments.Remove(instrument);

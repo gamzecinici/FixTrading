@@ -3,6 +3,7 @@ using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
 using FixTrading.Common.Pricing;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace FixTrading.Infrastructure.MongoDb;
@@ -10,6 +11,19 @@ namespace FixTrading.Infrastructure.MongoDb;
 // MongoDB'ye market data yazmak için kullanılan buffer sınıfı. 1 dakika boyunca gelen tüm verileri biriktirir ve sonra toplu olarak MongoDB'ye yazar. 
 public class MongoMarketDataBuffer : IMarketDataBuffer, IDisposable
 {
+    // Insert/upsert tarafında da driver bazen dokümana _id ekler; round-trip ve okumada ekstra alan toleransı.
+    static MongoMarketDataBuffer()
+    {
+        if (!BsonClassMap.IsClassMapRegistered(typeof(DtoMarketData)))
+        {
+            BsonClassMap.RegisterClassMap<DtoMarketData>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIgnoreExtraElements(true);
+            });
+        }
+    }
+
     private readonly IMongoCollection<DtoMarketData> _collection;
 
     // 1 dakika boyunca gelen TÜM verileri biriktiren thread-safe liste

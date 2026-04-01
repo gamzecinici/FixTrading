@@ -5369,3 +5369,231 @@
 20260331-14:07:16.549 : Connection failed: Hedef makine etkin olarak reddettiğinden bağlantı kurulamadı. 192.54.136.152:8060
 20260331-14:07:44.139 : Connecting to 192.54.136.152 on port 8060
 20260331-14:07:46.846 : Connection failed: Hedef makine etkin olarak reddettiğinden bağlantı kurulamadı. 192.54.136.152:8060
+20260331-14:25:42.524 : Created session
+20260331-14:25:42.534 : Connecting to 192.54.136.152 on port 8060
+20260331-14:25:42.711 : Connection succeeded
+20260331-14:25:42.732 : Session reset: ResetOnLogon
+20260331-14:25:42.744 : Session reset: ResetSeqNumFlag
+20260331-14:25:42.774 : Initiated logon request
+20260331-14:25:42.933 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260331-14:25:42.935 : Received logon
+20260331-14:26:06.960 : Created session
+20260331-14:26:06.969 : Connecting to 192.54.136.152 on port 8060
+20260331-14:26:07.219 : Connection succeeded
+20260331-14:26:07.230 : Session reset: ResetOnLogon
+20260331-14:26:07.241 : Session reset: ResetSeqNumFlag
+20260331-14:26:07.256 : Initiated logon request
+20260331-14:26:09.345 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260331-14:26:09.346 : Received logon
+20260331-14:26:40.500 : Created session
+20260331-14:26:40.508 : Connecting to 192.54.136.152 on port 8060
+20260331-14:26:40.675 : Connection succeeded
+20260331-14:26:40.685 : Session reset: ResetOnLogon
+20260331-14:26:40.694 : Session reset: ResetSeqNumFlag
+20260331-14:26:40.716 : Initiated logon request
+20260331-14:26:42.327 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260331-14:26:42.329 : Received logon
+20260331-14:27:22.584 : Created session
+20260331-14:27:22.595 : Connecting to 192.54.136.152 on port 8060
+20260331-14:27:23.710 : Connection succeeded
+20260331-14:27:23.721 : Session reset: ResetOnLogon
+20260331-14:27:23.731 : Session reset: ResetSeqNumFlag
+20260331-14:27:23.747 : Initiated logon request
+20260331-14:27:26.048 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260331-14:27:26.050 : Received logon
+20260331-14:36:42.894 : Created session
+20260331-14:36:42.903 : Connecting to 192.54.136.152 on port 8060
+20260331-14:36:43.106 : Connection succeeded
+20260331-14:36:43.118 : Session reset: ResetOnLogon
+20260331-14:36:43.132 : Session reset: ResetSeqNumFlag
+20260331-14:36:43.150 : Initiated logon request
+20260331-14:36:45.174 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260331-14:36:45.175 : Received logon
+20260331-14:36:45.764 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260331-14:36:45.765 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260331-14:36:45.765 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260331-14:36:45.766 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260331-14:36:45.766 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-06:59:45.255 : Created session
+20260401-06:59:45.265 : Connecting to 192.54.136.152 on port 8060
+20260401-06:59:45.481 : Connection succeeded
+20260401-06:59:45.497 : Session reset: ResetOnLogon
+20260401-06:59:45.506 : Session reset: ResetSeqNumFlag
+20260401-06:59:45.527 : Initiated logon request
+20260401-06:59:45.684 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-06:59:45.686 : Received logon
+20260401-06:59:47.178 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-06:59:47.179 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-06:59:47.180 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-06:59:47.181 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-06:59:47.181 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:02:46.703 : Created session
+20260401-07:02:46.712 : Connecting to 192.54.136.152 on port 8060
+20260401-07:02:46.882 : Connection succeeded
+20260401-07:02:46.892 : Session reset: ResetOnLogon
+20260401-07:02:46.901 : Session reset: ResetSeqNumFlag
+20260401-07:02:46.916 : Initiated logon request
+20260401-07:02:48.784 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:02:48.786 : Received logon
+20260401-07:02:49.615 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:02:49.616 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:02:49.617 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:02:49.617 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:02:49.618 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:08:07.215 : Created session
+20260401-07:08:07.223 : Connecting to 192.54.136.152 on port 8060
+20260401-07:08:07.389 : Connection succeeded
+20260401-07:08:07.400 : Session reset: ResetOnLogon
+20260401-07:08:07.410 : Session reset: ResetSeqNumFlag
+20260401-07:08:07.431 : Initiated logon request
+20260401-07:08:10.186 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:08:10.188 : Received logon
+20260401-07:08:10.638 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:08:10.639 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:08:10.640 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:08:10.641 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:08:10.642 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:12:29.050 : Created session
+20260401-07:12:29.062 : Connecting to 192.54.136.152 on port 8060
+20260401-07:12:29.229 : Connection succeeded
+20260401-07:12:29.239 : Session reset: ResetOnLogon
+20260401-07:12:29.249 : Session reset: ResetSeqNumFlag
+20260401-07:12:29.265 : Initiated logon request
+20260401-07:12:31.059 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:12:31.061 : Received logon
+20260401-07:12:31.454 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:12:31.455 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:12:31.456 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:12:31.456 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:12:31.457 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:16:36.088 : Created session
+20260401-07:16:36.096 : Connecting to 192.54.136.152 on port 8060
+20260401-07:16:36.263 : Connection succeeded
+20260401-07:16:36.276 : Session reset: ResetOnLogon
+20260401-07:16:36.286 : Session reset: ResetSeqNumFlag
+20260401-07:16:36.304 : Initiated logon request
+20260401-07:16:38.450 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:16:38.451 : Received logon
+20260401-07:16:38.944 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:16:38.944 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:16:38.945 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:16:38.945 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:16:38.946 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:18:53.683 : Created session
+20260401-07:18:53.691 : Connecting to 192.54.136.152 on port 8060
+20260401-07:18:57.189 : Connection succeeded
+20260401-07:18:57.199 : Session reset: ResetOnLogon
+20260401-07:18:57.208 : Session reset: ResetSeqNumFlag
+20260401-07:18:57.221 : Initiated logon request
+20260401-07:19:01.161 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:19:01.162 : Received logon
+20260401-07:19:03.651 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:19:03.652 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:19:03.652 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:19:04.661 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:19:04.662 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:27:35.279 : Created session
+20260401-07:27:35.290 : Connecting to 192.54.136.152 on port 8060
+20260401-07:27:35.454 : Connection succeeded
+20260401-07:27:35.465 : Session reset: ResetOnLogon
+20260401-07:27:35.473 : Session reset: ResetSeqNumFlag
+20260401-07:27:35.492 : Initiated logon request
+20260401-07:27:37.318 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:27:37.319 : Received logon
+20260401-07:27:37.589 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:27:37.590 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:27:37.591 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:27:37.591 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:27:37.592 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:31:00.750 : Created session
+20260401-07:31:00.758 : Connecting to 192.54.136.152 on port 8060
+20260401-07:31:00.921 : Connection succeeded
+20260401-07:31:00.931 : Session reset: ResetOnLogon
+20260401-07:31:00.940 : Session reset: ResetSeqNumFlag
+20260401-07:31:00.954 : Initiated logon request
+20260401-07:31:02.771 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:31:02.773 : Received logon
+20260401-07:31:03.223 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:31:03.224 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:31:03.225 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:31:03.225 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:31:03.226 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:39:25.873 : Created session
+20260401-07:39:25.882 : Connecting to 192.54.136.152 on port 8060
+20260401-07:39:26.064 : Connection succeeded
+20260401-07:39:26.081 : Session reset: ResetOnLogon
+20260401-07:39:26.094 : Session reset: ResetSeqNumFlag
+20260401-07:39:26.112 : Initiated logon request
+20260401-07:39:27.944 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:39:27.946 : Received logon
+20260401-07:39:28.330 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:39:28.331 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:39:28.331 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:39:28.332 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:39:28.332 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:46:05.549 : Created session
+20260401-07:46:05.562 : Connecting to 192.54.136.152 on port 8060
+20260401-07:46:05.730 : Connection succeeded
+20260401-07:46:05.740 : Session reset: ResetOnLogon
+20260401-07:46:05.749 : Session reset: ResetSeqNumFlag
+20260401-07:46:05.769 : Initiated logon request
+20260401-07:46:07.650 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:46:07.651 : Received logon
+20260401-07:46:08.315 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:46:08.316 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:46:08.316 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:46:08.317 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:46:08.317 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-07:51:45.190 : Created session
+20260401-07:51:45.198 : Connecting to 192.54.136.152 on port 8060
+20260401-07:51:45.921 : Connection succeeded
+20260401-07:51:45.933 : Session reset: ResetOnLogon
+20260401-07:51:45.944 : Session reset: ResetSeqNumFlag
+20260401-07:51:45.958 : Initiated logon request
+20260401-07:51:49.592 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-07:51:49.594 : Received logon
+20260401-07:51:51.600 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-07:51:51.601 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-07:51:51.602 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-07:51:52.613 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-07:51:52.614 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-08:13:19.293 : Created session
+20260401-08:13:19.457 : Connecting to 192.54.136.152 on port 8060
+20260401-08:13:19.656 : Connection succeeded
+20260401-08:13:19.672 : Session reset: ResetOnLogon
+20260401-08:13:19.682 : Session reset: ResetSeqNumFlag
+20260401-08:13:19.704 : Initiated logon request
+20260401-08:13:21.480 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-08:13:21.481 : Received logon
+20260401-08:13:22.082 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-08:13:22.083 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-08:13:22.084 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-08:13:22.085 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-08:13:22.085 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-08:17:03.924 : Created session
+20260401-08:17:03.932 : Connecting to 192.54.136.152 on port 8060
+20260401-08:17:04.099 : Connection succeeded
+20260401-08:17:04.109 : Session reset: ResetOnLogon
+20260401-08:17:04.118 : Session reset: ResetSeqNumFlag
+20260401-08:17:04.133 : Initiated logon request
+20260401-08:17:05.911 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-08:17:05.912 : Received logon
+20260401-08:17:06.382 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-08:17:06.382 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-08:17:06.383 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-08:17:06.383 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-08:19:00.401 : Message 854 Rejected: Tag appears more than once (Field=278)
+20260401-08:26:05.249 : Created session
+20260401-08:26:05.256 : Connecting to 192.54.136.152 on port 8060
+20260401-08:26:05.422 : Connection succeeded
+20260401-08:26:05.432 : Session reset: ResetOnLogon
+20260401-08:26:05.441 : Session reset: ResetSeqNumFlag
+20260401-08:26:05.458 : Initiated logon request
+20260401-08:26:07.287 : Sequence numbers reset due to ResetSeqNumFlag=Y
+20260401-08:26:07.288 : Received logon
+20260401-08:26:07.497 : Message 2 Rejected: Tag appears more than once (Field=278)
+20260401-08:26:07.497 : Message 3 Rejected: Tag appears more than once (Field=278)
+20260401-08:26:07.498 : Message 4 Rejected: Tag appears more than once (Field=278)
+20260401-08:26:07.499 : Message 5 Rejected: Tag appears more than once (Field=278)
+20260401-08:26:07.499 : Message 6 Rejected: Tag appears more than once (Field=278)
+20260401-08:27:43.987 : Message 903 Rejected: Tag appears more than once (Field=278)

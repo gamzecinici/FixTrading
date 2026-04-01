@@ -123,6 +123,7 @@
             <nav class="ft-nav-links hidden md:flex">
                 <a class="ft-nav-link @(Model.ActiveTab == "home"   ? "active" : "")" href="/Admin?tab=home">Anasayfa</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "market" ? "active" : "")" href="/Admin?tab=market">Canlı Piyasa</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "history" ? "active" : "")" href="/Admin?tab=history">Fiyat Geçmişi</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "users"  ? "active" : "")" href="/Admin?tab=users">Kullanıcılar</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="/Admin?tab=limits">Enstrüman & Limit</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "alerts" ? "active" : "")" href="/Admin?tab=alerts">Uyarılar</a>
@@ -255,9 +256,16 @@
            JavaScript her 3 saniyede /Admin?handler=LiveMarket endpoint'ini çağırır
            ve tabloyu anlık günceller.  *@
         <section class="@(Model.ActiveTab == "market" ? "" : "hidden")">
-            <div style="margin-bottom:2.5rem">
-                <div class="ft-section-subtitle">Piyasa İzleme</div>
-                <h1 class="ft-section-title">Canlı Piyasa</h1>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">Piyasa İzleme</div>
+                    <h1 class="ft-section-title">Canlı Piyasa</h1>
+                </div>
+                @* Arama Filtresi (Kullanıcı panelindeki gibi) *@
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style="font-size:18px;color:var(--ft-placeholder);pointer-events:none">search</span>
+                    <input type="text" id="marketSearch" class="ft-search-box" style="width:220px" placeholder="Sembol ara (örn: AUDCAD)" onkeyup="filterMarketSymbols()" />
+                </div>
             </div>
 
             @* Tablo kartı *@
@@ -642,6 +650,78 @@
             </div>
         </section>
 
+        @* FİYAT GEÇMİŞİ *@
+        <section class="@(Model.ActiveTab == "history" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">Analiz ve Arşiv</div>
+                <h1 class="ft-section-title">Fiyat Geçmişi</h1>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                @* Sol panel: Sembol Seçimi *@
+                <div class="lg:col-span-1">
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;padding:1.5rem;box-shadow:var(--ft-card-shadow)">
+                        <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:var(--ft-primary)">Sembol Seçin</h3>
+                        <div class="flex flex-col gap-2 max-height-[500px] overflow-y-auto pr-2" style="max-height: 500px;">
+                            @foreach (var sym in Model.MarketRows.Select(x => x.Symbol).OrderBy(x => x))
+                            {
+                                <button onclick="loadAdminHistory('@sym')" 
+                                        class="flex items-center justify-between p-3 rounded-xl border transition-all @(Model.SelectedSymbol == sym ? "bg-[rgba(105,218,255,0.1)] border-[var(--ft-primary)]" : "bg-transparent border-[var(--ft-outline)] hover:border-[var(--ft-primary)]")"
+                                        id="history-btn-@sym">
+                                    <span style="font-weight:600;font-size:0.85rem">@(sym.Length == 6 ? sym.Insert(3, "/") : sym)</span>
+                                    <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @* Sağ panel: Veri Tablosu *@
+                <div class="lg:col-span-3">
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                        <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
+                            <span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Son 100 Dakikalık Kayıt</span>
+                            <span id="historyTabSymbol" style="font-size:0.8rem;font-weight:700;color:var(--ft-primary)">@Model.SelectedSymbol</span>
+                        </div>
+                        <div class="overflow-x-auto" style="max-height: 600px;">
+                            <table class="ft-table w-full" id="historyTabTable">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left;padding-left:1.5rem">Zaman</th>
+                                        <th style="text-align:center">Alış</th>
+                                        <th style="text-align:center">Satış</th>
+                                        <th style="text-align:center">Piyasa Fiyatı</th>
+                                        <th style="text-align:center">Spread</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTabBody">
+                                    @if (Model.PriceHistory.Any())
+                                    {
+                                        @foreach (var h in Model.PriceHistory)
+                                        {
+                                            <tr>
+                                                <td style="text-align:left;padding-left:1.5rem;font-size:0.82rem;color:var(--ft-text-muted)">@h.Timestamp.AddHours(3).ToString("dd.MM.yyyy HH:mm")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Bid.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Ask.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">@h.Mid.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">@h.Spread.ToString("F5")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;padding:3rem;color:var(--ft-text-faint)">Sol panelden sembol seçerek geçmiş verileri listeleyebilirsiniz.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     @* ══════════════════════════════════════════════════════════
@@ -709,6 +789,25 @@
         }
         syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
 
+        /** Canlı Piyasa Tablosunu Filtrele */
+        function filterMarketSymbols() {
+            var input = document.getElementById('marketSearch');
+            var filter = input.value.toUpperCase();
+            var table = document.getElementById('marketTable');
+            var tr = table.getElementsByTagName('tr');
+
+            for (var i = 1; i < tr.length; i++) {
+                var sym = tr[i].getAttribute('data-symbol');
+                if (sym) {
+                    if (sym.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
         /* 
            MODAL KONTROL FONKSİYONLARI
            */
@@ -718,6 +817,46 @@
 
         /** Kullanıcı ekle modalını kapatır — "hidden" sınıfını geri ekler */
         function closeUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
+
+        async function loadAdminHistory(symbol) {
+            // Buton aktiflik durumunu değiştir
+            document.querySelectorAll('[id^="history-btn-"]').forEach(b => {
+                b.classList.remove('bg-[rgba(105,218,255,0.1)]', 'border-[var(--ft-primary)]');
+                b.classList.add('bg-transparent', 'border-[var(--ft-outline)]');
+            });
+            var activeBtn = document.getElementById('history-btn-' + symbol);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-transparent', 'border-[var(--ft-outline)]');
+                activeBtn.classList.add('bg-[rgba(105,218,255,0.1)]', 'border-[var(--ft-primary)]');
+            }
+
+            document.getElementById('historyTabSymbol').textContent = symbol;
+            var body = document.getElementById('historyTabBody');
+            body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">Yükleniyor...</td></tr>';
+
+            try {
+                var res = await fetch('/Admin?handler=PriceHistory&symbol=' + symbol);
+                if (!res.ok) throw new Error();
+                var data = await res.json();
+                
+                if (data.length === 0) {
+                    body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-text-faint)">Kayıt bulunamadı.</td></tr>';
+                    return;
+                }
+
+                body.innerHTML = data.map(h => `
+                    <tr>
+                        <td style="text-align:left;padding-left:1.5rem;font-size:0.82rem;color:var(--ft-text-muted)">${h.time}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.bid.toFixed(5)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.ask.toFixed(5)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">${h.mid.toFixed(5)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">${h.spread.toFixed(5)}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-danger)">Veriler alınırken bir hata oluştu.</td></tr>';
+            }
+        }
 
         /* Modal dışına (arka plan overlay'e) tıklanınca kapan.
            e.target === addUserModal → tıklanan şey modal iç kartı değil, arka plan katmanı. */

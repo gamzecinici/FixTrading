@@ -22,6 +22,14 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private readonly Dictionary<string, string> _mdReqIdToSymbol = new();  // MDReqID -> Symbol (X mesajlarında grup içinde olmayabiliyor)
         private readonly ConcurrentDictionary<string, string> _symbolToMdReqId = new(StringComparer.OrdinalIgnoreCase);
 
+        // ── Aktif FIX abonelikleri (whitelist) ─────────────────────────────────────────────
+        // Admin "Enstrüman sil" dediğinde Unsubscribe() bu setten sembolü düşürür.
+        // Sunucu unsubscribe sonrası yine de tick gönderebilir; Render() bu sembolü sette görmüyorsa
+        // tick hiç işlenmez → Redis/InMemory tekrar doldurulmaz, UI'da "silinmiş" sembol geri gelmez.
+        // Subscribe() her başarılı abonelikte sembolü buraya ekler (NormalizeSymbol ile, örn. EURUSD).
+        private readonly HashSet<string> _activeSymbols = new(StringComparer.OrdinalIgnoreCase);
+        private string? _accountId;
+
         private bool _firstMarketDataLogged;
         private static bool _debugLogged;
 
@@ -36,13 +44,37 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             _marketDataBuffer = marketDataBuffer;
             _fixMessageHandler = fixMessageHandler;
             _fixOptions = fixOptions?.Value ?? new FixMarketDataOptions();
+
+            // fix.cfg dosyasından AccountId'yi bir kez okuyup saklayalım (ToApp performansı için)
+            try
+            {
+                var configPath = Path.Combine(AppContext.BaseDirectory, "fix.cfg");
+                if (File.Exists(configPath))
+                {
+                    var settings = new SessionSettings(configPath);
+                    var dict = settings.Get(); // Default ayarlar
+                    if (dict.Has("AccountId"))
+                        _accountId = dict.GetString("AccountId");
+                }
+            }
+            catch { }
         }
 
 
         public void OnCreate(SessionID sessionID)
         {
             Console.WriteLine("FIX oturumu oluşturuldu.");
+            // Oturuma özel AccountId varsa onu da kontrol et
+            try
+            {
+                var configPath = Path.Combine(AppContext.BaseDirectory, "fix.cfg");
+                var settings = new SessionSettings(configPath);
+                if (settings.Get(sessionID).Has("AccountId"))
+                    _accountId = settings.Get(sessionID).GetString("AccountId");
+            }
+            catch { }
         }
+
 
         public void OnLogon(SessionID sessionID)
         {
@@ -82,7 +114,14 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         }
 
         public void FromAdmin(Message message, SessionID sessionID) { }
-        public void ToApp(Message message, SessionID sessionID) { }
+        public void ToApp(Message message, SessionID sessionID)
+        {
+            // Bazı sunucular uygulama mesajlarında Account bilgisini zorunlu tutabiliyor (fix.cfg'den okunur).
+            if (!string.IsNullOrEmpty(_accountId))
+            {
+                message.SetField(new Account(_accountId));
+            }
+        }
 
 
         // Gelen uygulama mesajlarını işler. Her mesaj geldiğinde çalışır.
@@ -125,7 +164,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 new MarketDepth(1)    // Sadece en iyi fiyatları (top of book) istemek için derinlik 1 olarak ayarlanır
             );
 
-            request.Set(new MDUpdateType(0));
+            request.Set(new MDUpdateType(1)); // 0=Full, 1=Incremental. SPOTEX/Fintechee genelde Incremental ister.
             request.Set(new AggregatedBook(true));   
 
             var bidGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
@@ -136,9 +175,11 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             askGroup.SetField(new MDEntryType(MDEntryType.OFFER));
             request.AddGroup(askGroup);
 
-            var tradeGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
-            tradeGroup.SetField(new MDEntryType(MDEntryType.TRADE));
-            request.AddGroup(tradeGroup);
+            /* Bazı sunucular TRADE (2) tipini desteklemeyebilir, 
+               eğer veri akışı kesilirse bu kısmı kaldırıp sadece BID/OFFER istenebilir. */
+            // var tradeGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
+            // tradeGroup.SetField(new MDEntryType(MDEntryType.TRADE));
+            // request.AddGroup(tradeGroup);
 
             var symbolGroup =     // Hangi sembol için veri isteneceğini belirten grup
                 new QuickFix.FIX44.MarketDataRequest.NoRelatedSymGroup();
@@ -153,13 +194,22 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
             _symbolToMdReqId[normalizedForMap] = mdReqId;
 
+            // Abonelik sunucuya gitmeden önce sembolü aktif listeye alıyoruz.
+            // Böylece dönüş snapshot/incremental mesajları Render()'da reddedilmez.
+            lock (_lock)
+            {
+                _activeSymbols.Add(normalizedForMap);
+            }
+
+            Console.WriteLine($"[FIX] Abone olunuyor: {fixSymbol} (MDReqID={mdReqId})");
             Session.SendToTarget(request, _session);         // FIX mesajı aktif session üzerinden server'a gönderilir
         }
 
         // Belirli bir sembol için market data akışını durdurur. Bu metot, server'a market data aboneliğini iptal etme isteği gönderir.
         public void Unsubscribe(string symbol)
         {
-            // Bağlantı yoksa sadece sembolü temizle
+            // FIX oturumu kapalıysa sunucuya iptal mesajı gönderilemez; yine de yerel durumu temizliyoruz.
+            // Böylece uygulama yeniden bağlanınca eski sembol "hayalet abonelik" ile işlenmez.
             if (_session == null)
             {
                 var normEarly = NormalizeSymbol(symbol);
@@ -167,6 +217,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 lock (_lock)
                 {
                     _symbols.Remove(normEarly);
+                    _activeSymbols.Remove(normEarly);
                 }
                 return;
             }
@@ -217,9 +268,12 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 Session.SendToTarget(request, _session);
             }
 
+            // Yerel bid/ask önbelleğinden ve aktif abonelik listesinden çıkar.
+            // Bundan sonra bu sembole gelen tickler Render() içinde _activeSymbols kontrolüyle elenir.
             lock (_lock)
             {
                 _symbols.Remove(normalized);
+                _activeSymbols.Remove(normalized);
             }
         }
 
@@ -232,6 +286,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             var symbol = message.IsSetField(Tags.Symbol) ? message.GetString(Tags.Symbol)
                 : message.IsSetField(Tags.SecurityID) ? message.GetString(Tags.SecurityID)
                 : "";
+            Console.WriteLine($"[FIX] Snapshot alındı: {symbol}");
             symbol = NormalizeSymbol(symbol);
             if (!string.IsNullOrEmpty(symbol) && message.IsSetField(Tags.MDReqID))
             {
@@ -245,7 +300,8 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         {
             var reason = message.IsSetField(Tags.Text) ? message.GetString(Tags.Text) : "(Text yok)";
             var mdReqId = message.IsSetField(Tags.MDReqID) ? message.GetString(Tags.MDReqID) : "?";
-            Console.WriteLine($"[FIX] MarketDataRequest REDDEDİLDİ (MDReqID={mdReqId}): {reason}");
+            var rejReasonCode = message.IsSetField(Tags.MDReqRejReason) ? message.GetString(Tags.MDReqRejReason) : "yok";
+            Console.WriteLine($"[FIX] MarketDataRequest REDDEDİLDİ (MDReqID={mdReqId}, ReasonCode={rejReasonCode}): {reason}");
         }
 
         // Snapshot sonrası gelen fiyat değişimlerini yakalar
@@ -256,10 +312,13 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         {
             if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; }
             int count = message.GetInt(Tags.NoMDEntries);
-
+            if (!_firstMarketDataLogged) { Console.WriteLine($"[FIX] İlk IncrementalRefresh alındı, NoMDEntries={count}"); }
+            
             string? symbolFromMessage = null;
             if (message.IsSetField(Tags.Symbol))
                 symbolFromMessage = NormalizeSymbol(message.GetString(Tags.Symbol));
+            else if (message.IsSetField(Tags.SecurityID))
+                symbolFromMessage = NormalizeSymbol(message.GetString(Tags.SecurityID));
             else if (message.IsSetField(Tags.MDReqID))
             {
                 var mdReqId = message.GetString(Tags.MDReqID);
@@ -282,10 +341,16 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
                 var symbol = group.IsSetField(Tags.Symbol)
                     ? NormalizeSymbol(group.GetString(Tags.Symbol))
-                    : symbolFromMessage ?? "";
+                    : group.IsSetField(Tags.SecurityID)
+                        ? NormalizeSymbol(group.GetString(Tags.SecurityID))
+                        : symbolFromMessage ?? "";
                 if (!string.IsNullOrEmpty(symbol)) sym = symbol;
 
-                if (string.IsNullOrEmpty(sym)) continue;
+                if (string.IsNullOrEmpty(sym))
+                {
+                    if (!_debugLogged) { Console.WriteLine($"[FIX] IncrementalRefresh: Symbol bulunamadı (Group {i}/{count})"); }
+                    continue;
+                }
 
                 decimal? bid = null, ask = null, trade = null;
                 try
@@ -413,6 +478,17 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private void Render(string symbol, decimal? bid, decimal? ask)
         {
             symbol = NormalizeSymbol(symbol);
+
+            // ── Kritik: silinmiş / iptal edilmiş enstrüman koruması ─────────────────────
+            // _activeSymbols yalnızca Subscribe ile eklenen ve henüz Unsubscribe edilmemiş sembolleri tutar.
+            // Admin DB'den enstrüman sildiğinde Unsubscribe + Redis/InMemory temizliği yapılır; sunucu bazen
+            // yine de eski akışı bir süre göndermeye devam eder. Bu guard olmasa her tick tekrar
+            // FixMessageHandler → Redis/InMemory yoluna girer ve "canlı piyasa" listesinde hayalet satırlar oluşurdu.
+            lock (_lock)
+            {
+                if (!_activeSymbols.Contains(symbol)) return;
+            }
+
             (decimal? bid, decimal? ask) data;
             lock (_lock)
             {

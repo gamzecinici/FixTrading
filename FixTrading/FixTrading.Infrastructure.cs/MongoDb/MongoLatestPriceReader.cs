@@ -2,6 +2,7 @@ using FixTrading.Application.Interfaces.MarketData;
 using FixTrading.Common.Dtos.MarketData;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace FixTrading.Infrastructure.MongoDb;
@@ -10,6 +11,19 @@ namespace FixTrading.Infrastructure.MongoDb;
 //Redis'te bulunmayan verileri almak için tasarlanmıştır. MongoDB bağlantısı ve ayarları constructor'da alınır
 public class MongoLatestPriceReader : IMongoLatestPriceReader
 {
+    // Dokümanlardaki Mongo _id ve sınıfta tanımsız alanlar okunurken FormatException vermesin diye.
+    static MongoLatestPriceReader()
+    {
+        if (!BsonClassMap.IsClassMapRegistered(typeof(DtoMarketData)))
+        {
+            BsonClassMap.RegisterClassMap<DtoMarketData>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIgnoreExtraElements(true);
+            });
+        }
+    }
+
     private readonly IMongoCollection<DtoMarketData> _collection;
 
 

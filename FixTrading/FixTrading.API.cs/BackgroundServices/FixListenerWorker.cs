@@ -82,6 +82,15 @@ public class FixListenerWorker : BackgroundService
     }
 
 
+    /// <summary>
+    /// Uygulama açılışında (veya gecikmeli bağlantı sonrası) FIX'e hangi sembollere abone olunacağını belirler.
+    /// </summary>
+    /// <remarks>
+    /// Eskiden sorgu doğrudan <c>Instruments</c> tablosundaydı: orada kalmış ama limit satırı silinmiş
+    /// "yetim" kayıtlar da abonelik listesine giriyordu (kullanıcı pricing_limits_view'da görmüyordu ama konsolda tick vardı).
+    /// Şimdi kaynak tek: <c>PricingLimits</c> üzerinden ilişkili <c>Instrument</c> — yani admin panelindeki
+    /// "aktif limit" listesi ile FIX abonelik listesi birebir uyumludur.
+    /// </remarks>
     private async Task SubscribeInstrumentsAsync(CancellationToken stoppingToken)
     {
         try
@@ -89,16 +98,21 @@ public class FixListenerWorker : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var symbols = await dbContext.Instruments
+            // pricing_limits satırı olan her enstrümanın sembolünü çek (Instrument navigation ile).
+            var symbols = await dbContext.PricingLimits
                 .AsNoTracking()
-                .Select(i => i.Symbol.Trim())
-                .Where(s => s != "")
+                .Include(p => p.Instrument)
+                .Where(p => p.Instrument != null && p.Instrument.Symbol.Trim() != "")
+                .Select(p => p.Instrument!.Symbol.Trim())
                 .Distinct()
                 .ToListAsync(stoppingToken);
 
             if (symbols.Count == 0)
-                Console.WriteLine("[FIX] UYARI: instruments tablosu boş.");
+                Console.WriteLine("[FIX] UYARI: Aktif enstrüman (limit tanımlı) bulunamadı.");
+            else
+                Console.WriteLine($"[FIX] {symbols.Count} sembol aboneliği başlatılıyor: {string.Join(", ", symbols)}");
 
+            // Her sembol QuickFixSession.Subscribe → FixApp.Subscribe zincirine gider
             foreach (var symbol in symbols)
                 _fixSession.Subscribe(symbol);
         }

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace FixTrading.API.cs.Pages;
@@ -20,12 +22,27 @@ namespace FixTrading.API.cs.Pages;
 [Authorize(Roles = "admin")]
 public class AdminModel : PageModel
 {
+    // MongoDB her dokümanda _id üretir; C# modelinde karşılığı yoksa deserialization patlar.
+    // Razor Page handler'larında aggregate sonucu okumadan önce bir kez kayıt yeterli.
+    static AdminModel()
+    {
+        if (!BsonClassMap.IsClassMapRegistered(typeof(DtoMarketData)))
+        {
+            BsonClassMap.RegisterClassMap<DtoMarketData>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIgnoreExtraElements(true);
+            });
+        }
+    }
+
     private readonly AppDbContext _dbContext;
     private readonly LatestPriceHandler _latestPriceHandler;
     private readonly HealthCheckService _healthCheckService;
     private readonly IMongoCollection<DtoAlert> _alertsCollection;
     private readonly IPricingLimitsRepository _pricingLimitsRepository;
     private readonly IPricingLimitsCache _pricingLimitsCache;
+    private readonly IMongoCollection<DtoMarketData> _marketDataCollection;
 
     public AdminModel(
         AppDbContext dbContext,
@@ -44,6 +61,7 @@ public class AdminModel : PageModel
 
         var database = mongoClient.GetDatabase(mongoOptions.Value.DatabaseName);
         _alertsCollection = database.GetCollection<DtoAlert>(MongoAlertStore.AlertsCollectionName);
+        _marketDataCollection = database.GetCollection<DtoMarketData>(mongoOptions.Value.CollectionName);
     }
 
     public string ActiveTab { get; private set; } = "home";                     //Aktif sekmeyi tutan özellik, varsayılan olarak "home" olarak ayarlanır
@@ -52,6 +70,8 @@ public class AdminModel : PageModel
     public List<UserEntity> Users { get; private set; } = [];                 //Kullanıcıları tutan liste
     public List<PricingLimitRowVm> PricingLimits { get; private set; } = [];  //Fiyatlandırma limitlerini tutan liste
     public List<DtoAlert> Alerts { get; private set; } = [];                  //Uyarıları tutan liste
+    public List<DtoMarketData> PriceHistory { get; private set; } = [];       //Fiyat geçmişini tutan liste
+    public string SelectedSymbol { get; private set; } = string.Empty;        //Seçilen sembolü tutan özellik
 
 
     //UI’dan gelen form verisini backend’e bağlar
@@ -60,18 +80,35 @@ public class AdminModel : PageModel
 
 
     //Sayfa yüklendiğinde çalışır, aktif sekmeyi belirler ve tüm verileri yükler
-    public async Task OnGetAsync(string? tab = null)
+    public async Task OnGetAsync(string? tab = null, string? symbol = null)
     {
         ActiveTab = NormalizeTab(tab);
+        SelectedSymbol = symbol ?? string.Empty;
         await LoadAllAsync();
     }
 
 
-    //Canlı piyasa verilerini JSON formatında döndüren bir endpoint
+    /// <summary>Periyodik JS yenilemesi (refreshMarket) için JSON: Redis / Mongo / in-memory birleşik son fiyatlar.</summary>
+    /// <remarks>
+    /// LatestPriceHandler tüm sembol anahtarlarını döndürebilir (Redis set'inde eski key kalmış olabilir).
+    /// Ekranda gösterilecek sembol kümesi iş kuralı olarak DB ile aynı olmalı: yalnızca
+    /// <c>pricing_limits</c> satırı olan enstrümanlar (admin tablosu ve DBeaver view ile uyum).
+    /// </remarks>
     public async Task<IActionResult> OnGetLiveMarketAsync()
     {
+        var activeSymbols = await _dbContext.PricingLimits
+            .AsNoTracking()
+            .Include(x => x.Instrument)
+            .Where(x => x.Instrument != null && x.Instrument.Symbol.Trim() != "")
+            .Select(x => x.Instrument!.Symbol.Trim())
+            .Distinct()
+            .ToListAsync();
+        // O(1) sembol araması; LatestPriceHandler'daki Symbol ile OrdinalIgnoreCase eşleşir
+        var activeSet = new HashSet<string>(activeSymbols, StringComparer.OrdinalIgnoreCase);
+
         var market = await _latestPriceHandler.GetAllLatestAsync();
         var rows = market
+            .Where(x => activeSet.Contains(x.Symbol))
             .OrderBy(x => x.Symbol)
             .Select(x => new
             {
@@ -83,6 +120,45 @@ public class AdminModel : PageModel
             })
             .ToList();
         return new JsonResult(rows);
+    }
+
+    public async Task<IActionResult> OnGetPriceHistoryAsync(string symbol)
+    {
+        if (string.IsNullOrWhiteSpace(symbol)) return new JsonResult(new List<object>());
+
+        var pipeline = new[]
+        {
+            new BsonDocument("$match", new BsonDocument("Symbol", symbol)),
+            new BsonDocument("$group", new BsonDocument
+            {
+                { "_id", new BsonDocument
+                    {
+                        { "year", new BsonDocument("$year", "$Timestamp") },
+                        { "month", new BsonDocument("$month", "$Timestamp") },
+                        { "day", new BsonDocument("$dayOfMonth", "$Timestamp") },
+                        { "hour", new BsonDocument("$hour", "$Timestamp") },
+                        { "minute", new BsonDocument("$minute", "$Timestamp") }
+                    }
+                },
+                { "lastDoc", new BsonDocument("$last", "$$ROOT") }
+            }),
+            new BsonDocument("$replaceRoot", new BsonDocument("newRoot", "$lastDoc")),
+            new BsonDocument("$sort", new BsonDocument("Timestamp", -1)),
+            new BsonDocument("$limit", 100)
+        };
+
+        var history = await _marketDataCollection.Aggregate<DtoMarketData>(pipeline).ToListAsync();
+
+        var result = history.Select(x => new
+        {
+            Time = x.Timestamp.AddHours(3).ToString("dd.MM.yyyy HH:mm"),
+            x.Bid,
+            x.Ask,
+            x.Mid,
+            x.Spread
+        });
+
+        return new JsonResult(result);
     }
 
 
@@ -205,8 +281,22 @@ public class AdminModel : PageModel
     //Yeni bir fiyatlandırma limiti eklemek için kullanılan endpoint, yeni limit kaydını oluşturur ve veritabanına ekler
     private async Task LoadAllAsync()
     {
-        await LoadHealthAsync();                                                //Uygulamanın sağlık durumunu yükler ve HealthServices listesini günceller
-        MarketRows = await _latestPriceHandler.GetAllLatestAsync();
+        await LoadHealthAsync();
+
+        // Canlı piyasa şeridi + ilk tablo render'ı: önbellekte veri olsa bile yalnızca "limiti tanımlı" semboller.
+        // instruments tablosunda yetim kayıt kalsa bile (limit satırı yoksa) UI'da listelenmez.
+        var activeSymbols = await _dbContext.PricingLimits
+            .AsNoTracking()
+            .Include(x => x.Instrument)
+            .Where(x => x.Instrument != null && x.Instrument.Symbol.Trim() != "")
+            .Select(x => x.Instrument!.Symbol.Trim())
+            .Distinct()
+            .ToListAsync();
+        var activeSet = new HashSet<string>(activeSymbols, StringComparer.OrdinalIgnoreCase);
+
+        var allMarketData = await _latestPriceHandler.GetAllLatestAsync();
+        MarketRows = allMarketData.Where(x => activeSet.Contains(x.Symbol)).ToList();
+
         Users = await _dbContext.Users
             .AsNoTracking()                                                   //Sadece okuma işlemi yapacağımız için takip etmeyi devre dışı bırakır, performansı artırır
             .OrderBy(x => x.FullName)                                        //Kullanıcıları tam adına göre sıralar
@@ -232,6 +322,32 @@ public class AdminModel : PageModel
             .SortByDescending(x => x.Time)              //Uyarıları zamana göre azalan sırada sıralar, böylece en yeni uyarılar önce gelir
             .Limit(150)
             .ToListAsync();
+
+        if (ActiveTab == "history" && !string.IsNullOrWhiteSpace(SelectedSymbol))
+        {
+            var pipeline = new[]
+            {
+                new BsonDocument("$match", new BsonDocument("Symbol", SelectedSymbol)),
+                new BsonDocument("$group", new BsonDocument
+                {
+                    { "_id", new BsonDocument
+                        {
+                            { "year", new BsonDocument("$year", "$Timestamp") },
+                            { "month", new BsonDocument("$month", "$Timestamp") },
+                            { "day", new BsonDocument("$dayOfMonth", "$Timestamp") },
+                            { "hour", new BsonDocument("$hour", "$Timestamp") },
+                            { "minute", new BsonDocument("$minute", "$Timestamp") }
+                        }
+                    },
+                    { "lastDoc", new BsonDocument("$last", "$$ROOT") }
+                }),
+                new BsonDocument("$replaceRoot", new BsonDocument("newRoot", "$lastDoc")),
+                new BsonDocument("$sort", new BsonDocument("Timestamp", -1)),
+                new BsonDocument("$limit", 100)
+            };
+
+            PriceHistory = await _marketDataCollection.Aggregate<DtoMarketData>(pipeline).ToListAsync();
+        }
     }
 
     //Uygulamanın sağlık durumunu kontrol eder ve HealthServices listesini günceller, her hizmetin sağlıklı olup olmadığını belirler
@@ -272,7 +388,7 @@ public class AdminModel : PageModel
     //Kullanıcı tarafından sağlanan sekme adını izin verilen değerlerle karşılaştırır ve geçerli değilse varsayılan olarak "home" döndürür
     private static string NormalizeTab(string? tab)
     {
-        var allowed = new[] { "home", "market", "users", "limits", "alerts" };
+        var allowed = new[] { "home", "market", "users", "limits", "alerts", "history" };
         return allowed.Contains(tab ?? "", StringComparer.OrdinalIgnoreCase)
             ? tab!.ToLowerInvariant()
             : "home";
@@ -288,15 +404,15 @@ public class ServiceHealthVm
 
 
 //Fiyatlandırma limitlerini göstermek için kullanılan ViewModel, her limit kaydının ID'sini, ilgili enstrümanın sembolünü ve limit değerlerini tutar
-public class PricingLimitRowVm
-{
-    public Guid Id { get; set; }
-    public Guid InstrumentId { get; set; }
-    public string Symbol { get; set; } = string.Empty;
-    public decimal MinMid { get; set; }
-    public decimal MaxMid { get; set; }
-    public decimal MaxSpread { get; set; }
-}
+    public class PricingLimitRowVm
+    {
+        public Guid Id { get; set; }
+        public Guid InstrumentId { get; set; }
+        public string Symbol { get; set; } = string.Empty;
+        public decimal MinMid { get; set; }
+        public decimal MaxMid { get; set; }
+        public decimal MaxSpread { get; set; }
+    }
 
 
 //Yeni bir kullanıcı eklemek için kullanılan input modeli, form verilerini tutar ve doğrulama için kullanılır

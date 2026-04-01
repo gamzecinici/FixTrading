@@ -27,29 +27,43 @@ public class PricingAlertChecker : IPricingAlertChecker
         _alertNotifier = alertNotifier;
     }
 
-    // CheckAndLogIfBreach metodu, verilen market data'yı alır ve cache'teki pricing limitlerle karşılaştırır.
-    // Eğer limit aşımı varsa, WriteAlert metodunu çağırarak alert üretir ve true döner. Aksi halde false döner.
+    /// <summary>
+    /// Gelen tick'in RAM cache'teki min/mid/max spread limitlerine uyup uymadığını kontrol eder.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> = ihlal var → üst katman (FixMessageHandler) bu tick'i Redis ve in-memory'e yazmaz;
+    /// <c>false</c> = limit yok veya ihlal yok → fiyat yayına devam eder.
+    /// </returns>
+    /// <remarks>
+    /// Yeni enstrüman eklenirken limit alanları 0 bırakılabiliyordu. Eski kodda <c>dto.Mid &gt; limit.MaxMid</c>
+    /// ve <c>MaxMid == 0</c> iken her gerçek fiyat "MID_TOO_HIGH" sayılıyor, breach=true dönüyor ve
+    /// canlı piyasa listesi hiç dolumuyordu. Bu yüzden her eşik için "limit gerçekten ayarlanmış mı?" diye
+    /// ilgili değerin &gt; 0 olması şartı eklendi.
+    /// </remarks>
     public bool CheckAndLogIfBreach(DtoMarketData dto)
     {
-        var limit = _limitsProvider.GetLimit(dto.Symbol);   //Limit çekiliyor
+        var limit = _limitsProvider.GetLimit(dto.Symbol);
         if (limit == null) return false;
 
         var time = DateTime.UtcNow;
         var timeTurkey = time.AddHours(3);
 
-        if (dto.Mid < limit.MinMid)
+        // MinMid &gt; 0: alt sınır anlamlıdır; aksi halde "girilmemiş limit" — kontrol yok
+        if (limit.MinMid > 0 && dto.Mid < limit.MinMid)
         {
             WriteAlert(dto.Symbol, MidTooLow, dto.Mid, limit.MinMid, time, timeTurkey);
             return true;
         }
 
-        if (dto.Mid > limit.MaxMid)
+        // MaxMid &gt; 0: üst sınır anlamlıdır; MaxMid=0 iken Mid her zaman &gt; 0 olduğundan yanlış ihlal üretilirdi
+        if (limit.MaxMid > 0 && dto.Mid > limit.MaxMid)
         {
             WriteAlert(dto.Symbol, MidTooHigh, dto.Mid, limit.MaxMid, time, timeTurkey);
             return true;
         }
 
-        if (dto.Spread > limit.MaxSpread)
+        // Spread üst sınırı da 0 ise "tanımsız" kabul edilir
+        if (limit.MaxSpread > 0 && dto.Spread > limit.MaxSpread)
         {
             WriteAlert(dto.Symbol, SpreadLimit, dto.Spread, limit.MaxSpread, time, timeTurkey);
             return true;
@@ -71,11 +85,11 @@ public class PricingAlertChecker : IPricingAlertChecker
             Time = time,
             TimeTurkey = timeTurkey
         };
-        _ = Task.Run(async () =>     //Alert’i yaz ve mail at ama ana akışı durdurma
+        _ = Task.Run(async () =>     //Alert'i yaz ve mail at ama ana akışı durdurma
         {
             try
             {
-                await _alertStore.WriteAsync(alert);    //MongoDB’ye yazılır
+                await _alertStore.WriteAsync(alert);    //MongoDB'ye yazılır
                 await _alertNotifier.NotifyAsync(alert);   //mail atılır
             }
             catch (Exception ex)

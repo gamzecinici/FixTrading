@@ -1,18 +1,535 @@
+
 @page
 @model FixTrading.API.cs.Pages.UserModel
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>FixTrading User Panel</title>
+
+    @* FOUC önleme: CSS yüklenmeden önce data-theme set edilir; theme.css bu attribute’a göre renkleri okur. *@
+    <script>
+        (function () {
+            var t = localStorage.getItem('ft-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="/css/theme.css" rel="stylesheet" />
+
+    @* Sayfaya özel minimal stiller; tema değişkenleri --ft-* Admin ile ortak (theme.css). *@
+    <style>
+        * { box-sizing: border-box; }
+        body { background: var(--ft-bg); color: var(--ft-text); }
+        .nav-spacer { flex: 1; }
+        .ft-search-box {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem 0.4rem 2.25rem;
+            font-size: 0.8rem;
+            width: 220px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .ft-search-box:focus {
+            border-color: var(--ft-primary);
+            box-shadow: 0 0 0 3px var(--ft-input-ring);
+        }
+        .ft-search-box::placeholder { color: var(--ft-placeholder); }
+
+        @* İleride grafik kütüphanesi eklendiğinde bu alan değiştirilecek; şimdilik görsel placeholder. *@
+        .chart-placeholder {
+            background: var(--ft-surface-low);
+            border: 2px dashed var(--ft-outline);
+            border-radius: 16px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ft-text-muted);
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
-<body style="background:#0f131c;color:#dfe2ef;font-family:Inter,Arial,sans-serif;padding:2rem;">
-    <h1>User Sayfası</h1>
-    <p>Hoş geldiniz, @User.Identity?.Name</p>
-    <form method="post" asp-page="/Logout">
-        <button type="submit">Çıkış Yap</button>
-    </form>
+<body class="ft-body min-h-screen overflow-x-hidden">
+
+    @* ── Üst çubuk: logo, sekmeler (SPA benzeri), tema, kullanıcı, çıkış *@
+    <header class="ft-navbar">
+        <div class="flex items-center gap-10 flex-1">
+            <span class="ft-logo">FixTrading</span>
+
+            <nav class="ft-nav-links hidden md:flex">
+                @* Tam URL geçişi yapmıyoruz: switchTab ile section göster/gizle + pushState (?tab=). *@
+                <a class="ft-nav-link @(Model.ActiveTab == "home" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('home')">Anasayfa</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('limits')">Limitler</a>
+                <a class="ft-nav-link @(Model.ActiveTab == "history" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('history')">Fiyat Geçmişi</a>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+            <button class="ft-navbar-toggle" onclick="toggleTheme()" title="Tema değiştir" type="button">
+                <span class="material-symbols-outlined" id="toggleIcon" style="font-size:18px">light_mode</span>
+            </button>
+
+            <div style="width:1px;height:28px;background:var(--ft-outline);opacity:0.5"></div>
+
+            <div class="flex items-center gap-2" style="margin-left:4px">
+                <div class="text-right hidden sm:block">
+                    <div style="font-size:0.82rem;font-weight:700;color:var(--ft-text)">@(User.Identity?.Name ?? "User")</div>
+                    <div style="font-size:0.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-primary)">Trader</div>
+                </div>
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(105,218,255,0.1);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--ft-primary)">person</span>
+                </div>
+            </div>
+
+            <form method="post" asp-page="/Logout">
+                <button style="font-size:0.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ft-text-muted);background:none;border:none;cursor:pointer;padding:0.45rem 0.75rem;border-radius:8px;transition:color .2s"
+                        onmouseover="this.style.color='var(--ft-danger)'" onmouseout="this.style.color='var(--ft-text-muted)'"
+                        type="submit">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    @*
+       Yatay fiyat şeridi: Model.MarketRows ilk 12 sembol (sunucu zaten aktif limit sembolleriyle süzülmüş).
+       data-strip-symbol: JS refreshMarket içinde kart fiyatını güncellemek için.
+       data-strip-badge: yüzde değişim rozeti (applyBadge / applyStoredBadges).
+    *@
+    <div class="ft-market-strip" style="margin-top:88px">
+        <div class="ft-strip-container" id="marketStrip">
+            @foreach (var row in Model.MarketRows.Take(12))
+            {
+                <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
+                    <div class="ft-strip-symbol">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</div>
+                    <div class="ft-strip-price">@row.Mid.ToString("F5")</div>
+                    <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <main style="min-height:calc(100vh - 130px);padding:2.5rem 2.5rem 4rem">
+
+        @*
+           ANASAYFA (data-tab="home")
+           • İlk render: Razor ile Model.MarketRows doldurulur.
+           • data-symbol: filterSymbols satır gizleme; refreshMarket mevcut satırları günceller.
+           • data-field="Bid|Ask|Mid": JS hangi hücreyi güncelleyeceğini bilir.
+           • Mid hücresi: ilk span fiyat, ikinci span rozet (Admin ile aynı DOM yapısı).
+        *@
+        <section data-tab="home" class="@(Model.ActiveTab == "home" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">Piyasa İzleme</div>
+                    <h1 class="ft-section-title">Canlı Fiyatlar</h1>
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style="font-size:18px;color:var(--ft-placeholder)">search</span>
+                    <input type="text" id="symbolSearch" class="ft-search-box" placeholder="Sembol ara (örn: EURUSD)" onkeyup="filterSymbols()" />
+                </div>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" id="marketTable">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Sembol</th>
+                                <th style="text-align:center">Alış</th>
+                                <th style="text-align:center">Satış</th>
+                                <th style="text-align:center">Değişim</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.MarketRows.OrderBy(x => x.Symbol))
+                            {
+                                <tr data-symbol="@row.Symbol">
+                                    <td style="text-align:center">
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+                                            <div class="ft-symbol-box">@(row.Symbol.Length > 4 ? row.Symbol.Substring(0, 4) : row.Symbol)</div>
+                                            <span style="font-weight:700;font-size:0.88rem">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</span>
+                                        </div>
+                                    </td>
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid.ToString("F5")</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask.ToString("F5")</td>
+                                    <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center">
+                                        <span>@row.Mid.ToString("F5")</span>
+                                        <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        @*
+           LİMİTLER (data-tab="limits")
+           Salt okunur tablo. Kaynak: Model.PricingLimits (admin’in tanımladığı min/mid max/spread).
+           Sayı formatı en-US: binlik virgül, oyda nokta (DBeaver ile uyumlu görünüm).
+        *@
+        <section data-tab="limits" class="@(Model.ActiveTab == "limits" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">Enstrüman Risk Parametreleri</div>
+                <h1 class="ft-section-title">İşlem Limitleri</h1>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:800px">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Sembol</th>
+                                <th style="text-align:center">Minimum Fiyat</th>
+                                <th style="text-align:center">Maksimum Fiyat</th>
+                                <th style="text-align:center">Maksimum Spread</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var limit in Model.PricingLimits)
+                            {
+                                var sym = limit.Symbol?.Length > 4 ? limit.Symbol.Substring(0, 4) : limit.Symbol ?? "—";
+                                <tr>
+                                    <td style="text-align:center">
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+                                            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">
+                                                @sym
+                                            </div>
+                                            <span style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">
+                                                @(limit.Symbol != null && limit.Symbol.Length == 6 ? limit.Symbol.Insert(3, "/") : limit.Symbol)
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center;font-family:monospace;color:var(--ft-secondary)">@limit.MinMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    <td style="text-align:center;font-family:monospace;color:var(--ft-text)">@limit.MaxMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    <td style="text-align:center;font-family:monospace;color:var(--ft-danger)">@limit.MaxSpread.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        @*
+           FİYAT GEÇMİŞİ (data-tab="history")
+           Sol liste: Model.MarketRows sembolleri (aktif limit seti ile uyumlu).
+           Tıklanınca loadHistory → GET /User?handler=PriceHistory&symbol=... (JSON, camelCase API cevabı).
+           İlk yüklemede ?tab=history&symbol=... ile gelindiyse Model.PriceHistory Razor ile dolu olabilir.
+        *@
+        <section data-tab="history" class="@(Model.ActiveTab == "history" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">Analiz</div>
+                <h1 class="ft-section-title">Fiyat Geçmişi</h1>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                @* Sol: sembol butonları; id="btn-{SYMBOL}" loadHistory içinde aktif stil için kullanılır. *@
+                <div class="lg:col-span-1">
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;padding:1.5rem;box-shadow:var(--ft-card-shadow)">
+                        <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:var(--ft-primary)">Sembol Seçin</h3>
+                        <div class="flex flex-col gap-2 max-height-[500px] overflow-y-auto pr-2" style="max-height: 500px;">
+                            @foreach (var sym in Model.MarketRows.Select(x => x.Symbol).OrderBy(x => x))
+                            {
+                                <button onclick="loadHistory('@sym')" 
+                                        class="flex items-center justify-between p-3 rounded-xl border transition-all @(Model.SelectedSymbol == sym ? "bg-[rgba(105,218,255,0.1)] border-[var(--ft-primary)]" : "bg-transparent border-[var(--ft-outline)] hover:border-[var(--ft-primary)]")"
+                                        id="btn-@sym">
+                                    <span style="font-weight:600;font-size:0.85rem">@(sym.Length == 6 ? sym.Insert(3, "/") : sym)</span>
+                                    <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @* Sağ: üstte grafik placeholder; altta historyBody id’li tablo (AJAX ile doldurulur veya SSR). *@
+                <div class="lg:col-span-3">
+                    <div class="chart-placeholder">
+                        <div class="text-center">
+                            <span class="material-symbols-outlined" style="font-size:48px;margin-bottom:1rem;opacity:0.3">monitoring</span>
+                            <p>Grafik alanı (Placeholder)</p>
+                            <p style="font-size:0.8rem;margin-top:0.5rem">Implementasyon aşamasındadır.</p>
+                        </div>
+                    </div>
+
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                        <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
+                            <span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Son 100 Kayıt</span>
+                            <span id="historySymbol" style="font-size:0.8rem;font-weight:700;color:var(--ft-primary)">@Model.SelectedSymbol</span>
+                        </div>
+                        <div class="overflow-x-auto" style="max-height: 400px;">
+                            <table class="ft-table w-full" id="historyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Zaman</th>
+                                        <th style="text-align:center">Alış</th>
+                                        <th style="text-align:center">Satış</th>
+                                        <th style="text-align:center">Piyasa Fiyatı</th>
+                                        <th style="text-align:center">Fark (Spread)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBody">
+                                    @if (Model.PriceHistory.Any())
+                                    {
+                                        @foreach (var h in Model.PriceHistory)
+                                        {
+                                            <tr>
+                                                <td style="font-size:0.82rem;color:var(--ft-text-muted)">@h.Timestamp.AddHours(3).ToString("dd.MM.yyyy HH:mm")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Bid.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Ask.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">@h.Mid.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">@h.Spread.ToString("F5")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;padding:3rem;color:var(--ft-text-faint)">Sembol seçerek geçmiş verileri listeleyebilirsiniz.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    @* Dekoratif blur — tıklanamaz; sadece Admin paneli ile görsel tutarlılık. *@
+    <div style="position:fixed;top:0;right:0;width:40%;height:50%;background:rgba(105,218,255,0.04);filter:blur(120px);pointer-events:none;z-index:-1"></div>
+    <div style="position:fixed;bottom:0;left:0;width:30%;height:40%;background:rgba(255,113,107,0.03);filter:blur(100px);pointer-events:none;z-index:-1"></div>
+
+    <script>
+        // ── Tema: localStorage ft-theme, data-theme attribute, theme.css değişkenleri ─────────
+        function toggleTheme() {
+            var curr = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = curr === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('ft-theme', next);
+            syncToggleUI(next);
+        }
+        function syncToggleUI(theme) {
+            var icon = document.getElementById('toggleIcon');
+            if (!icon) return;
+            icon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+        }
+        syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
+
+        /**
+         * Sekme geçişi (tam sayfa yok): .ft-nav-link active sınıfı + section[data-tab] hidden toggling.
+         * URL ?tab=home|limits|history — paylaşılabilir link ve geri tuşu (onpopstate) için.
+         */
+        function switchTab(tabId) {
+            document.querySelectorAll('.ft-nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('onclick').includes("'" + tabId + "'")) {
+                    link.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            var activeSec = document.querySelector('section[data-tab="' + tabId + '"]');
+            if (activeSec) activeSec.classList.remove('hidden');
+
+            var newUrl = window.location.pathname + '?tab=' + tabId;
+            window.history.pushState({ tab: tabId }, '', newUrl);
+        }
+
+        /** pushState ile oluşan geçmişte geri/ileri: state.tab varsa ilgili sekmeyi tekrar seç. */
+        window.onpopstate = function(e) {
+            if (e.state && e.state.tab) switchTab(e.state.tab);
+        };
+
+        /** Canlı tablo: thead hariç tr satırlarında data-symbol substring araması (büyük harf). */
+        function filterSymbols() {
+            var input = document.getElementById('symbolSearch');
+            var filter = input.value.toUpperCase();
+            var table = document.getElementById('marketTable');
+            var tr = table.getElementsByTagName('tr');
+
+            for (var i = 1; i < tr.length; i++) {
+                var sym = tr[i].getAttribute('data-symbol');
+                if (sym) {
+                    if (sym.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        /**
+         * Mongo’dan son ~100 dakikalık özet (sunucu aggregation).
+         * JSON alanları: time, bid, ask, mid, spread (ASP.NET Core varsayılan camelCase).
+         */
+        async function loadHistory(symbol) {
+            document.querySelectorAll('[id^="btn-"]').forEach(b => {
+                b.classList.remove('bg-[rgba(105,218,255,0.1)]', 'border-[var(--ft-primary)]');
+                b.classList.add('bg-transparent', 'border-[var(--ft-outline)]');
+            });
+            var activeBtn = document.getElementById('btn-' + symbol);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-transparent', 'border-[var(--ft-outline)]');
+                activeBtn.classList.add('bg-[rgba(105,218,255,0.1)]', 'border-[var(--ft-primary)]');
+            }
+
+            document.getElementById('historySymbol').textContent = symbol;
+            var body = document.getElementById('historyBody');
+            body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">Yükleniyor...</td></tr>';
+
+            try {
+                var res = await fetch('/User?handler=PriceHistory&symbol=' + symbol);
+                if (!res.ok) throw new Error();
+                var data = await res.json();
+                
+                if (data.length === 0) {
+                    body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-text-faint)">Kayıt bulunamadı.</td></tr>';
+                    return;
+                }
+
+                body.innerHTML = data.map(h => `
+                    <tr>
+                        <td style="font-size:0.82rem;color:var(--ft-text-muted)">${h.time}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.bid.toFixed(5)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.ask.toFixed(5)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">${h.mid.toFixed(5)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">${h.spread.toFixed(5)}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-danger)">Veriler alınırken bir hata oluştu.</td></tr>';
+            }
+        }
+
+        /* ── Canlı piyasa yenileme (Admin ile aynı API şekli; handler farklı sayfa: /User) ── */
+        function toNum(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
+        function pulseCell(td, cls) {
+            td.classList.remove('ft-cell-up', 'ft-cell-down');
+            if (cls) td.classList.add(cls);
+            setTimeout(function () { td.classList.remove('ft-cell-up', 'ft-cell-down'); }, 800);
+        }
+
+        /** Admin’den ayrı anahtar: iki panel aynı tarayıcıda çakışmasın diye ft-badges-user. */
+        var BADGE_KEY = 'ft-badges-user';
+        function loadBadgeCache() { try { return JSON.parse(localStorage.getItem(BADGE_KEY) || '{}'); } catch(e) { return {}; } }
+        function saveBadgeCache(cache) { try { localStorage.setItem(BADGE_KEY, JSON.stringify(cache)); } catch(e) {} }
+
+        /** İlk paint sonrası: önceki oturumdan kalan yüzde rozetlerini strip + tabloya geri yükle. */
+        (function applyStoredBadges() {
+            var cache = loadBadgeCache();
+            Object.keys(cache).forEach(function(symbol) {
+                var b = cache[symbol];
+                /* Market strip kartındaki rozet */
+                var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+                if (sBadge && b.cls && b.text) {
+                    sBadge.className = 'ft-badge-stock ' + b.cls;
+                    sBadge.textContent = b.text;
+                    sBadge.style.display = 'inline-flex';
+                }
+                /* Canlı piyasa tablosundaki rozet */
+                var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+                if (cBadge && b.cls && b.text) {
+                    cBadge.className = 'ft-badge-stock ' + b.cls;
+                    cBadge.textContent = b.text;
+                    cBadge.style.display = 'inline-flex';
+                }
+            });
+        })();
+
+        /**
+         * Hem tablodaki data-change-badge hem şeritteki data-strip-badge güncellenir;
+         * sembol → { cls, text } olarak BADGE_KEY altında saklanır.
+         */
+        function applyBadge(symbol, cls, text) {
+            var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+            if (cBadge) {
+                cBadge.className = 'ft-badge-stock ' + cls;
+                cBadge.textContent = text;
+                cBadge.style.display = 'inline-flex';
+            }
+            var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+            if (sBadge) {
+                sBadge.className = 'ft-badge-stock ' + cls;
+                sBadge.textContent = text;
+                sBadge.style.display = 'inline-flex';
+            }
+            var cache = loadBadgeCache();
+            cache[symbol] = { cls: cls, text: text };
+            saveBadgeCache(cache);
+        }
+
+        /**
+         * /User?handler=LiveMarket JSON: { symbol, bid, ask, mid, spread }[].
+         * Not: Kullanıcı panelinde yeni satır ekleme yok; sembol listesi sunucu ilk render’da gelir.
+         *      Yeni enstrüman admin’de eklenip sayfa yenilenince tabloda satır oluşur, sonra bu döngü günceller.
+         */
+        async function refreshMarket() {
+            var table = document.getElementById('marketTable');
+            if (!table) return; 
+            try {
+                var res = await fetch('/User?handler=LiveMarket', { cache: 'no-store' });
+                if (!res.ok) return;
+                var rows = await res.json();
+                var body = table.querySelector('tbody');
+
+                rows.forEach(function (row) {
+                    var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
+                    if (tr) {
+                        var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
+                        if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(5);
+
+                        ['Bid', 'Ask', 'Mid'].forEach(function (field) {
+                            var td = tr.querySelector('td[data-field="' + field + '"]');
+                            if (!td) return;
+
+                            var current = toNum(td.getAttribute('data-prev') || (td.querySelector('span:first-child') ? td.querySelector('span:first-child').textContent : td.textContent));
+                            var next = toNum(row[field.toLowerCase()]);
+
+                            if (field === 'Mid') {
+                                // Önceki geçerli mid varsa yüzde fark; applyBadge hem tablo hem strip’i günceller
+                                if (current > 0 && next !== current) {
+                                    var diff = next - current;
+                                    var pctVal = ((diff / current) * 100);
+                                    var pct = pctVal.toFixed(2);
+                                    var isUp = diff > 0;
+                                    var cls = isUp ? 'ft-badge-up' : 'ft-badge-down';
+                                    var text = (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓');
+                                    applyBadge(row.symbol, cls, text);
+                                }
+                                var span = td.querySelector('span:first-child');
+                                if (span) span.textContent = next.toFixed(5);
+                                else td.textContent = next.toFixed(5);
+                            } else {
+                                td.textContent = next.toFixed(5);
+                            }
+
+                            if (next > current) pulseCell(td, 'ft-cell-up');
+                            if (next < current) pulseCell(td, 'ft-cell-down');
+
+                            // Bir sonraki poll’da yüzde için referans (metin yerine güvenilir sayı)
+                            td.setAttribute('data-prev', String(next));
+                        });
+                    }
+                });
+            } catch (e) { console.warn('Market refresh error', e); }
+        }
+
+        refreshMarket();
+        setInterval(refreshMarket, 3000); /* 3 sn: Admin canlı piyasa ile aynı periyot */
+    </script>
 </body>
 </html>
-
