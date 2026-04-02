@@ -67,7 +67,7 @@ public class UserModel : PageModel
     public async Task OnGetAsync(string? tab = null, string? symbol = null)
     {
         ActiveTab = NormalizeTab(tab);
-        SelectedSymbol = symbol ?? string.Empty;
+        SelectedSymbol = (symbol ?? "").Trim().ToUpper().Replace("/", "");
         await LoadAllAsync();
     }
 
@@ -101,39 +101,40 @@ public class UserModel : PageModel
         return new JsonResult(rows);
     }
 
-    // Seçilen sembole ait fiyat geçmişini getiren API endpoint'i. Her dakika için sadece en güncel kaydı döner.
-    public async Task<IActionResult> OnGetPriceHistoryAsync(string symbol)
+    // Seçilen sembole ait fiyat geçmişini getiren API endpoint'i.
+    public async Task<IActionResult> OnGetPriceHistoryAsync(string symbol, string range = "1h")
     {
         if (string.IsNullOrWhiteSpace(symbol)) return new JsonResult(new List<object>());
 
-        // Her dakika için sadece son (en güncel) kaydı getiren aggregation pipeline
-        var pipeline = new[]
-        {
-            new BsonDocument("$match", new BsonDocument("Symbol", symbol)),
-            new BsonDocument("$group", new BsonDocument
-            {
-                { "_id", new BsonDocument
-                    {
-                        { "year", new BsonDocument("$year", "$Timestamp") },
-                        { "month", new BsonDocument("$month", "$Timestamp") },
-                        { "day", new BsonDocument("$dayOfMonth", "$Timestamp") },
-                        { "hour", new BsonDocument("$hour", "$Timestamp") },
-                        { "minute", new BsonDocument("$minute", "$Timestamp") }
-                    }
-                },
-                { "lastDoc", new BsonDocument("$last", "$$ROOT") }
-            }),
-            new BsonDocument("$replaceRoot", new BsonDocument("newRoot", "$lastDoc")),
-            new BsonDocument("$sort", new BsonDocument("Timestamp", -1)),
-            new BsonDocument("$limit", 100)
-        };
+        // Sembolü normalize et (slash varsa kaldır)
+        symbol = symbol.Trim().ToUpper().Replace("/", "");
 
-        var history = await _marketDataCollection.Aggregate<DtoMarketData>(pipeline).ToListAsync();
+        DateTime startTime;
+        switch (range.ToLower())
+        {
+            case "1d": startTime = DateTime.UtcNow.AddDays(-1); break;
+            case "1w": startTime = DateTime.UtcNow.AddDays(-7); break;
+            case "1m": startTime = DateTime.UtcNow.AddMonths(-1); break;
+            case "all": startTime = DateTime.UtcNow.AddYears(-1); break;
+            case "1h":
+            default: startTime = DateTime.UtcNow.AddHours(-1); break;
+        }
+
+        // Frontend'de gruplama yapacağımız için ham veriyi (belli bir limit ile) çekiyoruz.
+        var filter = Builders<DtoMarketData>.Filter.And(
+            Builders<DtoMarketData>.Filter.Eq(x => x.Symbol, symbol),
+            Builders<DtoMarketData>.Filter.Gte(x => x.Timestamp, startTime)
+        );
+
+        var history = await _marketDataCollection
+            .Find(filter)
+            .SortByDescending(x => x.Timestamp)
+            .Limit(100000) // Frontend'de anlamlı gruplama için yeterli veri.
+            .ToListAsync();
 
         var result = history.Select(x => new
         {
-            // Daha anlaşılır tarih formatı: 31 Mart 2026 13:04
-            Time = x.Timestamp.AddHours(3).ToString("dd.MM.yyyy HH:mm"), 
+            Time = x.Timestamp.AddHours(3).ToString("yyyy-MM-dd HH:mm:ss"), // Ham zaman formatı
             x.Bid,
             x.Ask,
             x.Mid,

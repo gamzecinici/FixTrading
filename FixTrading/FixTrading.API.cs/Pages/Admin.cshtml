@@ -33,6 +33,7 @@
        Material Symbols: Navbar ve tablolardaki ikonlar için *@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link href="/css/theme.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         /* Tüm elementlerde box-sizing: border-box;
@@ -61,6 +62,94 @@
             box-shadow: 0 0 0 3px var(--ft-input-ring);
         }
         .ft-search-box::placeholder { color: var(--ft-placeholder); }
+
+        /* Bloomberg Style Chart Header */
+        .bb-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+        .bb-price {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+        }
+        .bb-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 4px;
+        }
+        .bb-change {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            gap: 4px;
+        }
+        .bb-symbol {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--ft-text-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        .bb-chart-container {
+            background: var(--ft-surface-low);
+            border: 1px solid var(--ft-card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--ft-card-shadow);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .bb-range-filters {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+        .bb-range-btn {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text-muted);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bb-range-btn:hover {
+            border-color: var(--ft-primary);
+            color: var(--ft-primary);
+        }
+        .bb-range-btn.active {
+            background: var(--ft-primary);
+            border-color: var(--ft-primary);
+            color: var(--ft-primary-on);
+        }
+        .ft-table tr.highlight {
+            background: rgba(105, 218, 255, 0.15) !important;
+        }
+
+        .chart-placeholder {
+            background: var(--ft-surface-low);
+            border: 2px dashed var(--ft-outline);
+            border-radius: 16px;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ft-text-muted);
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
 
         /* Limit input'larının yanındaki vertical spinner butonları (Ok tarzı) */
         .ft-spin-container {
@@ -182,8 +271,8 @@
                 <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
                     @* Sembol adı (EURUSD gibi) - araya slash koy *@
                     <div class="ft-strip-symbol">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</div>
-                    @* Orta fiyat (bid+ask ortalaması), 5 ondalık basamak *@
-                    <div class="ft-strip-price">@row.Mid.ToString("F5")</div>
+                    @* Orta fiyat (bid+ask ortalaması), 1 ondalık basamak *@
+                    <div class="ft-strip-price">@row.Mid.ToString("F1")</div>
                     @* Değişim rozeti (yüzde artış/azalış) — JS tarafından doldurulur.
                        data-strip-badge → applyBadge() fonksiyonu bu attribute'u hedefler. *@
                     <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
@@ -308,13 +397,13 @@
                                         </div>
                                     </td>
                                     @* data-field attribute'u → JS hangi hücrenin hangi veri olduğunu tanır *@
-                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid</td>
-                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask</td>
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid.ToString("F1")</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask.ToString("F1")</td>
                                     <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center">
-                                        <span>@row.Mid</span>
+                                        <span>@row.Mid.ToString("F1")</span>
                                         <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
                                     </td>
-                                    <td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted);text-align:center">@row.Spread</td>
+                                    <td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted);text-align:center">@row.Spread.ToString("F1")</td>
                                 </tr>
                             }
                         </tbody>
@@ -676,8 +765,39 @@
                     </div>
                 </div>
 
-                @* Sağ panel: Veri Tablosu *@
+                @* Sağ panel: Grafik ve Veri Tablosu *@
                 <div class="lg:col-span-3">
+                    <div class="bb-chart-container" id="adminChartMainContainer" style="display:none">
+                        <div class="bb-range-filters">
+                            <button class="bb-range-btn active" onclick="setAdminChartRange('1h')">1H</button>
+                            <button class="bb-range-btn" onclick="setAdminChartRange('1d')">1D</button>
+                            <button class="bb-range-btn" onclick="setAdminChartRange('1w')">1W</button>
+                            <button class="bb-range-btn" onclick="setAdminChartRange('1m')">1M</button>
+                            <button class="bb-range-btn" onclick="setAdminChartRange('all')">ALL</button>
+                        </div>
+                        <div class="bb-header">
+                            <div class="bb-price" id="adminBbCurrentPrice">--</div>
+                            <div class="bb-details">
+                                <div class="bb-change" id="adminBbPriceChange">
+                                    <span class="material-symbols-outlined" id="adminBbPriceIcon" style="font-size:24px"></span>
+                                    <span id="adminBbPricePct">--</span>
+                                </div>
+                                <div class="bb-symbol" id="adminBbSymbolDisplay">--</div>
+                            </div>
+                        </div>
+                        <div style="height: 350px; position: relative;">
+                            <canvas id="adminPriceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-placeholder" id="adminChartPlaceholder">
+                        <div class="text-center">
+                            <span class="material-symbols-outlined" style="font-size:48px;margin-bottom:1rem;opacity:0.3">monitoring</span>
+                            <p>Grafik alanı (Placeholder)</p>
+                            <p style="font-size:0.8rem;margin-top:0.5rem">Sembol seçerek grafiği görüntüleyebilirsiniz.</p>
+                        </div>
+                    </div>
+
                     <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
                         <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
                             <span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Son 100 Dakikalık Kayıt</span>
@@ -818,8 +938,81 @@
         /** Kullanıcı ekle modalını kapatır — "hidden" sınıfını geri ekler */
         function closeUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
 
+        var adminPriceChart = null;
+        var currentAdminRange = '1h';
+        var currentAdminSymbol = '';
+
+        function setAdminChartRange(range) {
+            currentAdminRange = range;
+            document.querySelectorAll('.bb-range-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === range.toLowerCase()) {
+                    btn.classList.add('active');
+                }
+            });
+            if (currentAdminSymbol) loadAdminHistory(currentAdminSymbol);
+        }
+
+        function aggregateAdminData(rawData, range) {
+            if (!rawData || !Array.isArray(rawData) || rawData.length === 0) return [];
+            const groups = {};
+            rawData.forEach(item => {
+                const timeStr = item.time || item.Time;
+                if (!timeStr) return;
+                const date = new Date(timeStr.replace(' ', 'T'));
+                if (isNaN(date.getTime())) return;
+                
+                let key = "";
+                const Y = date.getFullYear();
+                const M = String(date.getMonth() + 1).padStart(2, '0');
+                const D = String(date.getDate()).padStart(2, '0');
+                const h = String(date.getHours()).padStart(2, '0');
+                const m = String(date.getMinutes()).padStart(2, '0');
+
+                if (range === '1h') key = `${Y}-${M}-${D} ${h}:${m}`;
+                else if (range === '1d') key = `${Y}-${M}-${D} ${h}:00`;
+                else if (range === '1w') key = `${Y}-${M}-${D}`;
+                else if (range === '1m') {
+                    const h3 = String(Math.floor(date.getHours() / 3) * 3).padStart(2, '0');
+                    key = `${Y}-${M}-${D} ${h3}:00`;
+                }
+                else key = `${Y}-${M}-${D}`;
+
+                if (!groups[key]) {
+                    groups[key] = { count: 0, bidSum: 0, askSum: 0, midSum: 0, spreadSum: 0, latestTimestamp: date.getTime() };
+                }
+                
+                const bid = item.bid !== undefined ? item.bid : (item.Bid || 0);
+                const ask = item.ask !== undefined ? item.ask : (item.Ask || 0);
+                const mid = item.mid !== undefined ? item.mid : (item.Mid || 0);
+                const spread = item.spread !== undefined ? item.spread : (item.Spread || 0);
+
+                groups[key].count++;
+                groups[key].bidSum += bid;
+                groups[key].askSum += ask;
+                groups[key].midSum += mid;
+                groups[key].spreadSum += spread;
+                if (date.getTime() > groups[key].latestTimestamp) groups[key].latestTimestamp = date.getTime();
+            });
+
+            return Object.keys(groups).map(key => {
+                const g = groups[key];
+                const d = new Date(g.latestTimestamp);
+                return {
+                    key: key,
+                    time: key,
+                    displayTime: `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
+                    bid: g.bidSum / g.count,
+                    ask: g.askSum / g.count,
+                    mid: g.midSum / g.count,
+                    spread: g.spreadSum / g.count,
+                    timestamp: g.latestTimestamp
+                };
+            }).sort((a, b) => b.timestamp - a.timestamp);
+        }
+
         async function loadAdminHistory(symbol) {
-            // Buton aktiflik durumunu değiştir
+            currentAdminSymbol = symbol;
             document.querySelectorAll('[id^="history-btn-"]').forEach(b => {
                 b.classList.remove('bg-[rgba(105,218,255,0.1)]', 'border-[var(--ft-primary)]');
                 b.classList.add('bg-transparent', 'border-[var(--ft-outline)]');
@@ -834,28 +1027,163 @@
             var body = document.getElementById('historyTabBody');
             body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">Yükleniyor...</td></tr>';
 
+            document.getElementById('adminChartPlaceholder').style.display = 'none';
+            document.getElementById('adminChartMainContainer').style.display = 'block';
+
             try {
-                var res = await fetch('/Admin?handler=PriceHistory&symbol=' + symbol);
+                var res = await fetch(`/Admin?handler=PriceHistory&symbol=${symbol}&range=${currentAdminRange}`);
                 if (!res.ok) throw new Error();
-                var data = await res.json();
+                const rawData = await res.json();
                 
-                if (data.length === 0) {
+                if (!rawData || rawData.length === 0) {
                     body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-text-faint)">Kayıt bulunamadı.</td></tr>';
+                    document.getElementById('adminChartMainContainer').style.display = 'none';
+                    document.getElementById('adminChartPlaceholder').style.display = 'flex';
                     return;
                 }
 
-                body.innerHTML = data.map(h => `
-                    <tr>
-                        <td style="text-align:left;padding-left:1.5rem;font-size:0.82rem;color:var(--ft-text-muted)">${h.time}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.bid.toFixed(5)}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.ask.toFixed(5)}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">${h.mid.toFixed(5)}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">${h.spread.toFixed(5)}</td>
+                const aggregatedData = aggregateAdminData(rawData, currentAdminRange);
+
+                const fmt = v => v.toFixed(1).replace('.', ',');
+                body.innerHTML = aggregatedData.map((h, idx) => `
+                    <tr id="admin-history-row-${idx}" data-idx="${idx}">
+                        <td style="text-align:left;padding-left:1.5rem;font-size:0.82rem;color:var(--ft-text-muted)">${h.displayTime}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${fmt(h.bid)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${fmt(h.ask)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">${fmt(h.mid)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">${fmt(h.spread)}</td>
                     </tr>
                 `).join('');
+
+                updateAdminBloombergHeader(symbol, aggregatedData);
+                updateAdminPriceChart(aggregatedData);
+
             } catch (e) {
                 body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-danger)">Veriler alınırken bir hata oluştu.</td></tr>';
+                console.error(e);
             }
+        }
+
+        function updateAdminBloombergHeader(symbol, data) {
+            if (!data || data.length === 0) return;
+            const latest = data[0];
+            const oldest = data[data.length - 1];
+            const currentPrice = latest.mid;
+            const diff = latest.mid - oldest.mid;
+            const pctVal = oldest.mid !== 0 ? ((diff / oldest.mid) * 100) : 0;
+            const isUp = diff >= 0;
+
+            const priceEl = document.getElementById('adminBbCurrentPrice');
+            const changeEl = document.getElementById('adminBbPriceChange');
+            const iconEl = document.getElementById('adminBbPriceIcon');
+            const pctEl = document.getElementById('adminBbPricePct');
+            const symbolEl = document.getElementById('adminBbSymbolDisplay');
+
+            priceEl.textContent = currentPrice.toFixed(1).replace('.', ',');
+            const color = isUp ? 'var(--ft-secondary)' : 'var(--ft-danger)';
+            priceEl.style.color = color;
+            changeEl.style.color = color;
+            iconEl.textContent = isUp ? 'arrow_upward' : 'arrow_downward';
+            pctEl.textContent = (isUp ? '+' : '') + pctVal.toFixed(2) + '%';
+            symbolEl.textContent = symbol.length === 6 ? symbol.substring(0,3) + '/' + symbol.substring(3) : symbol;
+        }
+
+        function updateAdminPriceChart(data) {
+            const chartData = [...data].reverse();
+            const labels = chartData.map(h => {
+                if (currentAdminRange === '1h') return h.key.split(' ')[1];
+                if (currentAdminRange === '1d') return h.key.split(' ')[1];
+                return h.key.split(' ')[0].substring(5);
+            });
+            const prices = chartData.map(h => h.mid);
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const textColor = isDark ? '#a9abaf' : '#44474f';
+            const lineColor = '#69daff';
+            const fillColor = 'rgba(105, 218, 255, 0.1)';
+
+            const ctx = document.getElementById('adminPriceChart').getContext('2d');
+            if (adminPriceChart) adminPriceChart.destroy();
+
+            adminPriceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Mid Price',
+                        data: prices,
+                        borderColor: lineColor,
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: lineColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                        fill: true,
+                        backgroundColor: fillColor,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, elements) => {
+                        document.querySelectorAll('#historyTabBody tr').forEach(tr => tr.classList.remove('highlight'));
+                        if (elements && elements.length > 0) {
+                            const dataIdx = elements[0].index;
+                            const tableIdx = data.length - 1 - dataIdx;
+                            const row = document.getElementById('admin-history-row-' + tableIdx);
+                            if (row) row.classList.add('highlight');
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? '#1c2024' : '#ffffff',
+                            titleColor: isDark ? '#f8f9fe' : '#1a1c1e',
+                            bodyColor: isDark ? '#f8f9fe' : '#1a1c1e',
+                            borderColor: 'rgba(105, 218, 255, 0.2)',
+                            borderWidth: 1,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) { 
+                                    const h = chartData[context.dataIndex];
+                                    const fmt = v => v.toFixed(1).replace('.', ',');
+                                    return [
+                                        `Fiyat: ${fmt(h.mid)}`,
+                                        `Alış: ${fmt(h.bid)}`,
+                                        `Satış: ${fmt(h.ask)}`,
+                                        `Fark: ${fmt(h.spread)}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 10, weight: 'bold' },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 10, weight: 'bold' },
+                                callback: function(value) { return value.toFixed(1).replace('.', ','); }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         /* Modal dışına (arka plan overlay'e) tıklanınca kapan.
@@ -1230,7 +1558,7 @@
                     }
 
                     var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
-                    if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(5);
+                    if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(1);
 
                     ['Bid', 'Ask', 'Mid', 'Spread'].forEach(function (field) {
                         var td = tr.querySelector('td[data-field="' + field + '"]');
@@ -1247,9 +1575,9 @@
                                 var text = (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓');
                                 applyBadge(row.symbol, cls, text);
                             }
-                            textContainer.textContent = next.toFixed(5);
+                            textContainer.textContent = next.toFixed(1);
                         } else {
-                            td.textContent = next.toFixed(5);
+                            td.textContent = next.toFixed(1);
                         }
 
                         if (next > current) pulseCell(td, 'ft-cell-up');
@@ -1264,6 +1592,16 @@
         /* İlk yüklemede hemen çalıştır, sonra 3 saniyede bir tekrarla */
         refreshMarket();
         setInterval(refreshMarket, 3000);
+
+        // Sayfa yüklendiğinde seçili sembol varsa history tab'ında yükle
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            const sym = params.get('symbol');
+            if (tab === 'history' && sym) {
+                loadAdminHistory(sym);
+            }
+        });
     </script>
 </body>
 </html>

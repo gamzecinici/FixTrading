@@ -8,7 +8,6 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>FixTrading User Panel</title>
 
-    @* FOUC önleme: CSS yüklenmeden önce data-theme set edilir; theme.css bu attribute’a göre renkleri okur. *@
     <script>
         (function () {
             var t = localStorage.getItem('ft-theme') || 'dark';
@@ -19,6 +18,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link href="/css/theme.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     @* Sayfaya özel minimal stiller; tema değişkenleri --ft-* Admin ile ortak (theme.css). *@
     <style>
@@ -42,7 +42,81 @@
         }
         .ft-search-box::placeholder { color: var(--ft-placeholder); }
 
-        @* İleride grafik kütüphanesi eklendiğinde bu alan değiştirilecek; şimdilik görsel placeholder. *@
+        /* Bloomberg Style Chart Header */
+        .bb-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+        .bb-price {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+        }
+        .bb-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 4px;
+        }
+        .bb-change {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            gap: 4px;
+        }
+        .bb-symbol {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--ft-text-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        .bb-chart-container {
+            background: var(--ft-surface-low);
+            border: 1px solid var(--ft-card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--ft-card-shadow);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .bb-range-filters {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+        .bb-range-btn {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text-muted);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bb-range-btn:hover {
+            border-color: var(--ft-primary);
+            color: var(--ft-primary);
+        }
+        .bb-range-btn.active {
+            background: var(--ft-primary);
+            border-color: var(--ft-primary);
+            color: var(--ft-primary-on);
+        }
+        .ft-table tr.highlight {
+            background: rgba(105, 218, 255, 0.15) !important;
+        }
+
         .chart-placeholder {
             background: var(--ft-surface-low);
             border: 2px dashed var(--ft-outline);
@@ -59,13 +133,12 @@
 </head>
 <body class="ft-body min-h-screen overflow-x-hidden">
 
-    @* ── Üst çubuk: logo, sekmeler (SPA benzeri), tema, kullanıcı, çıkış *@
+    @* ── Üst çubuk: logo, sekmeler, tema, kullanıcı, çıkış *@
     <header class="ft-navbar">
         <div class="flex items-center gap-10 flex-1">
             <span class="ft-logo">FixTrading</span>
 
             <nav class="ft-nav-links hidden md:flex">
-                @* Tam URL geçişi yapmıyoruz: switchTab ile section göster/gizle + pushState (?tab=). *@
                 <a class="ft-nav-link @(Model.ActiveTab == "home" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('home')">Anasayfa</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('limits')">Limitler</a>
                 <a class="ft-nav-link @(Model.ActiveTab == "history" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('history')">Fiyat Geçmişi</a>
@@ -108,7 +181,7 @@
             {
                 <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
                     <div class="ft-strip-symbol">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</div>
-                    <div class="ft-strip-price">@row.Mid.ToString("F5")</div>
+                    <div class="ft-strip-price">@row.Mid.ToString("F1")</div>
                     <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
                 </div>
             }
@@ -157,10 +230,10 @@
                                             <span style="font-weight:700;font-size:0.88rem">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</span>
                                         </div>
                                     </td>
-                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid.ToString("F5")</td>
-                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask.ToString("F5")</td>
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid.ToString("F1")</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask.ToString("F1")</td>
                                     <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center">
-                                        <span>@row.Mid.ToString("F5")</span>
+                                        <span>@row.Mid.ToString("F1")</span>
                                         <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
                                     </td>
                                 </tr>
@@ -208,9 +281,9 @@
                                             </span>
                                         </div>
                                     </td>
-                                    <td style="text-align:center;font-family:monospace;color:var(--ft-secondary)">@limit.MinMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
-                                    <td style="text-align:center;font-family:monospace;color:var(--ft-text)">@limit.MaxMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
-                                    <td style="text-align:center;font-family:monospace;color:var(--ft-danger)">@limit.MaxSpread.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    <td style="text-align:center;font-family:monospace;color:var(--ft-secondary)">@limit.MinMid.ToString("F1")</td>
+                                    <td style="text-align:center;font-family:monospace;color:var(--ft-text)">@limit.MaxMid.ToString("F1")</td>
+                                    <td style="text-align:center;font-family:monospace;color:var(--ft-danger)">@limit.MaxSpread.ToString("F1")</td>
                                 </tr>
                             }
                         </tbody>
@@ -219,12 +292,6 @@
             </div>
         </section>
 
-        @*
-           FİYAT GEÇMİŞİ (data-tab="history")
-           Sol liste: Model.MarketRows sembolleri (aktif limit seti ile uyumlu).
-           Tıklanınca loadHistory → GET /User?handler=PriceHistory&symbol=... (JSON, camelCase API cevabı).
-           İlk yüklemede ?tab=history&symbol=... ile gelindiyse Model.PriceHistory Razor ile dolu olabilir.
-        *@
         <section data-tab="history" class="@(Model.ActiveTab == "history" ? "" : "hidden")">
             <div style="margin-bottom:2.5rem">
                 <div class="ft-section-subtitle">Analiz</div>
@@ -250,13 +317,36 @@
                     </div>
                 </div>
 
-                @* Sağ: üstte grafik placeholder; altta historyBody id’li tablo (AJAX ile doldurulur veya SSR). *@
+                @* Sağ: Bloomberg tarzı grafik ve altta historyBody id’li tablo. *@
                 <div class="lg:col-span-3">
-                    <div class="chart-placeholder">
+                    <div class="bb-chart-container" id="chartMainContainer" style="display:none">
+                        <div class="bb-range-filters">
+                            <button class="bb-range-btn active" onclick="setChartRange('1h')">1H</button>
+                            <button class="bb-range-btn" onclick="setChartRange('1d')">1D</button>
+                            <button class="bb-range-btn" onclick="setChartRange('1w')">1W</button>
+                            <button class="bb-range-btn" onclick="setChartRange('1m')">1M</button>
+                            <button class="bb-range-btn" onclick="setChartRange('all')">ALL</button>
+                        </div>
+                        <div class="bb-header">
+                            <div class="bb-price" id="bbCurrentPrice">--</div>
+                            <div class="bb-details">
+                                <div class="bb-change" id="bbPriceChange">
+                                    <span class="material-symbols-outlined" id="bbPriceIcon" style="font-size:24px"></span>
+                                    <span id="bbPricePct">--</span>
+                                </div>
+                                <div class="bb-symbol" id="bbSymbolDisplay">--</div>
+                            </div>
+                        </div>
+                        <div style="height: 380px; position: relative;">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-placeholder" id="chartPlaceholder">
                         <div class="text-center">
                             <span class="material-symbols-outlined" style="font-size:48px;margin-bottom:1rem;opacity:0.3">monitoring</span>
                             <p>Grafik alanı (Placeholder)</p>
-                            <p style="font-size:0.8rem;margin-top:0.5rem">Implementasyon aşamasındadır.</p>
+                            <p style="font-size:0.8rem;margin-top:0.5rem">Sembol seçerek grafiği görüntüleyebilirsiniz.</p>
                         </div>
                     </div>
 
@@ -283,10 +373,10 @@
                                         {
                                             <tr>
                                                 <td style="font-size:0.82rem;color:var(--ft-text-muted)">@h.Timestamp.AddHours(3).ToString("dd.MM.yyyy HH:mm")</td>
-                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Bid.ToString("F5")</td>
-                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Ask.ToString("F5")</td>
-                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">@h.Mid.ToString("F5")</td>
-                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">@h.Spread.ToString("F5")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Bid.ToString("F1")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem">@h.Ask.ToString("F1")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">@h.Mid.ToString("F1")</td>
+                                                <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">@h.Spread.ToString("F1")</td>
                                             </tr>
                                         }
                                     }
@@ -376,7 +466,113 @@
          * Mongo’dan son ~100 dakikalık özet (sunucu aggregation).
          * JSON alanları: time, bid, ask, mid, spread (ASP.NET Core varsayılan camelCase).
          */
+        var priceChart = null;
+        var currentRange = '1h';
+        var currentSymbol = '';
+
+        function setChartRange(range) {
+            currentRange = range;
+            document.querySelectorAll('.bb-range-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === range.toLowerCase()) {
+                    btn.classList.add('active');
+                }
+            });
+            if (currentSymbol) loadHistory(currentSymbol);
+        }
+
+        /**
+         * Frontend Aggregation: Gruplama ve Ortalama Hesaplama
+         */
+        function aggregateData(rawData, range) {
+            if (!rawData || !Array.isArray(rawData) || rawData.length === 0) return [];
+
+            const groups = {};
+            rawData.forEach(item => {
+                // Property name check (camelCase or PascalCase)
+                const timeStr = item.time || item.Time;
+                if (!timeStr) return;
+
+                const date = new Date(timeStr.replace(' ', 'T'));
+                if (isNaN(date.getTime())) return;
+
+                let key = "";
+
+                // Range'e göre gruplama anahtarı (key) oluştur
+                const Y = date.getFullYear();
+                const M = String(date.getMonth() + 1).padStart(2, '0');
+                const D = String(date.getDate()).padStart(2, '0');
+                const h = String(date.getHours()).padStart(2, '0');
+                const m = String(date.getMinutes()).padStart(2, '0');
+
+                if (range === '1h') {
+                    // Dakika bazlı: YYYY-MM-DD HH:mm
+                    key = `${Y}-${M}-${D} ${h}:${m}`;
+                } else if (range === '1d') {
+                    // Saat bazlı: YYYY-MM-DD HH:00
+                    key = `${Y}-${M}-${D} ${h}:00`;
+                } else if (range === '1w') {
+                    // Gün bazlı: YYYY-MM-DD
+                    key = `${Y}-${M}-${D}`;
+                } else if (range === '1m') {
+                    // 3 saatlik bazlı
+                    const h3 = String(Math.floor(date.getHours() / 3) * 3).padStart(2, '0');
+                    key = `${Y}-${M}-${D} ${h3}:00`;
+                } else {
+                    // ALL: Gün bazlı
+                    key = `${Y}-${M}-${D}`;
+                }
+
+                if (!groups[key]) {
+                    groups[key] = {
+                        count: 0,
+                        bidSum: 0,
+                        askSum: 0,
+                        midSum: 0,
+                        spreadSum: 0,
+                        latestTimestamp: date.getTime()
+                    };
+                }
+                
+                // Bid, Ask, Mid, Spread (camelCase or PascalCase)
+                const bid = item.bid !== undefined ? item.bid : (item.Bid || 0);
+                const ask = item.ask !== undefined ? item.ask : (item.Ask || 0);
+                const mid = item.mid !== undefined ? item.mid : (item.Mid || 0);
+                const spread = item.spread !== undefined ? item.spread : (item.Spread || 0);
+
+                groups[key].count++;
+                groups[key].bidSum += bid;
+                groups[key].askSum += ask;
+                groups[key].midSum += mid;
+                groups[key].spreadSum += spread;
+                // En güncel timestamp'i tut (tablo formatı için)
+                if (date.getTime() > groups[key].latestTimestamp) {
+                    groups[key].latestTimestamp = date.getTime();
+                }
+            });
+
+            // Grupları diziye çevir ve ortalama al
+            const result = Object.keys(groups).map(key => {
+                const g = groups[key];
+                const d = new Date(g.latestTimestamp);
+                return {
+                    key: key,
+                    time: key, // Grafik X ekseni için key'i kullan
+                    displayTime: `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
+                    bid: g.bidSum / g.count,
+                    ask: g.askSum / g.count,
+                    mid: g.midSum / g.count,
+                    spread: g.spreadSum / g.count,
+                    timestamp: g.latestTimestamp
+                };
+            });
+
+            // Zaman sırasına göre diz (en yeni en üstte tablo için, en eski en sonda)
+            return result.sort((a, b) => b.timestamp - a.timestamp);
+        }
+
         async function loadHistory(symbol) {
+            currentSymbol = symbol;
             document.querySelectorAll('[id^="btn-"]').forEach(b => {
                 b.classList.remove('bg-[rgba(105,218,255,0.1)]', 'border-[var(--ft-primary)]');
                 b.classList.add('bg-transparent', 'border-[var(--ft-outline)]');
@@ -391,28 +587,168 @@
             var body = document.getElementById('historyBody');
             body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">Yükleniyor...</td></tr>';
 
+            document.getElementById('chartPlaceholder').style.display = 'none';
+            document.getElementById('chartMainContainer').style.display = 'block';
+
             try {
-                var res = await fetch('/User?handler=PriceHistory&symbol=' + symbol);
+                var res = await fetch(`/User?handler=PriceHistory&symbol=${symbol}&range=${currentRange}`);
                 if (!res.ok) throw new Error();
-                var data = await res.json();
+                const rawData = await res.json();
                 
-                if (data.length === 0) {
+                if (!rawData || rawData.length === 0) {
                     body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-text-faint)">Kayıt bulunamadı.</td></tr>';
+                    document.getElementById('chartMainContainer').style.display = 'none';
+                    document.getElementById('chartPlaceholder').style.display = 'flex';
                     return;
                 }
 
-                body.innerHTML = data.map(h => `
-                    <tr>
-                        <td style="font-size:0.82rem;color:var(--ft-text-muted)">${h.time}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.bid.toFixed(5)}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${h.ask.toFixed(5)}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">${h.mid.toFixed(5)}</td>
-                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">${h.spread.toFixed(5)}</td>
+                // Frontend Aggregation
+                const aggregatedData = aggregateData(rawData, currentRange);
+
+                // Tabloyu güncelle (1 ondalık basamak)
+                const fmt = v => v.toFixed(1).replace('.', ',');
+                body.innerHTML = aggregatedData.map((h, idx) => `
+                    <tr id="history-row-${idx}" data-idx="${idx}">
+                        <td style="font-size:0.82rem;color:var(--ft-text-muted)">${h.displayTime}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${fmt(h.bid)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem">${fmt(h.ask)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">${fmt(h.mid)}</td>
+                        <td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">${fmt(h.spread)}</td>
                     </tr>
                 `).join('');
+
+                updateBloombergHeader(symbol, aggregatedData);
+                updatePriceChart(aggregatedData);
+
             } catch (e) {
                 body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-danger)">Veriler alınırken bir hata oluştu.</td></tr>';
+                console.error(e);
             }
+        }
+
+        function updateBloombergHeader(symbol, data) {
+            if (!data || data.length === 0) return;
+            
+            const latest = data[0];
+            const oldest = data[data.length - 1];
+            
+            const currentPrice = latest.mid;
+            const diff = latest.mid - oldest.mid;
+            const pctVal = oldest.mid !== 0 ? ((diff / oldest.mid) * 100) : 0;
+            const isUp = diff >= 0;
+
+            const priceEl = document.getElementById('bbCurrentPrice');
+            const changeEl = document.getElementById('bbPriceChange');
+            const iconEl = document.getElementById('bbPriceIcon');
+            const pctEl = document.getElementById('bbPricePct');
+            const symbolEl = document.getElementById('bbSymbolDisplay');
+
+            priceEl.textContent = currentPrice.toFixed(1).replace('.', ',');
+            const color = isUp ? 'var(--ft-secondary)' : 'var(--ft-danger)';
+            priceEl.style.color = color;
+            changeEl.style.color = color;
+            iconEl.textContent = isUp ? 'arrow_upward' : 'arrow_downward';
+            pctEl.textContent = (isUp ? '+' : '') + pctVal.toFixed(2) + '%';
+            symbolEl.textContent = symbol.length === 6 ? symbol.substring(0, 3) + '/' + symbol.substring(3) : symbol;
+        }
+
+        function updatePriceChart(data) {
+            const chartData = [...data].reverse();
+            const labels = chartData.map(h => {
+                if (currentRange === '1h') return h.key.split(' ')[1]; // HH:mm
+                if (currentRange === '1d') return h.key.split(' ')[1]; // HH:00
+                return h.key.split(' ')[0].substring(5); // MM-DD
+            });
+            const prices = chartData.map(h => h.mid);
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const textColor = isDark ? '#a9abaf' : '#44474f';
+            const lineColor = '#69daff';
+            const fillColor = 'rgba(105, 218, 255, 0.1)';
+
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            if (priceChart) priceChart.destroy();
+
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Mid Price',
+                        data: prices,
+                        borderColor: lineColor,
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: lineColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                        fill: true,
+                        backgroundColor: fillColor,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, elements) => {
+                        document.querySelectorAll('#historyBody tr').forEach(tr => tr.classList.remove('highlight'));
+                        if (elements && elements.length > 0) {
+                            const dataIdx = elements[0].index;
+                            const tableIdx = data.length - 1 - dataIdx;
+                            const row = document.getElementById('history-row-' + tableIdx);
+                            if (row) row.classList.add('highlight');
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? '#1c2024' : '#ffffff',
+                            titleColor: isDark ? '#f8f9fe' : '#1a1c1e',
+                            bodyColor: isDark ? '#f8f9fe' : '#1a1c1e',
+                            borderColor: 'rgba(105, 218, 255, 0.2)',
+                            borderWidth: 1,
+                            displayColors: false,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    const h = chartData[context.dataIndex];
+                                    const fmt = v => v.toFixed(1).replace('.', ',');
+                                    return [
+                                        `Fiyat: ${fmt(h.mid)}`,
+                                        `Alış: ${fmt(h.bid)}`,
+                                        `Satış: ${fmt(h.ask)}`,
+                                        `Fark: ${fmt(h.spread)}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 10, weight: 'bold' },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 10, weight: 'bold' },
+                                callback: function(value) { return value.toFixed(1).replace('.', ','); }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         /* ── Canlı piyasa yenileme (Admin ile aynı API şekli; handler farklı sayfa: /User) ── */
@@ -490,7 +826,7 @@
                     var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
                     if (tr) {
                         var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
-                        if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(5);
+                        if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = row.mid.toFixed(1);
 
                         ['Bid', 'Ask', 'Mid'].forEach(function (field) {
                             var td = tr.querySelector('td[data-field="' + field + '"]');
@@ -511,10 +847,10 @@
                                     applyBadge(row.symbol, cls, text);
                                 }
                                 var span = td.querySelector('span:first-child');
-                                if (span) span.textContent = next.toFixed(5);
-                                else td.textContent = next.toFixed(5);
+                                if (span) span.textContent = next.toFixed(1);
+                                else td.textContent = next.toFixed(1);
                             } else {
-                                td.textContent = next.toFixed(5);
+                                td.textContent = next.toFixed(1);
                             }
 
                             if (next > current) pulseCell(td, 'ft-cell-up');
@@ -530,6 +866,16 @@
 
         refreshMarket();
         setInterval(refreshMarket, 3000); /* 3 sn: Admin canlı piyasa ile aynı periyot */
+
+        // Sayfa yüklendiğinde seçili sembol varsa history tab'ında yükle
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            const sym = params.get('symbol');
+            if (tab === 'history' && sym) {
+                loadHistory(sym);
+            }
+        });
     </script>
 </body>
 </html>

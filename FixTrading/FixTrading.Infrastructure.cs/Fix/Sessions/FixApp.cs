@@ -21,6 +21,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         private readonly Dictionary<string, (decimal? Bid, decimal? Ask)> _symbols = new();         // Her sembol için son bid/ask değerini tutar
         private readonly Dictionary<string, string> _mdReqIdToSymbol = new();  // MDReqID -> Symbol (X mesajlarında grup içinde olmayabiliyor)
         private readonly ConcurrentDictionary<string, string> _symbolToMdReqId = new(StringComparer.OrdinalIgnoreCase);
+        private static int _reqCounter = 0;
 
         // ── Aktif FIX abonelikleri (whitelist) ─────────────────────────────────────────────
         // Admin "Enstrüman sil" dediğinde Unsubscribe() bu setten sembolü düşürür.
@@ -156,7 +157,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
 
             // Market data request oluşturulur
-            var mdReqId = Guid.NewGuid().ToString();
+            var mdReqId = "REQ" + Interlocked.Increment(ref _reqCounter);
             var request = new QuickFix.FIX44.MarketDataRequest(
                 new MDReqID(mdReqId),
                 new SubscriptionRequestType(    // İstek tipi: önce tam snapshot, sonra güncellemeler
@@ -164,7 +165,7 @@ namespace FixTrading.Infrastructure.Fix.Sessions
                 new MarketDepth(1)    // Sadece en iyi fiyatları (top of book) istemek için derinlik 1 olarak ayarlanır
             );
 
-            request.Set(new MDUpdateType(1)); // 0=Full, 1=Incremental. SPOTEX/Fintechee genelde Incremental ister.
+            request.Set(new MDUpdateType(0)); // 0=Full, 1=Incremental.
             request.Set(new AggregatedBook(true));   
 
             var bidGroup = new QuickFix.FIX44.MarketDataRequest.NoMDEntryTypesGroup();
@@ -286,7 +287,6 @@ namespace FixTrading.Infrastructure.Fix.Sessions
             var symbol = message.IsSetField(Tags.Symbol) ? message.GetString(Tags.Symbol)
                 : message.IsSetField(Tags.SecurityID) ? message.GetString(Tags.SecurityID)
                 : "";
-            Console.WriteLine($"[FIX] Snapshot alındı: {symbol}");
             symbol = NormalizeSymbol(symbol);
             if (!string.IsNullOrEmpty(symbol) && message.IsSetField(Tags.MDReqID))
             {
@@ -312,7 +312,6 @@ namespace FixTrading.Infrastructure.Fix.Sessions
         {
             if (!_firstMarketDataLogged) { _firstMarketDataLogged = true; }
             int count = message.GetInt(Tags.NoMDEntries);
-            if (!_firstMarketDataLogged) { Console.WriteLine($"[FIX] İlk IncrementalRefresh alındı, NoMDEntries={count}"); }
             
             string? symbolFromMessage = null;
             if (message.IsSetField(Tags.Symbol))
@@ -481,14 +480,14 @@ namespace FixTrading.Infrastructure.Fix.Sessions
 
             // ── Kritik: silinmiş / iptal edilmiş enstrüman koruması ─────────────────────
             // _activeSymbols yalnızca Subscribe ile eklenen ve henüz Unsubscribe edilmemiş sembolleri tutar.
-            // Admin DB'den enstrüman sildiğinde Unsubscribe + Redis/InMemory temizliği yapılır; sunucu bazen
-            // yine de eski akışı bir süre göndermeye devam eder. Bu guard olmasa her tick tekrar
-            // FixMessageHandler → Redis/InMemory yoluna girer ve "canlı piyasa" listesinde hayalet satırlar oluşurdu.
             lock (_lock)
             {
-                if (!_activeSymbols.Contains(symbol)) return;
+                if (!_activeSymbols.Contains(symbol))
+                {
+                    return;
+                }
             }
-
+            
             (decimal? bid, decimal? ask) data;
             lock (_lock)
             {
