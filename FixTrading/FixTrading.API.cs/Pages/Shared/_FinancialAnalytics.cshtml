@@ -1,0 +1,1678 @@
+<style>
+    /* ── SUMMARY CARDS ── */
+    .ft-fa-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    @@media (max-width: 1024px) { .ft-fa-summary { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 560px)  { .ft-fa-summary { grid-template-columns: 1fr; } }
+
+    .ft-fa-card {
+        background: var(--ft-surface-low);
+        border: 1px solid var(--ft-card-border);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    .ft-fa-card:hover {
+        border-color: rgba(105,218,255,0.25);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .ft-fa-card-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .ft-fa-card-icon span { font-size: 22px; }
+    .ft-fa-card-body { flex: 1; min-width: 0; }
+    .ft-fa-card-label {
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; color: var(--ft-text-muted); margin-bottom: 0.35rem;
+    }
+    .ft-fa-card-value {
+        font-size: 1.05rem; font-weight: 800; color: var(--ft-text); line-height: 1.3;
+    }
+    .ft-fa-card-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        position: absolute; top: 1rem; right: 1rem;
+    }
+
+    .ft-fa-card-icon.risk    { background: rgba(255,113,107,0.12); color: #ff716b; }
+    .ft-fa-card-icon.vol     { background: rgba(255,193,7,0.12);   color: #ffc107; }
+    .ft-fa-card-icon.arb     { background: rgba(105,218,255,0.12); color: #69daff; }
+    .ft-fa-card-icon.ano     { background: rgba(168,130,255,0.12); color: #a882ff; }
+
+    /* ── MODERN PILL TABS ── */
+    .ft-fa-tabs {
+        display: inline-flex;
+        gap: 0.35rem;
+        padding: 0.3rem;
+        background: var(--ft-surface-high);
+        border: 1px solid var(--ft-outline);
+        border-radius: 14px;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+    }
+    .ft-fa-tab {
+        padding: 0.55rem 1.35rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--ft-text-muted);
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        white-space: nowrap;
+    }
+    .ft-fa-tab:hover {
+        color: var(--ft-text);
+        background: rgba(105,218,255,0.06);
+    }
+    [data-theme="light"] .ft-fa-tab:hover {
+        background: rgba(0,104,128,0.05);
+    }
+    .ft-fa-tab.ft-fa-active {
+        background: var(--ft-primary);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(105,218,255,0.25);
+    }
+    [data-theme="light"] .ft-fa-tab.ft-fa-active {
+        background: #006880;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(0,104,128,0.2);
+    }
+
+    .ft-fa-panel.hidden { display: none !important; }
+
+    /* ── BADGES ── */
+    .ft-fa-badge {
+        display: inline-flex; align-items: center; padding: 0.2rem 0.65rem; border-radius: 999px;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .ft-fa-badge-dusuk  { background: rgba(0,253,147,0.12); color: var(--ft-secondary); }
+    .ft-fa-badge-normal { background: rgba(255,193,7,0.15); color: var(--ft-warning); }
+    .ft-fa-badge-yuksek { background: rgba(255,113,107,0.15); color: var(--ft-danger); }
+
+    .ft-fa-muted { color: var(--ft-text-muted); font-size: 0.82rem; }
+    .ft-fa-loading { padding: 2rem; text-align: center; color: var(--ft-text-muted); }
+
+    /* ── RISK PERCENTAGE GAUGE ── */
+    .ft-risk-pct {
+        display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Inter', monospace;
+    }
+    .ft-risk-bar-wrap {
+        width: 56px; height: 6px; border-radius: 3px;
+        background: rgba(255,255,255,0.08); overflow: hidden;
+    }
+    [data-theme="light"] .ft-risk-bar-wrap {
+        background: rgba(0,0,0,0.07);
+    }
+    .ft-risk-bar-fill {
+        height: 100%; border-radius: 3px; transition: width 0.4s ease;
+    }
+    .ft-risk-bar-fill.low   { background: var(--ft-secondary); }
+    .ft-risk-bar-fill.normal { background: var(--ft-warning); }
+    .ft-risk-bar-fill.high  { background: var(--ft-danger); }
+
+    /* ── ANOMALY & AI UI ── */
+    .ft-ano-container {
+        display: flex;
+        gap: 0;
+        align-items: start;
+        position: relative;
+    }
+    @@media (max-width: 1200px) {
+        .ft-ano-container { flex-direction: column; }
+    }
+
+    .ft-ano-content {
+        flex: 1;
+        min-width: 0;
+        padding-right: 1.5rem;
+    }
+
+    /* Resizer Handle */
+    .ft-ai-resizer {
+        width: 8px;
+        cursor: col-resize;
+        align-self: stretch;
+        background: transparent;
+        transition: background 0.2s;
+        margin: 0 4px;
+        border-radius: 4px;
+        position: relative;
+        z-index: 10;
+    }
+    .ft-ai-resizer:hover, .ft-ai-resizer.resizing {
+        background: rgba(168,130,255,0.2);
+    }
+    .ft-ai-resizer::after {
+        content: '';
+        position: absolute;
+        left: 3px; top: 50%;
+        transform: translateY(-50%);
+        width: 2px; height: 30px;
+        background: var(--ft-card-border);
+        border-radius: 2px;
+    }
+
+    .ft-ano-section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--ft-text);
+    }
+    .ft-ano-link {
+        font-size: 0.75rem;
+        color: var(--ft-text-muted);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: color 0.2s;
+    }
+    .ft-ano-link:hover { color: var(--ft-primary); }
+
+    /* AI Cards */
+    .ft-ano-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    @@media (max-width: 900px) { .ft-ano-cards { grid-template-columns: 1fr; } }
+
+    .ft-ano-card {
+        background: var(--ft-surface-low);
+        border: 1px solid var(--ft-card-border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .ft-ano-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    
+    .ft-ano-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .ft-ano-card-icon { font-size: 20px; }
+    .ft-ano-card-title { font-weight: 700; font-size: 0.85rem; }
+    .ft-ano-card-symbol { font-size: 0.7rem; color: var(--ft-text-muted); font-weight: 600; margin-bottom: 0.75rem; }
+    .ft-ano-card-desc { font-size: 0.8rem; color: var(--ft-text); line-height: 1.4; margin-bottom: 1.25rem; }
+    .ft-ano-card-footer { display: flex; justify-content: space-between; align-items: center; }
+    .ft-ano-card-time { font-size: 0.7rem; color: var(--ft-text-muted); }
+    .ft-ano-card-badge { font-size: 0.65rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 6px; }
+
+    .ft-ano-card.risk { border-left: 3px solid var(--ft-danger); }
+    .ft-ano-card.risk .ft-ano-card-icon, .ft-ano-card.risk .ft-ano-card-title { color: var(--ft-danger); }
+    .ft-ano-card.risk .ft-ano-card-badge { background: rgba(255,113,107,0.1); color: var(--ft-danger); }
+
+    .ft-ano-card.limit { border-left: 3px solid var(--ft-warning); }
+    .ft-ano-card.limit .ft-ano-card-icon, .ft-ano-card.limit .ft-ano-card-title { color: var(--ft-warning); }
+    .ft-ano-card.limit .ft-ano-card-badge { background: rgba(255,193,7,0.1); color: var(--ft-warning); }
+
+    .ft-ano-card.arb { border-left: 3px solid var(--ft-secondary); }
+    .ft-ano-card.arb .ft-ano-card-icon, .ft-ano-card.arb .ft-ano-card-title { color: var(--ft-secondary); }
+    .ft-ano-card.arb .ft-ano-card-badge { background: rgba(0,253,147,0.1); color: var(--ft-secondary); }
+
+    /* Action Cards */
+    .ft-ano-actions {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    @@media (max-width: 1024px) { .ft-ano-actions { grid-template-columns: repeat(3, 1fr); } }
+    @@media (max-width: 600px)  { .ft-ano-actions { grid-template-columns: repeat(2, 1fr); } }
+
+    .ft-ano-action-card {
+        background: var(--ft-surface-low);
+        border: 1px solid var(--ft-card-border);
+        border-radius: 10px;
+        padding: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .ft-ano-action-card:hover { border-color: var(--ft-primary); background: rgba(168,130,255,0.05); }
+    .ft-ano-action-icon { color: #a882ff; font-size: 18px; }
+    .ft-ano-action-title { font-weight: 700; font-size: 0.75rem; color: var(--ft-text); }
+    .ft-ano-action-desc { font-size: 0.65rem; color: var(--ft-text-muted); line-height: 1.2; }
+
+    /* Market Summary */
+    .ft-ano-summary-card {
+        background: var(--ft-surface-low);
+        border: 1px solid var(--ft-card-border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .ft-ano-summary-content { flex: 1; z-index: 1; }
+    .ft-ano-summary-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.9rem; color: var(--ft-text); }
+    .ft-ano-summary-header span { color: #a882ff; }
+    .ft-ano-summary-text { font-size: 0.82rem; color: var(--ft-text-muted); line-height: 1.6; max-width: 500px; }
+    .ft-ano-summary-chart { width: 240px; height: 100px; opacity: 0.4; pointer-events: none; }
+
+    /* Bottom Metrics */
+    .ft-ano-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+    @@media (max-width: 768px) { .ft-ano-metrics { grid-template-columns: repeat(2, 1fr); } }
+
+    .ft-ano-metric-card {
+        background: var(--ft-surface-low);
+        border: 1px solid var(--ft-card-border);
+        border-radius: 10px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .ft-ano-metric-label { font-size: 0.7rem; font-weight: 600; color: var(--ft-text-muted); }
+    .ft-ano-metric-value-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .ft-ano-metric-value { font-size: 1.15rem; font-weight: 800; color: var(--ft-text); }
+    .ft-ano-metric-badge { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; }
+
+    /* AI Chat Sidebar */
+    .ft-ai-panel {
+        background: var(--ft-surface-low);
+        border: 1px solid var(--ft-card-border);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        height: 700px;
+        position: sticky;
+        top: 1rem;
+    }
+    .ft-ai-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--ft-card-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .ft-ai-header-title { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 0.95rem; }
+    .ft-ai-header-title span { color: #a882ff; }
+    
+    .ft-ai-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .ft-ai-msg { max-width: 85%; padding: 0.85rem 1rem; border-radius: 14px; font-size: 0.82rem; line-height: 1.5; position: relative; }
+    .ft-ai-msg.ai {
+        align-self: flex-start;
+        background: var(--ft-surface-high);
+        color: var(--ft-text);
+        border-bottom-left-radius: 2px;
+        border: 1px solid var(--ft-card-border);
+    }
+    .ft-ai-msg.user {
+        align-self: flex-end;
+        background: #006880;
+        color: #fff;
+        border-bottom-right-radius: 2px;
+    }
+    .ft-ai-msg-time { font-size: 0.65rem; opacity: 0.6; margin-top: 0.35rem; text-align: right; }
+
+    .ft-ai-suggestions {
+        padding: 0 1.25rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .ft-ai-suggest-btn {
+        background: transparent;
+        border: 1px solid var(--ft-card-border);
+        color: var(--ft-text);
+        padding: 0.5rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .ft-ai-suggest-btn:hover { border-color: var(--ft-primary); background: rgba(105,218,255,0.05); }
+
+    .ft-ai-input-wrap {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--ft-card-border);
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .ft-ai-input {
+        flex: 1;
+        background: var(--ft-surface-high);
+        border: 1px solid var(--ft-card-border);
+        color: var(--ft-text);
+        border-radius: 10px;
+        padding: 0.65rem 0.85rem;
+        font-size: 0.8rem;
+        outline: none;
+        resize: none;
+        max-height: 100px;
+    }
+    .ft-ai-input:focus { border-color: var(--ft-primary); }
+    .ft-ai-send {
+        width: 36px; height: 36px; border-radius: 8px;
+        background: var(--ft-surface-high); color: var(--ft-text-muted);
+        border: 1px solid var(--ft-card-border);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .ft-ai-send:hover { background: var(--ft-primary); color: #fff; border-color: var(--ft-primary); }
+    .ft-ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ft-ano-footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--ft-card-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        color: var(--ft-text-muted);
+    }
+
+    /* ── AI PANEL COLLAPSE ── */
+    .ft-ai-panel-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+        max-height: 660px;
+        opacity: 1;
+        transition: max-height 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.35s ease;
+    }
+    .ft-ai-panel.collapsed .ft-ai-panel-body {
+        max-height: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .ft-ai-panel.collapsed {
+        height: auto;
+        min-height: unset;
+    }
+    .ft-ai-resizer.panel-hidden {
+        display: none !important;
+    }
+    .ft-ai-collapse-btn {
+        font-size: 18px !important;
+        cursor: pointer;
+        opacity: 0.6;
+        border-radius: 6px;
+        padding: 2px 4px;
+        transition: opacity 0.2s, background 0.2s, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .ft-ai-collapse-btn:hover {
+        opacity: 1;
+        background: rgba(255,255,255,0.07);
+    }
+    [data-theme="light"] .ft-ai-collapse-btn:hover {
+        background: rgba(0,0,0,0.06);
+    }
+    .ft-ai-panel.collapsed .ft-ai-collapse-btn {
+        transform: rotate(180deg);
+    }
+
+    /* ── SUGGEST ACCORDION ── */
+    .ft-ai-suggest-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        border-radius: 7px;
+        padding: 0.2rem 0.3rem;
+        margin-bottom: 0.15rem;
+        user-select: none;
+        transition: background 0.15s;
+    }
+    .ft-ai-suggest-header:hover {
+        background: rgba(255,255,255,0.05);
+    }
+    [data-theme="light"] .ft-ai-suggest-header:hover {
+        background: rgba(0,0,0,0.04);
+    }
+    .ft-ai-suggest-header-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--ft-text);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .ft-ai-suggest-header-label span {
+        font-size: 14px;
+        color: #a882ff;
+    }
+    .ft-ai-suggest-chevron {
+        font-size: 16px !important;
+        color: var(--ft-text-muted);
+        transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
+        display: flex;
+    }
+    .ft-ai-suggest-chevron.open {
+        transform: rotate(180deg);
+        color: var(--ft-primary);
+    }
+    .ft-ai-suggest-body {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.3s ease;
+    }
+    .ft-ai-suggest-body.open {
+        max-height: 260px;
+        opacity: 1;
+    }
+    .ft-ai-suggest-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        padding-top: 0.5rem;
+    }
+</style>
+
+<div id="ft-financial-analytics-wrap"
+     data-trans-calculating="@Localizer["Calculating"]"
+     data-trans-risk-high="@Localizer["HighRisk"]"
+     data-trans-risk-normal="@Localizer["NormalRisk"]"
+     data-trans-risk-low="@Localizer["LowRisk"]"
+     data-trans-vol-high="@Localizer["HighVolatility"]"
+     data-trans-vol-normal="@Localizer["NormalVolatility"]"
+     data-trans-vol-low="@Localizer["LowVolatility"]"
+     data-trans-no-data="@Localizer["NoData"]"
+     data-trans-no-records="@Localizer["NoRecords"]"
+     data-trans-no-anomalies="@Localizer["NoAnomaliesFound"]"
+     data-trans-no-opportunity="@Localizer["NoOpportunity"]"
+     data-trans-opportunities-exist="@Localizer["OpportunitiesExist"]"
+     data-trans-anomalies-detected="@Localizer["AnomaliesDetected"]"
+     data-trans-no-anomalies-detected="@Localizer["NoAnomaliesDetected"]"
+     data-trans-all-normal="@Localizer["AllInstrumentsNormal"]"
+     data-trans-risk-level-high="@Localizer["RiskLevelHighInInstruments"]"
+     data-trans-high-volatility="@Localizer["HighVolatilityDetected"]"
+     data-trans-instrument-not-found="@Localizer["InstrumentNotFound"]"
+     data-trans-error-loading="@Localizer["ErrorLoadingData"]"
+     data-trans-recommended-actions="@Localizer["RecommendedActions"]"
+     data-trans-summarize-risk="@Localizer["SummarizeRiskStatus"]"
+     data-trans-summarize-risk-desc="@Localizer["SummarizeRiskStatusDesc"]"
+     data-trans-trend-analysis="@Localizer["TrendAnalysis"]"
+     data-trans-trend-analysis-desc="@Localizer["TrendAnalysisDesc"]"
+     data-trans-explain-volatility="@Localizer["ExplainVolatility"]"
+     data-trans-explain-volatility-desc="@Localizer["ExplainVolatilityDesc"]"
+     data-trans-interpret-arbitrage="@Localizer["InterpretArbitrage"]"
+     data-trans-interpret-arbitrage-desc="@Localizer["InterpretArbitrageDesc"]"
+     data-trans-explain-limits="@Localizer["ExplainLimitViolations"]"
+     data-trans-explain-limits-desc="@Localizer["ExplainLimitViolationsDesc"]"
+     data-trans-general-summary="@Localizer["GeneralMarketSummary"]"
+     data-trans-risk-avg="@Localizer["RiskAverage"]"
+     data-trans-high-vol="@Localizer["HighVolatility"]"
+     data-trans-arb-opp="@Localizer["ArbitrageOpportunity"]"
+     data-trans-high-risk="@Localizer["HighRisk"]"
+     data-trans-active="@Localizer["Active"]"
+     data-trans-low="@Localizer["Low"]"
+     data-trans-high="@Localizer["High"]"
+     data-trans-normal="@Localizer["Normal"]"
+     data-trans-signal-buy="@Localizer["SignalBuy"]"
+     data-trans-signal-sell="@Localizer["SignalSell"]"
+     data-trans-risk-summary-low="@Localizer["RiskSummaryLow"]"
+     data-trans-risk-summary-normal="@Localizer["RiskSummaryNormal"]"
+     data-trans-risk-summary-high="@Localizer["RiskSummaryHigh"]"
+     data-trans-risk-action-low="@Localizer["RiskActionLow"]"
+     data-trans-risk-action-normal="@Localizer["RiskActionNormal"]"
+     data-trans-risk-action-high="@Localizer["RiskActionHigh"]"
+     data-trans-vol-summary-low="@Localizer["VolSummaryLow"]"
+     data-trans-vol-summary-normal="@Localizer["VolSummaryNormal"]"
+     data-trans-vol-summary-high="@Localizer["VolSummaryHigh"]"
+     data-trans-vol-action-low="@Localizer["VolActionLow"]"
+     data-trans-vol-action-normal="@Localizer["VolActionNormal"]"
+     data-trans-vol-action-high="@Localizer["VolActionHigh"]"
+     data-trans-ai-error="@Localizer["AiErrorMessage"]">
+    <!-- ── SUMMARY CARDS ── -->
+    <div class="ft-fa-summary">
+        <div class="ft-fa-card">
+            <div class="ft-fa-card-icon risk"><span class="material-symbols-outlined">shield</span></div>
+            <div class="ft-fa-card-body">
+                <div class="ft-fa-card-label">@Localizer["RiskStatus"]</div>
+                <div class="ft-fa-card-value" id="ft-fa-sv-risk">@Localizer["Calculating"]</div>
+            </div>
+            <div class="ft-fa-card-dot" id="ft-fa-dot-risk" style="background:#555"></div>
+        </div>
+        <div class="ft-fa-card">
+            <div class="ft-fa-card-icon vol"><span class="material-symbols-outlined">show_chart</span></div>
+            <div class="ft-fa-card-body">
+                <div class="ft-fa-card-label">@Localizer["VolatilityStatus"]</div>
+                <div class="ft-fa-card-value" id="ft-fa-sv-vol">@Localizer["Calculating"]</div>
+            </div>
+            <div class="ft-fa-card-dot" id="ft-fa-dot-vol" style="background:#555"></div>
+        </div>
+        <div class="ft-fa-card">
+            <div class="ft-fa-card-icon arb"><span class="material-symbols-outlined">swap_horiz</span></div>
+            <div class="ft-fa-card-body">
+                <div class="ft-fa-card-label">@Localizer["ArbitrageStatus"]</div>
+                <div class="ft-fa-card-value" id="ft-fa-sv-arb">@Localizer["Calculating"]</div>
+            </div>
+            <div class="ft-fa-card-dot" id="ft-fa-dot-arb" style="background:#555"></div>
+        </div>
+        <div class="ft-fa-card">
+            <div class="ft-fa-card-icon ano"><span class="material-symbols-outlined">psychology</span></div>
+            <div class="ft-fa-card-body">
+                <div class="ft-fa-card-label">@Localizer["AnomalyStatus"]</div>
+                <div class="ft-fa-card-value" id="ft-fa-sv-ano">@Localizer["Calculating"]</div>
+            </div>
+            <div class="ft-fa-card-dot" id="ft-fa-dot-ano" style="background:#555"></div>
+        </div>
+    </div>
+
+    <!-- ── PILL TABS ── -->
+    <div class="ft-fa-tabs" role="tablist">
+        <button type="button" class="ft-fa-tab ft-fa-active" data-ft-sub="risk">@Localizer["Risk"]</button>
+        <button type="button" class="ft-fa-tab" data-ft-sub="vol">@Localizer["Volatility"]</button>
+        <button type="button" class="ft-fa-tab" data-ft-sub="arb">@Localizer["Arbitrage"]</button>
+        <button type="button" class="ft-fa-tab" data-ft-sub="ano">@Localizer["AnomalyAndSuggestion"]</button>
+    </div>
+
+    <!-- ── RISK TABLE ── -->
+    <div data-ft-panel="risk">
+        <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+            <div class="overflow-x-auto">
+                <table class="ft-table w-full" style="min-width:960px" aria-label="@Localizer["Risk"]">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">@Localizer["Symbol"]</th>
+                            <th style="text-align:center">@Localizer["RiskScore"]</th>
+                            <th style="text-align:center">@Localizer["Level"]</th>
+                            <th style="text-align:center">@Localizer["CurrentStatus"]</th>
+                            <th style="text-align:center">@Localizer["RecommendedAction"]</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ft-fa-risk-body">
+                        <tr><td colspan="5" class="ft-fa-loading">@Localizer["Loading"]</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── VOLATILITY TABLE ── -->
+    <div data-ft-panel="vol" class="hidden">
+        <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+            <div class="overflow-x-auto">
+                <table class="ft-table w-full" style="min-width:960px" aria-label="@Localizer["Volatility"]">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">@Localizer["Symbol"]</th>
+                            <th style="text-align:center">@Localizer["VolatilityScale"]</th>
+                            <th style="text-align:center">@Localizer["Level"]</th>
+                            <th style="text-align:center">@Localizer["CurrentStatus"]</th>
+                            <th style="text-align:center">@Localizer["RecommendedAction"]</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ft-fa-vol-body">
+                        <tr><td colspan="5" class="ft-fa-loading">@Localizer["Loading"]</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ARBITRAJ TABLE ── -->
+    <div data-ft-panel="arb" class="hidden">
+        <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+            <div class="overflow-x-auto">
+                <table class="ft-table w-full" style="min-width:960px" aria-label="@Localizer["Arbitrage"]">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">@Localizer["MainParity"]</th>
+                            <th style="text-align:center">@Localizer["CounterParity"]</th>
+                            <th style="text-align:center">@Localizer["ExpectedPrice"]</th>
+                            <th style="text-align:center">@Localizer["MarketPrice"]</th>
+                            <th style="text-align:center">@Localizer["DiffPercent"]</th>
+                            <th style="text-align:center">@Localizer["CurrentStatus"]</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ft-arb-body">
+                        <tr><td colspan="6" class="ft-fa-loading">@Localizer["Loading"]</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Arbitraj dropdown ve sinyal rozetleri */
+        .ft-arb-select {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text);
+            border-radius: 8px;
+            padding: 0.35rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            outline: none;
+            min-width: 110px;
+            cursor: pointer;
+        }
+        .ft-arb-select:focus { border-color: var(--ft-primary); box-shadow: 0 0 0 3px var(--ft-input-ring); }
+        .ft-arb-select:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ft-arb-badge-sell { background: rgba(255,113,107,0.15); color: var(--ft-danger); }
+        .ft-arb-badge-buy  { background: rgba(0,253,147,0.15); color: var(--ft-secondary); }
+        .ft-arb-badge-none { background: rgba(255,255,255,0.05); color: var(--ft-text-muted); }
+        [data-theme="light"] .ft-arb-badge-none { background: rgba(0,0,0,0.04); }
+    </style>
+
+    <!-- ── ANOMALİ & AI ASİSTAN ── -->
+    <div data-ft-panel="ano" class="hidden">
+        <div class="ft-ano-container">
+            <!-- Left Side: Analytics Content -->
+            <div class="ft-ano-content">
+                
+                <div class="ft-ano-section-title">
+                    <span>@Localizer["AiSuggestionsAlerts"] <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;opacity:0.5;margin-left:4px">info</span></span>
+                    <a href="#" class="ft-ano-link">@Localizer["SeeAllAlerts"] <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
+                </div>
+                
+                <div class="ft-ano-cards" id="ft-ano-alert-cards">
+                    <div class="ft-ano-card-loading" id="ft-ano-cards-loading" style="grid-column:1/-1;text-align:center;color:var(--ft-text-muted);padding:2rem;font-size:0.85rem">
+                        <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;opacity:0.5">hourglass_top</span>@Localizer["DataLoading"]
+                    </div>
+                </div>
+
+                <!-- @Localizer["RecommendedActions"] -->
+                <div class="ft-ano-section-title">@Localizer["RecommendedActions"]</div>
+                <div class="ft-ano-actions">
+                    <div class="ft-ano-action-card" onclick="ftAiAsk('@Localizer["SummarizeRiskStatus"]')">
+                        <span class="material-symbols-outlined ft-ano-action-icon">assignment</span>
+                        <div class="ft-ano-action-title">@Localizer["SummarizeRiskStatus"]</div>
+                        <div class="ft-ano-action-desc">@Localizer["SummarizeRiskStatusDesc"]</div>
+                    </div>
+                    <div class="ft-ano-action-card" onclick="ftAiAsk('@Localizer["TrendAnalysis"]')">
+                        <span class="material-symbols-outlined ft-ano-action-icon">trending_up</span>
+                        <div class="ft-ano-action-title">@Localizer["TrendAnalysis"]</div>
+                        <div class="ft-ano-action-desc">@Localizer["TrendAnalysisDesc"]</div>
+                    </div>
+                    <div class="ft-ano-action-card" onclick="ftAiAsk('@Localizer["ExplainVolatility"]')">
+                        <span class="material-symbols-outlined ft-ano-action-icon">motion_photos_on</span>
+                        <div class="ft-ano-action-title">@Localizer["ExplainVolatility"]</div>
+                        <div class="ft-ano-action-desc">@Localizer["ExplainVolatilityDesc"]</div>
+                    </div>
+                    <div class="ft-ano-action-card" onclick="ftAiAsk('@Localizer["InterpretArbitrage"]')">
+                        <span class="material-symbols-outlined ft-ano-action-icon">hub</span>
+                        <div class="ft-ano-action-title">@Localizer["InterpretArbitrage"]</div>
+                        <div class="ft-ano-action-desc">@Localizer["InterpretArbitrageDesc"]</div>
+                    </div>
+                    <div class="ft-ano-action-card" onclick="ftAiAsk('@Localizer["ExplainLimitViolations"]')">
+                        <span class="material-symbols-outlined ft-ano-action-icon">security</span>
+                        <div class="ft-ano-action-title">@Localizer["ExplainLimitViolations"]</div>
+                        <div class="ft-ano-action-desc">@Localizer["ExplainLimitViolationsDesc"]</div>
+                    </div>
+                </div>
+
+                <!-- @Localizer["GeneralMarketSummary"] -->
+                <div class="ft-ano-summary-card">
+                    <div class="ft-ano-summary-content">
+                        <div class="ft-ano-summary-header">
+                            <span class="material-symbols-outlined">auto_awesome</span>
+                            @Localizer["GeneralMarketSummary"]
+                        </div>
+                        <div class="ft-ano-summary-text" id="ft-ano-market-summary">
+                            @Localizer["DataLoading"]
+                        </div>
+                    </div>
+                    <svg class="ft-ano-summary-chart" viewBox="0 0 240 100">
+                        <path d="M0,80 Q30,40 60,70 T120,50 T180,60 T240,30 L240,100 L0,100 Z" fill="rgba(168,130,255,0.2)" stroke="#a882ff" stroke-width="2"/>
+                    </svg>
+                </div>
+
+                <!-- @Localizer["SubMetricCards"] -->
+                <div class="ft-ano-metrics">
+                    <div class="ft-ano-metric-card">
+                        <div class="ft-ano-metric-label">@Localizer["RiskAverage"]</div>
+                        <div class="ft-ano-metric-value-wrap">
+                            <span class="ft-ano-metric-value" id="ft-ano-m-risk">—</span>
+                            <span class="ft-ano-metric-badge" id="ft-ano-m-risk-badge">—</span>
+                        </div>
+                    </div>
+                    <div class="ft-ano-metric-card">
+                        <div class="ft-ano-metric-label">@Localizer["HighVolatility"]</div>
+                        <div class="ft-ano-metric-value-wrap">
+                            <span class="ft-ano-metric-value" id="ft-ano-m-vol">—</span>
+                            <span class="ft-ano-metric-badge" id="ft-ano-m-vol-badge">@Localizer["Symbol"]</span>
+                        </div>
+                    </div>
+                    <div class="ft-ano-metric-card">
+                        <div class="ft-ano-metric-label">@Localizer["ArbitrageOpportunity"]</div>
+                        <div class="ft-ano-metric-value-wrap">
+                            <span class="ft-ano-metric-value" id="ft-ano-m-arb">—</span>
+                            <span class="ft-ano-metric-badge ft-fa-badge-dusuk" id="ft-ano-m-arb-badge">@Localizer["Active"]</span>
+                        </div>
+                    </div>
+                    <div class="ft-ano-metric-card">
+                        <div class="ft-ano-metric-label">@Localizer["HighRisk"]</div>
+                        <div class="ft-ano-metric-value-wrap">
+                            <span class="ft-ano-metric-value" id="ft-ano-m-highrisk">—</span>
+                            <span class="ft-ano-metric-badge ft-fa-badge-normal" id="ft-ano-m-highrisk-badge">@Localizer["Symbol"]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ft-ano-footer">
+                    <div><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;margin-right:4px">info</span> @Localizer["AiDisclaimer"]</div>
+                    <div>@Localizer["LastUpdate"] <span id="ft-ano-last-update">--</span> <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;cursor:pointer" onclick="ftLoadFinancialAnalytics()">refresh</span></div>
+                </div>
+            </div>
+
+            <!-- Right Side: AI Assistant Sidebar -->
+            <div class="ft-ai-resizer" id="ft-ai-resizer"></div>
+            <div class="ft-ai-panel" id="ft-ai-panel" style="width: 400px; min-width: 300px; max-width: 800px;">
+                <div class="ft-ai-header">
+                    <div class="ft-ai-header-title">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        @Localizer["AiAssistant"]
+                    </div>
+                    <span class="material-symbols-outlined ft-ai-collapse-btn" id="ft-ai-collapse-btn" title="@Localizer["HideShowPanel"]">keyboard_arrow_up</span>
+                </div>
+
+                <div class="ft-ai-panel-body" id="ft-ai-panel-body">
+                    <div class="ft-ai-messages" id="ft-ai-msg-container">
+                        <div class="ft-ai-msg ai">
+                            @Localizer["AiWelcome"]
+                        </div>
+                    </div>
+
+                    <div class="ft-ai-suggestions">
+                        <div class="ft-ai-suggest-header" id="ft-ai-suggest-header">
+                            <div class="ft-ai-suggest-header-label">
+                                <span class="material-symbols-outlined">quickreply</span>
+                                @Localizer["ReadyQuestions"]
+                            </div>
+                            <span class="material-symbols-outlined ft-ai-suggest-chevron" id="ft-ai-suggest-chevron">expand_more</span>
+                        </div>
+                        <div class="ft-ai-suggest-body" id="ft-ai-suggest-body">
+                            <div class="ft-ai-suggest-inner">
+                                <button class="ft-ai-suggest-btn" onclick="ftAiAsk('@Localizer["SampleQuestion1"]')">@Localizer["SampleQuestion1"]</button>
+                                <button class="ft-ai-suggest-btn" onclick="ftAiAsk('@Localizer["SampleQuestion2"]')">@Localizer["SampleQuestion2"]</button>
+                                <button class="ft-ai-suggest-btn" onclick="ftAiAsk('@Localizer["SampleQuestion3"]')">@Localizer["SampleQuestion3"]</button>
+                                <button class="ft-ai-suggest-btn" onclick="ftAiAsk('@Localizer["SampleQuestion4"]')">@Localizer["SampleQuestion4"]</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ft-ai-input-wrap">
+                        <textarea class="ft-ai-input" id="ft-ai-input" placeholder="@Localizer["WriteYourQuestion"]" rows="1"></textarea>
+                        <button class="ft-ai-send" id="ft-ai-send" onclick="ftAiSubmit()">
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                    <div style="font-size:0.6rem;color:var(--ft-text-muted);padding:0 1.25rem 0.75rem;text-align:center">@Localizer["AiResponseDisclaimer"]</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var basePath = window.location.pathname;
+    var loaded = false;
+    var cache = null;
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function fmtSym(s) {
+        if (!s) return '';
+        return s.length === 6 ? s.slice(0, 3) + '/' + s.slice(3) : s;
+    }
+    function badgeClass(key) {
+        if (key === 'dusuk') return 'ft-fa-badge-dusuk';
+        if (key === 'yuksek') return 'ft-fa-badge-yuksek';
+        return 'ft-fa-badge-normal';
+    }
+    function dotColor(key) {
+        if (key === 'dusuk') return 'var(--ft-secondary)';
+        if (key === 'yuksek') return 'var(--ft-danger)';
+        return 'var(--ft-warning)';
+    }
+    function levelLabel(root, key) {
+        if (key === 'dusuk') return root.getAttribute('data-trans-low');
+        if (key === 'yuksek') return root.getAttribute('data-trans-high');
+        return root.getAttribute('data-trans-normal');
+    }
+    function localizedByLevel(root, prefix, key, fallback) {
+        var suffix = key === 'dusuk' ? 'low' : (key === 'yuksek' ? 'high' : 'normal');
+        return root.getAttribute('data-trans-' + prefix + '-' + suffix) || fallback || '';
+    }
+    function localizedSignal(root, key, fallback) {
+        if (key === 'buy') return root.getAttribute('data-trans-signal-buy');
+        if (key === 'sell') return root.getAttribute('data-trans-signal-sell');
+        return root.getAttribute('data-trans-no-opportunity') || fallback || '';
+    }
+
+    function getProp(obj, prop) {
+        if (!obj) return undefined;
+        if (obj[prop] !== undefined) return obj[prop];
+        var pascal = prop.charAt(0).toUpperCase() + prop.slice(1);
+        return obj[pascal];
+    }
+    function riskBarClass(pct) {
+        if (pct < 34) return 'low';
+        if (pct < 67) return 'normal';
+        return 'high';
+    }
+
+    function renderRiskPct(score) {
+        var pct = Math.min(100, Math.max(0, Math.round(score)));
+        var cls = riskBarClass(pct);
+        return '<div class="ft-risk-pct">' +
+            '<span style="font-weight:800;font-size:0.9rem;min-width:38px;text-align:right">' + pct + '%</span>' +
+            '<div class="ft-risk-bar-wrap"><div class="ft-risk-bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+            '</div>';
+    }
+
+    function updateSummaryCards(riskRows, volRows) {
+        var riskEl  = document.getElementById('ft-fa-sv-risk');
+        var riskDot = document.getElementById('ft-fa-dot-risk');
+        var volEl   = document.getElementById('ft-fa-sv-vol');
+        var volDot  = document.getElementById('ft-fa-dot-vol');
+        var root    = document.getElementById('ft-financial-analytics-wrap');
+
+        if (riskRows && riskRows.length > 0) {
+            var sumRisk = 0;
+            var highCount = 0, normalCount = 0;
+            riskRows.forEach(function (r) {
+                var s = Number(getProp(r, 'riskScore') || 0);
+                sumRisk += s;
+                var k = getProp(r, 'levelKey');
+                if (k === 'yuksek') highCount++;
+                else if (k === 'normal') normalCount++;
+            });
+            var avgRisk = sumRisk / riskRows.length;
+            var pct = Math.round(avgRisk);
+
+            var avgKey = pct < 34 ? 'dusuk' : (pct < 67 ? 'normal' : 'yuksek');
+            if (highCount > 0) avgKey = 'yuksek';
+            else if (normalCount > 0 && avgKey === 'dusuk') avgKey = 'normal';
+
+            var label = avgKey === 'yuksek' ? root.getAttribute('data-trans-risk-high') : avgKey === 'normal' ? root.getAttribute('data-trans-risk-normal') : root.getAttribute('data-trans-risk-low');
+            if (riskEl)  riskEl.textContent = label + ' (' + pct + '%)';
+            if (riskDot) riskDot.style.background = dotColor(avgKey);
+        } else {
+            if (riskEl)  riskEl.textContent = root.getAttribute('data-trans-no-data');
+            if (riskDot) riskDot.style.background = 'var(--ft-text-muted)';
+        }
+
+        if (volRows && volRows.length > 0) {
+            var maxVol = 'dusuk';
+            var order = { dusuk: 0, normal: 1, yuksek: 2 };
+            volRows.forEach(function (r) {
+                var k = getProp(r, 'levelKey') || 'normal';
+                if ((order[k] || 0) > (order[maxVol] || 0)) maxVol = k;
+            });
+            var vlabel = maxVol === 'yuksek' ? root.getAttribute('data-trans-vol-high') : maxVol === 'normal' ? root.getAttribute('data-trans-vol-normal') : root.getAttribute('data-trans-vol-low');
+            if (volEl)  volEl.textContent = vlabel;
+            if (volDot) volDot.style.background = dotColor(maxVol);
+        } else {
+            if (volEl)  volEl.textContent = root.getAttribute('data-trans-no-data');
+            if (volDot) volDot.style.background = 'var(--ft-text-muted)';
+        }
+    }
+
+    function renderRisk(rows) {
+        var tb = document.getElementById('ft-fa-risk-body');
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!tb) return;
+        if (!rows || !rows.length) {
+            tb.innerHTML = '<tr><td colspan="5" class="ft-fa-loading">' + root.getAttribute('data-trans-no-records') + '</td></tr>';
+            return;
+        }
+        tb.innerHTML = rows.map(function (r) {
+            var key = getProp(r, 'levelKey') || 'normal';
+            return '<tr>' +
+                '<td style="text-align:center;font-weight:700">' + esc(fmtSym(getProp(r, 'symbol'))) + '</td>' +
+                '<td style="text-align:center">' + renderRiskPct(getProp(r, 'riskScore')) + '</td>' +
+                '<td style="text-align:center"><span class="ft-fa-badge ' + badgeClass(key) + '">' + esc(levelLabel(root, key)) + '</span></td>' +
+                '<td style="text-align:center;max-width:300px;font-size:0.82rem">' + esc(localizedByLevel(root, 'risk-summary', key, getProp(r, 'summaryWhat'))) + '</td>' +
+                '<td style="text-align:center;font-size:0.82rem;max-width:280px">' + esc(localizedByLevel(root, 'risk-action', key, getProp(r, 'recommendedAction'))) + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function renderVol(rows) {
+        var tb = document.getElementById('ft-fa-vol-body');
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!tb) return;
+        if (!rows || !rows.length) {
+            tb.innerHTML = '<tr><td colspan="5" class="ft-fa-loading">' + root.getAttribute('data-trans-no-records') + '</td></tr>';
+            return;
+        }
+        tb.innerHTML = rows.map(function (r) {
+            var key = getProp(r, 'levelKey') || 'normal';
+            return '<tr>' +
+                '<td style="text-align:center;font-weight:700">' + esc(fmtSym(getProp(r, 'symbol'))) + '</td>' +
+                '<td style="text-align:center;font-family:monospace">' + esc(Number(getProp(r, 'volatilityValue')).toFixed(4).replace('.', ',')) + '</td>' +
+                '<td style="text-align:center"><span class="ft-fa-badge ' + badgeClass(key) + '">' + esc(levelLabel(root, key)) + '</span></td>' +
+                '<td style="text-align:center;max-width:300px;font-size:0.82rem">' + esc(localizedByLevel(root, 'vol-summary', key, getProp(r, 'summaryWhat'))) + '</td>' +
+                '<td style="text-align:center;font-size:0.82rem;max-width:280px">' + esc(localizedByLevel(root, 'vol-action', key, getProp(r, 'recommendedAction'))) + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function wireTabs() {
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!root) return;
+        var tabs = root.querySelectorAll('.ft-fa-tab');
+        var panels = root.querySelectorAll('[data-ft-panel]');
+        tabs.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var sub = btn.getAttribute('data-ft-sub');
+                tabs.forEach(function (t) { t.classList.remove('ft-fa-active'); });
+                btn.classList.add('ft-fa-active');
+                panels.forEach(function (p) {
+                    var name = p.getAttribute('data-ft-panel');
+                    if (name === sub) p.classList.remove('hidden');
+                    else p.classList.add('hidden');
+                });
+            });
+        });
+    }
+
+    var inflight = false;
+    var refreshInterval = null;
+
+    function startAutoRefresh() {
+        if (refreshInterval) return;
+        refreshInterval = setInterval(function() {
+            var root = document.getElementById('ft-financial-analytics-wrap');
+            if (!root) { stopAutoRefresh(); return; }
+            
+            // Eğer panel gizli değilse veriyi çek
+            var container = root.closest('section') || root.parentElement;
+            if (container && !container.classList.contains('hidden')) {
+                loadData(true); // true: cache'i pas geç, zorunlu yükle
+            } else {
+                // Eğer panel gizlendiyse (başka sekmeye geçildiyse) durdur
+                stopAutoRefresh();
+            }
+        }, 3000); // 3 saniyede bir güncelle
+    }
+
+    function stopAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    }
+
+    // Sayfa ilk yuklendiginde veya admin panelinde ilgili section gorunur gorunmez veriyi yukle
+    function loadData(force) {
+        if (!force && loaded && cache) {
+            var r  = cache.risk       || cache.Risk       || [];
+            var v  = cache.volatility || cache.Volatility || [];
+            var an = cache.anomalies  || cache.Anomalies  || [];
+            renderRisk(r);
+            renderVol(v);
+            updateSummaryCards(r, v);
+            renderAnomalySection(an, r, v);   // anomali bölümü de cache'ten güncellenir
+            startAutoRefresh();               // sekme geçişinde yeniden başlat
+            return;
+        }
+        if (inflight) return;
+        inflight = true;
+        fetch(basePath + '?handler=FinancialAnalyticsData', { cache: 'no-store' })
+            .then(function (r) {
+                return r.json().then(function (j) {
+                    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+                    return j;
+                });
+            })
+
+            //Veri geldikten sonra tabloları ve özet kartlarını güncelle, ayrıca cache'e kaydet
+            .then(function (j) {
+                cache = j;
+                loaded = true;
+                var riskData   = j.risk        || j.Risk        || [];
+                var volData    = j.volatility  || j.Volatility  || [];
+                var arbData    = j.arbitrage   || j.Arbitrage;           // önce tanımla
+                var anomalyData = j.anomalies  || j.Anomalies  || [];
+
+                renderRisk(riskData);
+                renderVol(volData);
+                updateSummaryCards(riskData, volData);
+
+                // Anomali kartlarını ve metriklerini gerçek veriden render et
+                renderAnomalySection(anomalyData, riskData, volData);
+
+                // Arbitraj verisi snapshot'a dahil edilmişse hemen render et (ayrı istek gerekmez).
+                if (arbData && !arbInitialized) {
+                    arbInitialized = true;
+                    renderArbitrage(arbData);   // lastArbSnap'ı günceller + syncAnomalyArbMetric çağırır
+                    startArbAutoRefresh();
+                } else if (arbData) {
+                    // Zaten başlatılmış ama yeni snapshot geldi — lastArbSnap'ı güncelle
+                    lastArbSnap = arbData;
+                    syncAnomalyArbMetric();
+                }
+
+                // Veri başarıyla yüklendiyse otomatik yenilemeyi başlat
+                startAutoRefresh();
+            })
+
+            //Eger veri alma veya isleme sirasinda bir hata olursa, console'a logla ve tablolarin yerine hata mesajı goster
+            .catch(function (err) {
+                console.error('[FinancialAnalytics] Veri alinamadi:', err);
+                var root = document.getElementById('ft-financial-analytics-wrap');
+                var msg = err && err.message ? err.message : 'Bilinmeyen hata';
+                var e = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-danger)">' + root.getAttribute('data-trans-error-loading').replace('{0}', msg) + '</td></tr>';
+                var r1 = document.getElementById('ft-fa-risk-body');
+                var r2 = document.getElementById('ft-fa-vol-body');
+                if (r1) r1.innerHTML = e;
+                if (r2) r2.innerHTML = e;
+                
+                // Hata olsa da periyodik denemeye devam et
+                startAutoRefresh();
+            })
+            .finally(function () { inflight = false; });
+    }
+
+    // Anomali panelinin tüm bölümlerini gerçek veriden render eder
+    function renderAnomalySection(cards, riskData, volData) {
+        riskData = riskData || [];
+        volData  = volData  || [];
+        var root = document.getElementById('ft-financial-analytics-wrap');
+
+        // ── 1) Uyarı Kartları ──────────────────────────────────────────
+        var container = document.getElementById('ft-ano-alert-cards');
+        if (container) {
+            if (!cards || cards.length === 0) {
+                container.innerHTML =
+                    '<div style="grid-column:1/-1;text-align:center;color:var(--ft-text-muted);padding:2.5rem 1rem;font-size:0.85rem">' +
+                    '<span class="material-symbols-outlined" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.4">check_circle</span>' +
+                    root.getAttribute('data-trans-no-anomalies') +
+                    '</div>';
+            } else {
+                var iconMap  = { risk: 'warning', vol: 'error', arb: 'check_circle' };
+                var classMap = { risk: 'risk',    vol: 'limit', arb: 'arb'          };
+                var html = '';
+                cards.forEach(function (c) {
+                    var type = (getProp(c, 'type') || 'risk').toLowerCase();
+                    var icon = iconMap[type]  || 'info';
+                    var cls  = classMap[type] || 'risk';
+                    html +=
+                        '<div class="ft-ano-card ' + cls + '">' +
+                          '<div class="ft-ano-card-header">' +
+                            '<span class="material-symbols-outlined ft-ano-card-icon">' + esc(icon) + '</span>' +
+                            '<span class="ft-ano-card-title">' + esc(getProp(c, 'title')       || '') + '</span>' +
+                          '</div>' +
+                          '<div class="ft-ano-card-symbol">' + esc(getProp(c, 'symbol')      || '') + '</div>' +
+                          '<div class="ft-ano-card-desc">'   + esc(getProp(c, 'description') || '') + '</div>' +
+                          '<div class="ft-ano-card-footer">' +
+                            '<span class="ft-ano-card-time">'  + esc(getProp(c, 'time')  || '') + '</span>' +
+                            '<span class="ft-ano-card-badge">' + esc(getProp(c, 'badge') || '') + '</span>' +
+                          '</div>' +
+                        '</div>';
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        // ── 2) Risk Ortalaması ─────────────────────────────────────────
+        var riskAvg = 0;
+        if (riskData.length > 0) {
+            riskData.forEach(function (r) { riskAvg += (getProp(r, 'riskScore') || 0); });
+            riskAvg = Math.round(riskAvg / riskData.length);
+        }
+        var riskAvgKey   = riskAvg < 34 ? 'dusuk' : (riskAvg < 67 ? 'normal' : 'yuksek');
+        var riskAvgLabel = riskAvg < 34 ? root.getAttribute('data-trans-risk-low') : (riskAvg < 67 ? root.getAttribute('data-trans-risk-normal') : root.getAttribute('data-trans-risk-high'));
+        var elRisk = document.getElementById('ft-ano-m-risk');
+        var elRiskBadge = document.getElementById('ft-ano-m-risk-badge');
+        if (elRisk) elRisk.textContent = riskAvg;
+        if (elRiskBadge) { elRiskBadge.textContent = riskAvgLabel; elRiskBadge.className = 'ft-ano-metric-badge ' + badgeClass(riskAvgKey); }
+
+        // ── 3) Yüksek Volatilite Sayısı ───────────────────────────────
+        var highVolCount = volData.filter(function (v) { return getProp(v, 'levelKey') === 'yuksek'; }).length;
+        var elVol = document.getElementById('ft-ano-m-vol');
+        var elVolBadge = document.getElementById('ft-ano-m-vol-badge');
+        if (elVol) elVol.textContent = highVolCount;
+        if (elVolBadge) elVolBadge.className = 'ft-ano-metric-badge ' + (highVolCount > 0 ? 'ft-fa-badge-yuksek' : 'ft-fa-badge-dusuk');
+
+        // ── 4) Yüksek Riskli Sembol Sayısı ────────────────────────────
+        var highRiskCount = riskData.filter(function (r) { return getProp(r, 'levelKey') === 'yuksek'; }).length;
+        var elHR = document.getElementById('ft-ano-m-highrisk');
+        var elHRBadge = document.getElementById('ft-ano-m-highrisk-badge');
+        if (elHR) elHR.textContent = highRiskCount;
+        if (elHRBadge) elHRBadge.className = 'ft-ano-metric-badge ' + (highRiskCount > 0 ? 'ft-fa-badge-yuksek' : 'ft-fa-badge-dusuk');
+
+        // ── 5) Genel Piyasa Özeti ──────────────────────────────────────
+        var summaryEl = document.getElementById('ft-ano-market-summary');
+        if (summaryEl) {
+            var parts = [];
+            if (highRiskCount > 0) {
+                var highRiskSyms = riskData
+                    .filter(function (r) { return getProp(r, 'levelKey') === 'yuksek'; })
+                    .map(function (r) { return getProp(r, 'symbol') || ''; }).join(', ');
+                parts.push(root.getAttribute('data-trans-risk-level-high').replace('{0}', highRiskCount).replace('{1}', highRiskSyms));
+            }
+            if (highVolCount > 0) {
+                var highVolSyms = volData
+                    .filter(function (v) { return getProp(v, 'levelKey') === 'yuksek'; })
+                    .map(function (v) { return getProp(v, 'symbol') || ''; }).join(', ');
+                parts.push(root.getAttribute('data-trans-high-volatility').replace('{0}', highVolSyms));
+            }
+            summaryEl.textContent = parts.length > 0
+                ? parts.join(' ')
+                : root.getAttribute('data-trans-all-normal');
+        }
+
+        // ── 6) Üst özet kart — Anomali Durumu ─────────────────────────
+        var svAno  = document.getElementById('ft-fa-sv-ano');
+        var dotAno = document.getElementById('ft-fa-dot-ano');
+        var totalAnomalies = highRiskCount + highVolCount;
+        if (svAno)  svAno.textContent  = totalAnomalies > 0 ? root.getAttribute('data-trans-anomalies-detected').replace('{0}', totalAnomalies) : root.getAttribute('data-trans-no-anomalies-detected');
+        if (dotAno) dotAno.style.background = totalAnomalies > 0 ? 'var(--ft-danger)' : 'var(--ft-text-muted)';
+
+        // ── 7) Arbitraj sayısı — lastArbSnap üzerinden güncelle ───────
+        syncAnomalyArbMetric();
+    }
+
+    //Sayfa yüklendiğinde tabları çalışır hale getir
+    wireTabs();
+
+    window['ftLoadFinancialAnalytics'] = function () {
+        loadData(true); // Sekmeye her tıklandığında taze veri çek
+    };
+
+    // Sayfa ilk açıldığında veya yenilendiğinde (F5) otomatik yükleme kontrolü
+    document.addEventListener('DOMContentLoaded', function () {
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!root) return;
+
+        var container = root.closest('section') || root.parentElement;
+        if (container && !container.classList.contains('hidden')) {
+            loadData(true);
+        }
+    });
+
+    // ────────────────────────────────────────────────────────────────────
+    // ARBITRAJ BÖLÜMÜ
+    // ────────────────────────────────────────────────────────────────────
+    // Snapshot backend'den alinir (Instrument + latest price + default USDTRY secili rows).
+    // Kullanici dropdown'u degistirince "handler=ArbitrageCompute" cagirilir, sadece ilgili satir guncellenir.
+    // Her 10 sn'de bir, mevcut secimler korunarak tum satirlar icin compute yeniden calistirilir (taze fiyat).
+    var arbSelections = {}; // mainSymbol -> counterSymbol
+    var arbRefreshTimer = null;
+    var arbInflight = false;
+    var arbInitialized = false; // FinancialAnalyticsData ile zaten yüklendiyse true
+    var lastArbSnap = null;    // Son arbitraj snapshot — anomali metriği için saklanır
+
+    function fmtNum(v, digits) {
+        if (v === null || v === undefined || isNaN(v)) return '—';
+        return Number(v).toFixed(digits != null ? digits : 5).replace('.', ',');
+    }
+    function fmtPct(v) {
+        if (v === null || v === undefined || isNaN(v)) return '—';
+        var s = Number(v).toFixed(4).replace('.', ',') + '%';
+        return (v > 0 ? '+' : '') + s;
+    }
+    function signalBadge(key, label) {
+        var cls = 'ft-arb-badge-none';
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (key === 'sell') cls = 'ft-arb-badge-sell';
+        else if (key === 'buy') cls = 'ft-arb-badge-buy';
+        return '<span class="ft-fa-badge ' + cls + '">' + esc(localizedSignal(root, key, label)) + '</span>';
+    }
+    function diffColor(v) {
+        if (v === null || v === undefined || isNaN(v)) return 'var(--ft-text-muted)';
+        if (v > 0) return 'var(--ft-secondary)'; // Pozitif -> Yeşil
+        if (v < 0) return 'var(--ft-danger)';    // Negatif -> Kırmızı
+        return 'var(--ft-text-muted)';
+    }
+
+    function buildCounterOptions(available, selected) {
+        if (!available || !available.length)
+            return '<option value="">—</option>';
+        return available.map(function (s) {
+            var sel = (s === selected) ? ' selected' : '';
+            return '<option value="' + esc(s) + '"' + sel + '>' + esc(fmtSym(s)) + '</option>';
+        }).join('');
+    }
+
+    function derivedLabel(row) {
+        // Türetilen parite sembolunu küçük, soluk bir etiket olarak döndürür.
+        // Beklenen ve Piyasa sütunlarının hangi parite için olduğunu gösterir.
+        var sym = getProp(row, 'derivedSymbol') || '';
+        if (!sym) return '';
+        return '<div style="font-size:0.68rem;color:var(--ft-text-muted);margin-top:2px;letter-spacing:0.03em">'
+            + esc(fmtSym(sym)) + '</div>';
+    }
+
+    function renderArbRow(row) {
+        var mainSym = getProp(row, 'mainSymbol');
+        var counterSym = getProp(row, 'counterSymbol');
+        var hasCounter = !!counterSym;
+        var derived = derivedLabel(row);
+        var select = '<select class="ft-arb-select" data-arb-main="' + esc(mainSym) + '"' +
+            (hasCounter ? '' : ' disabled') + '>' +
+            buildCounterOptions(getProp(row, 'availableCounters'), counterSym) +
+            '</select>';
+
+        var derSym = getProp(row, 'derivedSymbol');
+        var hintHtml = (hasCounter && derSym)
+            ? '<div class="ft-arb-derived-hint" style="font-size:0.68rem;color:var(--ft-text-muted);margin-top:2px;text-align:center">→ ' + esc(fmtSym(derSym)) + '</div>'
+            : '<div class="ft-arb-derived-hint" style="font-size:0.68rem;color:var(--ft-text-muted);margin-top:2px;text-align:center"></div>';
+
+        var diff = getProp(row, 'diffPercent');
+        return '<tr data-arb-row="' + esc(mainSym) + '">' +
+            '<td style="text-align:center;font-weight:700">' + esc(fmtSym(mainSym)) + '</td>' +
+            '<td style="text-align:center">' + select + hintHtml + '</td>' +
+            '<td data-arb-field="expected" style="text-align:center;font-family:monospace;font-size:0.85rem">' + fmtNum(getProp(row, 'expectedPrice')) + derived + '</td>' +
+            '<td data-arb-field="market" style="text-align:center;font-family:monospace;font-size:0.85rem">' + fmtNum(getProp(row, 'marketPrice')) + derived + '</td>' +
+            '<td data-arb-field="diff" style="text-align:center;font-family:monospace;font-size:0.85rem;color:' + diffColor(diff) + '">' + fmtPct(diff) + '</td>' +
+            '<td data-arb-field="signal" style="text-align:center">' + signalBadge(getProp(row, 'signalKey'), getProp(row, 'signal')) + '</td>' +
+            '</tr>';
+    }
+
+    function updateArbRow(row) {
+        var mainSym = getProp(row, 'mainSymbol');
+        var counterSym = getProp(row, 'counterSymbol');
+        var tr = document.querySelector('tr[data-arb-row="' + mainSym + '"]');
+        if (!tr) return;
+
+        // Karsi parite icin dropdown'daki secim sunucudan dogrulanmis hali ile guncellenir (fallback olmus olabilir).
+        var sel = tr.querySelector('select.ft-arb-select');
+        if (sel && sel.value !== counterSym) sel.value = counterSym || '';
+
+        // Türetilen parite etiketini güncelle
+        var derived = derivedLabel(row);
+        var derSym = getProp(row, 'derivedSymbol');
+        var derivedText = derSym ? fmtSym(derSym) : '';
+        var selParent = sel ? sel.parentElement : null;
+        if (selParent) {
+            var hint = selParent.querySelector('.ft-arb-derived-hint');
+            if (hint) hint.textContent = derivedText ? '→ ' + derivedText : '';
+        }
+
+        var exp = tr.querySelector('[data-arb-field="expected"]');
+        var mkt = tr.querySelector('[data-arb-field="market"]');
+        var dif = tr.querySelector('[data-arb-field="diff"]');
+        var sig = tr.querySelector('[data-arb-field="signal"]');
+
+        var expectedPrice = getProp(row, 'expectedPrice');
+        var marketPrice = getProp(row, 'marketPrice');
+        var diffPercent = getProp(row, 'diffPercent');
+
+        if (exp) { exp.innerHTML = fmtNum(expectedPrice) + derived; }
+        if (mkt) { mkt.innerHTML = fmtNum(marketPrice) + derived; }
+        if (dif) {
+            dif.textContent = fmtPct(diffPercent);
+            dif.style.color = diffColor(diffPercent);
+        }
+        if (sig) sig.innerHTML = signalBadge(getProp(row, 'signalKey'), getProp(row, 'signal'));
+
+        // lastArbSnap içindeki ilgili satırı da güncelle ki syncAnomalyArbMetric doğru sayısın
+        if (lastArbSnap) {
+            var snapRows = getProp(lastArbSnap, 'rows') || [];
+            var mainSym2 = getProp(row, 'mainSymbol');
+            for (var i = 0; i < snapRows.length; i++) {
+                if (getProp(snapRows[i], 'mainSymbol') === mainSym2) {
+                    snapRows[i] = row;
+                    break;
+                }
+            }
+        }
+        syncAnomalyArbMetric();
+    }
+
+    // Arbitraj tablosundaki aktif sinyal sayısını okuyup anomali metriğini ve özet kartını günceller
+    function syncAnomalyArbMetric() {
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        var rows = lastArbSnap ? (getProp(lastArbSnap, 'rows') || []) : [];
+        var count = rows.filter(function (r) {
+            var sk = getProp(r, 'signalKey');
+            return sk && sk !== 'none';
+        }).length;
+
+        // Anomali paneli alt metrik
+        var elArb      = document.getElementById('ft-ano-m-arb');
+        var elArbBadge = document.getElementById('ft-ano-m-arb-badge');
+        if (elArb) elArb.textContent = count;
+        if (elArbBadge) {
+            elArbBadge.textContent = count > 0 ? root.getAttribute('data-trans-active') : root.getAttribute('data-trans-normal');
+            elArbBadge.className = 'ft-ano-metric-badge ' + (count > 0 ? 'ft-fa-badge-dusuk' : 'ft-fa-badge-normal');
+        }
+
+        // Üst özet kart — Arbitraj Durumu
+        var svArb  = document.getElementById('ft-fa-sv-arb');
+        var dotArb = document.getElementById('ft-fa-dot-arb');
+        if (svArb)  svArb.textContent = count > 0 ? root.getAttribute('data-trans-opportunities-exist').replace('{0}', count) : root.getAttribute('data-trans-no-opportunity');
+        if (dotArb) dotArb.style.background = count > 0 ? 'var(--ft-secondary)' : 'var(--ft-text-muted)';
+    }
+
+    function renderArbitrage(snap) {
+        lastArbSnap = snap;
+        var tb = document.getElementById('ft-arb-body');
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!tb) return;
+        var rows = getProp(snap, 'rows') || [];
+        if (!rows.length) {
+            tb.innerHTML = '<tr><td colspan="6" class="ft-fa-loading">' + root.getAttribute('data-trans-instrument-not-found') + '</td></tr>';
+            syncAnomalyArbMetric();
+            return;
+        }
+        // Mevcut secimleri snapshot'tan seed et (yalnizca daha onceden secilmemis olanlari).
+        arbSelections = {};
+        rows.forEach(function (r) {
+            var m = getProp(r, 'mainSymbol');
+            var c = getProp(r, 'counterSymbol');
+            if (m) arbSelections[m] = c || '';
+        });
+        tb.innerHTML = rows.map(renderArbRow).join('');
+        syncAnomalyArbMetric();
+    }
+
+    function loadArbitrageSnapshot() {
+        if (arbInflight) return;
+        arbInflight = true;
+        var tb = document.getElementById('ft-arb-body');
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (tb) tb.innerHTML = '<tr><td colspan="6" class="ft-fa-loading">' + root.getAttribute('data-trans-loading') + '</td></tr>';
+        fetch(basePath + '?handler=ArbitrageSnapshot&t=' + Date.now(), { cache: 'no-store' })
+            .then(function (r) {
+                return r.json().then(function (j) {
+                    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+                    return j;
+                });
+            })
+            .then(function (snap) { renderArbitrage(snap); startArbAutoRefresh(); })
+            .catch(function (err) {
+                console.error('[Arbitrage] Snapshot hatasi:', err);
+                var root = document.getElementById('ft-financial-analytics-wrap');
+                if (tb) tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--ft-danger)">' + root.getAttribute('data-trans-error-loading').replace('{0}', esc(err.message || 'Bilinmeyen hata')) + '</td></tr>';
+            })
+            .finally(function () { arbInflight = false; });
+    }
+
+    function refreshArbitrageRows() {
+        // Tum mevcut secimler icin tek tek compute cagirir. Az sayida sembol oldugu icin yeterince ucuz.
+        var mains = Object.keys(arbSelections);
+        if (!mains.length) return;
+        mains.forEach(function (main) {
+            var counter = arbSelections[main] || '';
+            fetch(basePath + '?handler=ArbitrageCompute&main=' + encodeURIComponent(main) + '&counter=' + encodeURIComponent(counter) + '&t=' + Date.now(), { cache: 'no-store' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (row) {
+                    if (!row) return;
+                    var m = getProp(row, 'mainSymbol');
+                    if (!m) return;
+                    // Kullanici istek gonderildikten sonra secimi degistirdiyse eski cevabi yoksay.
+                    if (arbSelections[m] !== counter) return;
+                    arbSelections[m] = getProp(row, 'counterSymbol') || '';
+                    updateArbRow(row);
+                })
+                .catch(function (err) { console.warn('[Arbitrage] refresh:', main, err); });
+        });
+    }
+
+    //Bu fonksiyon, arbitraj ekranındaki karşı parite (select) değiştirildiğinde çalışır.
+    function onArbSelectChange(e) {
+            var sel = e.target;                                                  //e.target = kullanıcının işlem yaptığı elementtir.
+        if (!sel || !sel.matches('select.ft-arb-select')) return;
+        var main = sel.getAttribute('data-arb-main');
+        var counter = sel.value;
+            arbSelections[main] = counter;                                          //Bu satır kullanıcının yaptığı son seçimi hafızada tutar
+		
+        //anlık hesaplamayı yapar cache kullanmaz, çünkü kullanıcı yeni bir seçim yapmış olabilir ve en güncel sonucu görmek isteyebilir.
+        fetch(basePath + '?handler=ArbitrageCompute&main=' + encodeURIComponent(main) + '&counter=' + encodeURIComponent(counter) + '&t=' + Date.now(), { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (row) {
+                if (!row) return;
+                var m = getProp(row, 'mainSymbol');
+                if (!m) return;
+                if (arbSelections[m] !== counter) return;
+                arbSelections[m] = getProp(row, 'counterSymbol') || '';
+                updateArbRow(row);
+            })
+            .catch(function (err) { console.error('[Arbitrage] compute:', err); });
+    }
+
+    function startArbAutoRefresh() {
+        if (arbRefreshTimer) return;
+        arbRefreshTimer = setInterval(function () {
+            var root = document.getElementById('ft-financial-analytics-wrap');
+            if (!root) { stopArbAutoRefresh(); return; }
+            var container = root.closest('section') || root.parentElement;
+            // Kapsayici sekme gizliyse veya arbitraj alt paneli gizliyse yenileme yapma (kaynak tasarrufu).
+            var arbPanel = root.querySelector('[data-ft-panel="arb"]');
+            var hidden = (container && container.classList.contains('hidden')) || (arbPanel && arbPanel.classList.contains('hidden'));
+            if (hidden) return;
+            refreshArbitrageRows();
+        }, 3000);
+    }
+    function stopArbAutoRefresh() {
+        if (arbRefreshTimer) { clearInterval(arbRefreshTimer); arbRefreshTimer = null; }
+    }
+
+    // Arbitraj tablosunu tek seferlik olay delegasyonu ile dinle (yeni renderdan sonra da calisir).
+    document.addEventListener('change', onArbSelectChange);
+
+    // ────────────────────────────────────────────────────────────────────
+    // AI ASISTAN VE ANOMALI BÖLÜMÜ
+    // ────────────────────────────────────────────────────────────────────
+    
+    window.ftAiAsk = function(question) {
+        var input = document.getElementById('ft-ai-input');
+        if (input) {
+            input.value = question;
+            ftAiSubmit();
+        }
+    };
+
+    window.ftAiSubmit = function() {
+        var input = document.getElementById('ft-ai-input');
+        var btn = document.getElementById('ft-ai-send');
+        var container = document.getElementById('ft-ai-msg-container');
+        
+        var text = (input.value || '').trim();
+        if (!text || (btn && btn.disabled)) return;
+
+        // Kullanıcı mesajını ekle
+        appendAiMessage('user', text);
+        input.value = '';
+        input.style.height = 'auto';
+        
+        if (btn) btn.disabled = true;
+
+        // Backend isteği
+        fetch(basePath + '?handler=AIAsistanYorumla', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: JSON.stringify({ userQuestion: text, selectedSymbol: window.SelectedSymbol || null })
+        })
+        .then(function(r) { return r.ok ? r.json() : r.json().then(function(j){ throw new Error(j.error || 'Error'); }); })
+        .then(function(res) {
+            appendAiMessage('ai', res.responseText || res.ResponseText);
+        })
+        .catch(function(err) {
+            console.error('[AI] Error:', err);
+            var root = document.getElementById('ft-financial-analytics-wrap');
+            appendAiMessage('ai', root.getAttribute('data-trans-ai-error').replace('{0}', err.message));
+        })
+        .finally(function() {
+            if (btn) btn.disabled = false;
+        });
+    };
+
+    function appendAiMessage(type, text) {
+        var container = document.getElementById('ft-ai-msg-container');
+        if (!container) return;
+
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'ft-ai-msg ' + type;
+        
+        // Markdown benzeri basit formatlama (satır sonları)
+        var formatted = esc(text).replace(/\n/g, '<br>');
+        msgDiv.innerHTML = formatted;
+
+        var timeDiv = document.createElement('div');
+        timeDiv.className = 'ft-ai-msg-time';
+        var now = new Date();
+        timeDiv.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        msgDiv.appendChild(timeDiv);
+
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Input alanında Enter'a basınca gönder
+    document.addEventListener('keydown', function(e) {
+        if (e.target && e.target.id === 'ft-ai-input' && e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            ftAiSubmit();
+        }
+    });
+
+    // Otomatik textarea yüksekliği
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.id === 'ft-ai-input') {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+        }
+    });
+
+    // Anomali sekmesine tıklandığında güncelleme zamanını yenile
+    (function wireAnoTab() {
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!root) return;
+        var anoTabBtn = root.querySelector('.ft-fa-tab[data-ft-sub="ano"]');
+        if (!anoTabBtn) return;
+        anoTabBtn.addEventListener('click', function () {
+            var timeSpan = document.getElementById('ft-ano-last-update');
+            if (timeSpan) {
+                var now = new Date();
+                timeSpan.textContent = now.toLocaleTimeString();
+            }
+        });
+
+        // ── Panel Collapse / Expand ──
+        var collapseBtn = document.getElementById('ft-ai-collapse-btn');
+        var panel = document.getElementById('ft-ai-panel');
+        var resizer = document.getElementById('ft-ai-resizer');
+
+        if (collapseBtn && panel) {
+            collapseBtn.addEventListener('click', function () {
+                var isCollapsed = panel.classList.contains('collapsed');
+                if (isCollapsed) {
+                    panel.classList.remove('collapsed');
+                    if (resizer) resizer.classList.remove('panel-hidden');
+                } else {
+                    panel.classList.add('collapsed');
+                    if (resizer) resizer.classList.add('panel-hidden');
+                }
+            });
+        }
+
+        // ── Suggested Questions Accordion ──
+        var suggestHeader = document.getElementById('ft-ai-suggest-header');
+        var suggestBody   = document.getElementById('ft-ai-suggest-body');
+        var suggestChevron = document.getElementById('ft-ai-suggest-chevron');
+
+        if (suggestHeader && suggestBody) {
+            suggestHeader.addEventListener('click', function () {
+                var isOpen = suggestBody.classList.contains('open');
+                if (isOpen) {
+                    suggestBody.classList.remove('open');
+                    if (suggestChevron) suggestChevron.classList.remove('open');
+                } else {
+                    suggestBody.classList.add('open');
+                    if (suggestChevron) suggestChevron.classList.add('open');
+                }
+            });
+        }
+
+        // ── Resize Logic ──
+        if (resizer && panel) {
+            var isResizing = false;
+            resizer.addEventListener('mousedown', function(e) {
+                isResizing = true;
+                resizer.classList.add('resizing');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing) return;
+                
+                var container = root.querySelector('.ft-ano-container');
+                if (!container) return;
+
+                var containerRect = container.getBoundingClientRect();
+                var newWidth = containerRect.right - e.clientX;
+                
+                // Sınırlar (min-max style içinde de var ama js ile kontrol daha sağlıklı)
+                if (newWidth >= 300 && newWidth <= 800) {
+                    panel.style.width = newWidth + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('resizing');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+        }
+    })();
+
+    // Arbitraj sekmesine tiklandiginda:
+    // - Veri FinancialAnalyticsData ile zaten yuklenmediyse snapshot ister (eski yedek yol).
+    // - Zaten yuklenmiş ise sadece auto-refresh'i başlatır.
+    (function wireArbLazyLoad() {
+        var root = document.getElementById('ft-financial-analytics-wrap');
+        if (!root) return;
+        var arbTabBtn = root.querySelector('.ft-fa-tab[data-ft-sub="arb"]');
+        if (!arbTabBtn) return;
+        arbTabBtn.addEventListener('click', function () {
+            if (!arbInitialized) {
+                arbInitialized = true;
+                loadArbitrageSnapshot();
+            } else {
+                startArbAutoRefresh();
+            }
+        });
+    })();
+})();
+</script>

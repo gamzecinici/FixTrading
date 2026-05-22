@@ -1,0 +1,1685 @@
+
+/*
+   Material Symbols ikonlarının Google Translate tarafından çevrilmesini engelle.
+   .notranslate sınıfı ve translate="no" attribute ile birlikte çalışır.
+*/
+*, ::before, ::after {
+    box-sizing: border-box !important;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+}
+.material-symbols-outlined,
+.notranslate {
+    font-variant: normal;
+    /* Tarayıcı çevirisi (Google Translate vb.) bu öğeleri çevirmemeli */
+}
+
+/* 
+   KOYU TEMA DEĞİŞKENLERİ (:root)
+   :root → tüm sayfa için geçerli, en üst düzey CSS kapsayıcısı.
+   Buradaki değişkenler var(--ft-...) şeklinde her yerde kullanılır.
+    */
+:root {
+    /* ── ARKA PLAN RENKLERİ ──
+       Farklı yüzey seviyeleri: low (en koyu) → highest (en açık)
+       Katmanlı derinlik hissi yaratır (kart üstü kart gibi). */
+    --ft-bg:              #0b0e11;  /* Ana sayfa arka planı — en koyu */
+    --ft-surface-low:     #101417;  /* Kart ve tablo arka planı */
+    --ft-surface:         #161a1e;  /* Modal ve orta yüzey */
+    --ft-surface-high:    #1c2024;  /* Input arka planı, yükseltilmiş yüzey */
+    --ft-surface-highest: #22262b;  /* Input focus durumu, en aydınlık yüzey */
+    --ft-bright:          #282d31;  /* Hover durumları için en parlak yüzey */
+
+    --ft-primary:         #69daff;  /* Açık mavi (navbar, aktif sekme, link) */
+    --ft-primary-dim:     #00c0ea;  /* Biraz daha koyu mavi (hover efektleri) */
+    --ft-primary-on:      #003544;  /* Mavi üstüne yazı — koyu lacivert */
+    --ft-secondary:       #00fd93;  /* Parlak yeşil (başarı, artış, canlı gösterge) */
+    --ft-secondary-dim:   #00c874;  /* Koyu yeşil (hover) */
+    --ft-danger:          #ff716b;  /* Kırmızı (hata, silme, düşüş) */
+    --ft-danger-dim:      #ff928b;  /* Açık kırmızı */
+    --ft-warning:         #f59e0b;  /* Amber sarı (uyarı rozeti) */
+
+    /* ── YAZI RENKLERİ ──
+       3 seviyeli hiyerarşi: tam görünür → soluk → çok soluk */
+    --ft-text:            #f8f9fe;  /* Ana metin — neredeyse beyaz */
+    --ft-text-muted:      #a9abaf;  /* İkincil metin — orta gri */
+    --ft-text-faint:      #737679;  /* Üçüncül metin — soluk gri (etiketler, placeholder) */
+
+    /* ── AYIRICI VE KENARLIK ──
+       Yarı saydam beyaz — koyu zeminde hafif görünür çizgiler */
+    --ft-divider:         rgba(255,255,255,0.06);  /* Yatay çizgi ayırıcı */
+    --ft-outline:         rgba(69,72,76,0.6);       /* Input ve buton kenarlığı */
+
+    /* ── ARKAPLAN EFEKTLERİ (Login/Register sayfaları) ── */
+    --ft-chart-opacity:   0.04;              /* Dekoratif grafik görselinin saydamlığı */
+    --ft-chart-blend:     screen;            /* Blend mod: screen → açık piksel birleşimi */
+    --ft-dot:             rgba(255,255,255,0.025); /* Nokta deseni rengi */
+    --ft-blob-from:       rgba(105,218,255,0.05);  /* Merkez ışık hüzmesi başlangıç rengi */
+    --ft-blob-to:         rgba(0,192,234,0.02);    /* Merkez ışık hüzmesi bitiş rengi */
+
+    /* ── KART STİLİ ──
+       ft-card sınıfı bu değişkenleri kullanır */
+    --ft-card-bg:         var(--ft-surface-low);
+    --ft-card-blur:       0px;                       /* Glassmorphism için blur (dark modda CSS ile override edilir) */
+    --ft-card-border:     rgba(255,255,255,0.05);    /* Kartın çok ince şeffaf kenarlığı */
+    --ft-card-shadow:     0 4px 24px rgba(0,0,0,0.4); /* Derinlik gölgesi */
+    --ft-card-glow:       none;
+
+    /* ── INPUT ALANI STİLİ ── */
+    --ft-input-bg:           var(--ft-surface-high);
+    --ft-input-bg-focus:     var(--ft-surface-highest); /* Tıklandığında biraz daha açılır */
+    --ft-input-border:       rgba(69,72,76,0.6);
+    --ft-input-ring:         rgba(105,218,255,0.3);     /* Focus halkası (mavi ışıltı) */
+    --ft-autofill-bg:        #0a0e17;    /* Tarayıcı otomatik doldurma arka planı */
+    --ft-autofill-text:      #f8f9fe;   /* Tarayıcı otomatik doldurma metin rengi */
+    --ft-placeholder:        #737679;   /* Placeholder metin rengi */
+
+    /* ── NAVBAR ── */
+    --ft-nav-bg:     #101417;                    /* Navbar arka planı */
+    --ft-nav-border: rgba(255,255,255,0.05);     /* Navbar alt çizgisi */
+
+    /* ── TEMA BUTONUNUN STİLİ (sağ üst köşedeki buton) ── */
+    --ft-toggle-bg:         var(--ft-surface-high);
+    --ft-toggle-border:     rgba(255,255,255,0.08);
+    --ft-toggle-text:       #a9abaf;
+    --ft-toggle-hover-bg:   rgba(105,218,255,0.08);   /* Hover'da hafif mavi */
+    --ft-toggle-shadow:     0 2px 8px rgba(0,0,0,0.4);
+
+    /* ── ANA BUTON (ft-btn-primary) GRADİENT VE RENK ──
+       gradient arka plan → sağa doğru kayarak hover animasyonu yapar */
+    --ft-btn-gradient:        linear-gradient(110deg,#69daff 0%,#00c0ea 40%,#0099bb 70%,#69daff 100%);
+    --ft-btn-text:            #003544;                      /* Buton üstündeki yazı rengi */
+    --ft-btn-glow:            rgba(105,218,255,0.2);        /* Normal gölge */
+    --ft-btn-glow-hover:      rgba(105,218,255,0.4);        /* Hover gölgesi (daha parlak) */
+
+    /* Renkli linkler */
+    --ft-link-accent:         #69daff;
+    --ft-link-accent-hover:   #00cffc;
+
+    /* ── LOGIN/REGISTER SAYFASI ARKA PLAN DEGRADESİ ──
+       ft-bg-mesh sınıfında kullanılır: sol üstte mesh-a, sağ altta mesh-b */
+    --ft-mesh-a: #13192e;  /* Koyu lacivert leke */
+    --ft-mesh-b: #070b14;  /* Daha koyu lacivert leke */
+
+    /* ── GLOBAL FİNANS DEKOR ARKAPLAN KATMANLARI ──
+       Beğendiğiniz karesel/defterimsi ızgara yapısı ve canlı gradyanlar. */
+    --ft-finbg-base:
+        radial-gradient(68rem 36rem at 10% -10%, rgba(105,218,255,0.18), transparent 67%),
+        radial-gradient(64rem 32rem at 92% 112%, rgba(0,253,147,0.12), transparent 66%),
+        linear-gradient(130deg, rgba(105,218,255,0.05) 0%, transparent 60%),
+        /* Belirgin Karesel Izgara (Defter Dokusu) */
+        repeating-linear-gradient(0deg, transparent, transparent 49px, var(--ft-grid-color) 50px),
+        repeating-linear-gradient(90deg, transparent, transparent 49px, var(--ft-grid-color) 50px);
+
+    --ft-grid-color: rgba(105, 218, 255, 0.22); /* Dark modda iyice belirgin olması için artırıldı */
+    --ft-finbg-focus: var(--ft-finbg-base);
+}
+
+/* Giriş ve Kayıt ekranlarında ızgaranın daha net olması için özel ayar */
+.ft-auth-page {
+    --ft-grid-color: rgba(105, 218, 255, 0.35) !important;
+}
+ 
+
+/* 
+   AÇIK TEMA DEĞİŞKENLERİ
+   [data-theme="light"] → <html data-theme="light"> olunca aktif.
+   Koyu tema değişkenlerinin üzerine yazar, sınıflar aynı kalır.
+    */
+[data-theme="light"] {
+    /* Açık, beyazımsı arka planlar */
+    --ft-bg:              #f4f7fb;
+    --ft-surface-low:     #ffffff;
+    --ft-surface:         #f4f7fb;
+    --ft-surface-high:    #edf1f7;
+    --ft-surface-highest: #e2e8f0;
+    --ft-bright:          #ffffff;
+
+    /* Açık temada renkler daha koyu/doygun — beyaz üstünde okunabilmeli */
+    --ft-primary:         #006880;   /* Koyu teal (mavi-yeşil) */
+    --ft-primary-dim:     #004a5d;
+    --ft-primary-on:      #ffffff;   /* Mavi üstüne beyaz yazı */
+    --ft-secondary:       #006d3c;   /* Koyu yeşil */
+    --ft-secondary-dim:   #004d29;
+    --ft-danger:          #b3261e;   /* Koyu kırmızı */
+    --ft-danger-dim:      #8c1d18;
+    --ft-warning:         #92400e;   /* Koyu turuncu */
+
+    /* Açık tema metin renkleri — koyu tonda */
+    --ft-text:            #1a1c1e;
+    --ft-text-muted:      #44474f;
+    --ft-text-faint:      #737679;
+
+    /* Açık tema kenarlık/çizgiler — görünür gri tonlar */
+    --ft-divider:         #e2e8f0;
+    --ft-outline:         #c9cdd4;
+
+    /* Arkaplan efektleri açık temada çok belirgin olmasın */
+    --ft-chart-opacity:   0.03;
+    --ft-chart-blend:     multiply;  /* multiply → piksel renkleri çarpar, karartır (açık zeminde daha doğal) */
+    --ft-dot:             rgba(0,104,128,0.04);
+    --ft-blob-from:       rgba(0,104,128,0.04);
+    --ft-blob-to:         rgba(0,104,128,0.01);
+
+    /* Açık tema kartlar beyaz arka plan */
+    --ft-card-bg:         #ffffff;
+    --ft-card-blur:       0px;
+    --ft-card-border:     #e2e8f0;
+    --ft-card-shadow:     0 2px 12px rgba(0,0,0,0.06);
+    --ft-card-glow:       none;
+
+    /* Açık tema input'lar tamamen beyaz */
+    --ft-input-bg:        #ffffff;
+    --ft-input-bg-focus:  #ffffff;
+    --ft-input-border:    #d1d5db;
+    --ft-input-ring:      rgba(0,104,128,0.2);
+    --ft-autofill-bg:     #f4f7fb;
+    --ft-autofill-text:   #1a1c1e;
+    --ft-placeholder:     #9ca3af;
+
+    --ft-nav-bg:          #ffffff;
+    --ft-nav-border:      #e2e8f0;
+
+    /* Açık tema toggle butonu */
+    --ft-toggle-bg:       #f4f7fb;
+    --ft-toggle-border:   #d1d5db;
+    --ft-toggle-text:     #44474f;
+    --ft-toggle-hover-bg: rgba(0,104,128,0.06);
+    --ft-toggle-shadow:   0 2px 8px rgba(0,0,0,0.08);
+
+    /* Açık tema buton gradientleri koyu renkte */
+    --ft-btn-gradient:        linear-gradient(110deg,#006880 0%,#004a5d 40%,#003544 70%,#006880 100%);
+    --ft-btn-text:            #ffffff;
+    --ft-btn-glow:            rgba(0,104,128,0.2);
+    --ft-btn-glow-hover:      rgba(0,104,128,0.35);
+    --ft-link-accent:         #006880;
+    --ft-link-accent-hover:   #004a5d;
+
+    /* Açık tema mesh renkleri — mavi tonlu açık zemin */
+    --ft-mesh-a: #e4ecfa;
+    --ft-mesh-b: #dce8ff;
+
+    --ft-finbg-base:
+        radial-gradient(64rem 34rem at 10% -10%, rgba(0,104,128,0.12), transparent 67%),
+        radial-gradient(58rem 30rem at 92% 114%, rgba(0,104,128,0.10), transparent 66%),
+        linear-gradient(130deg, rgba(0,104,128,0.04) 0%, transparent 62%),
+        /* Belirgin Karesel Izgara (Defter Dokusu) */
+        repeating-linear-gradient(0deg, transparent, transparent 49px, var(--ft-grid-color) 50px),
+        repeating-linear-gradient(90deg, transparent, transparent 49px, var(--ft-grid-color) 50px);
+
+    --ft-grid-color: rgba(0, 104, 128, 0.08);
+    --ft-finbg-focus: var(--ft-finbg-base);
+}
+
+/* 
+   PAYLAŞILAN BILEŞENLER
+   Login, Register ve Admin sayfalarında ortak kullanılan stiller.
+    */
+
+/* Tailwind Fallbacks: Tailwind yüklenemezse bile temel layout bozulmasın */
+.overflow-x-hidden { overflow-x: hidden !important; }
+.overflow-x-auto { overflow-x: auto !important; }
+.flex { display: flex !important; }
+.flex-col { flex-direction: column !important; }
+.items-center { align-items: center !important; }
+.items-start { align-items: flex-start !important; }
+.items-end { align-items: flex-end !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.w-full { width: 100% !important; }
+.w-4 { width: 1rem !important; }
+.h-4 { height: 1rem !important; }
+.text-center { text-align: center !important; }
+.relative { position: relative !important; }
+.space-y-2 > .relative { width: 100% !important; }
+.absolute { position: absolute !important; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.right-4 { right: 1rem !important; }
+.left-4 { left: 1rem !important; }
+.top-1\/2 { top: 50% !important; }
+.-translate-y-1\/2 { transform: translateY(-50%) !important; }
+.min-h-screen { min-height: 100vh !important; }
+.min-h-\[500px\] { min-height: 500px !important; }
+.z-10 { z-index: 10 !important; }
+.max-w-\[420px\] { max-width: 420px !important; }
+.max-w-\[430px\] { max-width: 430px !important; }
+.grid { display: grid !important; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+.gap-3 { gap: 0.75rem !important; }
+.gap-8 { gap: 2rem !important; }
+.gap-5 { gap: 1.25rem !important; }
+.gap-6 { gap: 1.5rem !important; }
+@media (min-width: 640px) {
+    .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (min-width: 1024px) {
+    .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    .lg\:col-span-1 { grid-column: span 1 / span 1 !important; }
+    .lg\:col-span-2 { grid-column: span 2 / span 2 !important; }
+    .lg\:col-span-3 { grid-column: span 3 / span 3 !important; }
+}
+.gap-1 { gap: 0.25rem !important; }
+.gap-4 { gap: 1rem !important; }
+.pl-11 { padding-left: 2.75rem !important; }
+.pr-3 { padding-right: 0.75rem !important; }
+.pr-5 { padding-right: 1.25rem !important; }
+.text-\[10px\] { font-size: 10px !important; }
+.text-\[18px\] { font-size: 18px !important; }
+.leading-relaxed { line-height: 1.625 !important; }
+.space-y-2 > * + * { margin-top: 0.5rem !important; }
+.space-y-5 > * + * { margin-top: 1.25rem !important; }
+.space-x-2 > * + * { margin-left: 0.5rem !important; }
+.p-3 { padding: 0.75rem !important; }
+.p-1 { padding: 0.25rem !important; }
+.p-6 { padding: 1.5rem !important; }
+.p-7 { padding: 1.75rem !important; }
+.p-8 { padding: 2rem !important; }
+@media (min-width: 768px) {
+    .md\:p-8 { padding: 2rem !important; }
+}
+.mb-1\.5 { margin-bottom: 0.375rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-7 { margin-bottom: 1.75rem !important; }
+.mb-8 { margin-bottom: 2rem !important; }
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-8 { margin-top: 2rem !important; }
+.pt-1 { padding-top: 0.25rem !important; }
+.pt-6 { padding-top: 1.5rem !important; }
+.py-0\.5 { padding-top: 0.125rem !important; padding-bottom: 0.125rem !important; }
+.px-5 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+.py-3\.5 { padding-top: 0.875rem !important; padding-bottom: 0.875rem !important; }
+.pr-12 { padding-right: 3rem !important; }
+.rounded-xl { border-radius: 0.75rem !important; }
+.rounded-2xl { border-radius: 1rem !important; }
+.rounded { border-radius: 0.25rem !important; }
+.text-sm { font-size: 0.875rem !important; }
+.text-xs { font-size: 0.75rem !important; }
+.text-2xl { font-size: 1.5rem !important; }
+.text-4xl { font-size: 2.25rem !important; }
+.font-bold { font-weight: 700 !important; }
+.font-extrabold { font-weight: 800 !important; }
+.font-semibold { font-weight: 600 !important; }
+.italic { font-style: italic !important; }
+.uppercase { text-transform: uppercase !important; }
+.tracking-tighter { letter-spacing: -0.05em !important; }
+.tracking-widest { letter-spacing: 0.1em !important; }
+
+.font-headline { font-family: 'Manrope', sans-serif !important; }
+.font-body { font-family: 'Inter', sans-serif !important; }
+.font-label { font-family: 'Inter', sans-serif !important; }
+
+.ft-navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 150 !important;
+    height: 84px !important;
+    background: var(--ft-nav-bg) !important;
+    border-bottom: 1px solid var(--ft-nav-border) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 2.25rem !important;
+    backdrop-filter: blur(12px) !important;
+}
+
+.ft-logo {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1.3rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.03em !important;
+    background: linear-gradient(125deg, #69daff 0%, #00c0ea 60%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    margin-right: 2rem !important;
+    flex-shrink: 0 !important;
+}
+
+.ft-nav-links {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.25rem !important;
+    align-items: center !important;
+    margin-right: auto !important;
+    flex-wrap: nowrap !important;
+}
+
+.ft-nav-link {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: var(--ft-text-muted) !important;
+    text-decoration: none !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s !important;
+    white-space: nowrap !important;
+}
+
+.ft-nav-link.active {
+    color: var(--ft-primary) !important;
+    background: rgba(105,218,255,0.10) !important;
+    font-weight: 700 !important;
+}
+
+.ft-navbar-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    border: 1px solid var(--ft-outline) !important;
+    color: var(--ft-text-muted) !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+}
+
+.ft-navbar-toggle:hover {
+    background: rgba(105,218,255,0.08) !important;
+    color: var(--ft-primary) !important;
+}
+
+.ft-market-strip {
+    background: var(--ft-bg) !important;
+    border-bottom: 1px solid var(--ft-nav-border) !important;
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1 !important;
+    width: 100% !important;
+}
+
+.ft-strip-container {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 2.5rem !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.ft-strip-container::-webkit-scrollbar {
+    display: none !important;
+}
+
+.ft-strip-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 130px !important;
+    padding: 0.65rem 1rem !important;
+    background: var(--ft-surface-low) !important;
+    border: 1px solid var(--ft-card-border) !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
+    gap: 0.15rem !important;
+}
+
+.ft-strip-symbol {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.07em !important;
+    text-transform: uppercase !important;
+    color: var(--ft-text-muted) !important;
+}
+
+.ft-strip-price {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    font-family: 'Inter', sans-serif !important;
+    color: var(--ft-text) !important;
+    letter-spacing: -0.02em !important;
+}
+
+.ft-badge-stock {
+    display: none;
+    align-items: center !important;
+    gap: 2px !important;
+    padding: 2px 7px !important;
+    border-radius: 5px !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    margin-left: 4px !important;
+}
+
+.ft-badge-up {
+    display: inline-flex !important;
+    background: rgba(0,253,147,0.1) !important;
+    color: var(--ft-secondary) !important;
+}
+
+.ft-badge-down {
+    display: inline-flex !important;
+    background: rgba(255,113,107,0.1) !important;
+    color: var(--ft-danger) !important;
+}
+
+.ft-table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.ft-table th {
+    padding: 1rem 1.5rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    color: var(--ft-text-faint) !important;
+    border-bottom: 1px solid var(--ft-divider) !important;
+    text-align: left !important;
+}
+
+.ft-table td {
+    padding: 1rem 1.5rem !important;
+    font-size: 0.875rem !important;
+    color: var(--ft-text) !important;
+    border-bottom: 1px solid var(--ft-divider) !important;
+    vertical-align: middle !important;
+    text-align: left !important;
+}
+
+/* .text-center tek başına .ft-table th/td'ye yenilmez (özgüllük); ortalı sütunlar için */
+.ft-table th.text-center,
+.ft-table td.text-center,
+.ft-table th.ft-col-center,
+.ft-table td.ft-col-center {
+    text-align: center !important;
+}
+
+/* Kullanıcı paneli — salt okunur limit tablosu: sayılar başlık altında ortalı */
+.ft-table.ft-table--limits {
+    table-layout: fixed;
+}
+.ft-table.ft-table--limits th:first-child,
+.ft-table.ft-table--limits td:first-child {
+    width: 38%;
+    text-align: center !important;
+}
+
+/* Kullanıcı: canlı fiyat + limit tabloları — sembol dahil tüm sütunlar ortalı */
+.ft-table.ft-table-user th,
+.ft-table.ft-table-user td {
+    text-align: center !important;
+}
+.ft-table.ft-table-user .ft-cell-symbol {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 10px;
+}
+.ft-table.ft-table--limits .ft-cell-symbol {
+    gap: 12px;
+}
+#marketTable.ft-table-user {
+    table-layout: fixed;
+}
+#marketTable.ft-table-user th,
+#marketTable.ft-table-user td {
+    width: 25%;
+}
+.ft-table.ft-table--limits th:nth-child(2),
+.ft-table.ft-table--limits th:nth-child(3),
+.ft-table.ft-table--limits th:nth-child(4),
+.ft-table.ft-table--limits td:nth-child(2),
+.ft-table.ft-table--limits td:nth-child(3),
+.ft-table.ft-table--limits td:nth-child(4) {
+    width: 20.67%;
+    text-align: center !important;
+}
+
+.ft-symbol-box {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    background: rgba(105,218,255,0.08) !important;
+    border: 1px solid rgba(105,218,255,0.15) !important;
+    color: var(--ft-primary) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    flex-shrink: 0 !important;
+}
+
+.ft-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    flex-shrink: 0 !important;
+}
+
+.ft-role-chip {
+    display: inline-block !important;
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    border-radius: 6px !important;
+    padding: 0.2rem 0.55rem !important;
+    background: rgba(105,218,255,0.1) !important;
+    color: var(--ft-primary) !important;
+    border: 1px solid rgba(105,218,255,0.15) !important;
+}
+
+.ft-role-chip.admin {
+    background: rgba(105,218,255,0.1) !important;
+    color: var(--ft-primary) !important;
+    border-color: rgba(105,218,255,0.2) !important;
+}
+
+.ft-role-chip.user {
+    background: rgba(0,253,147,0.08) !important;
+    color: var(--ft-secondary) !important;
+    border-color: rgba(0,253,147,0.15) !important;
+}
+
+.ft-service-card {
+    background: var(--ft-surface-low) !important;
+    border: 1px solid var(--ft-card-border) !important;
+    border-left: 4px solid !important;
+    border-radius: 14px !important;
+    padding: 1.75rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 160px !important;
+    transition: transform .2s, box-shadow .2s !important;
+}
+
+.ft-service-card-ok { border-left-color: var(--ft-secondary) !important; }
+.ft-service-card-bad { border-left-color: var(--ft-danger) !important; }
+
+.ft-btn-primary-sm {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.65rem 1.25rem !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    background: var(--ft-primary) !important;
+    color: var(--ft-primary-on) !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: filter .2s, transform .15s !important;
+}
+
+.ft-btn-secondary {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.55rem 1rem !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    background: var(--ft-surface-high) !important;
+    border: 1px solid var(--ft-outline) !important;
+    color: var(--ft-text-muted) !important;
+    cursor: pointer !important;
+    transition: background .2s, color .2s !important;
+}
+
+.ft-btn-danger {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.55rem 1rem !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    background: rgba(255,113,107,0.1) !important;
+    border: 1px solid rgba(255,113,107,0.2) !important;
+    color: var(--ft-danger) !important;
+    cursor: pointer !important;
+    transition: background .2s !important;
+}
+
+.ft-btn-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    border: 1px solid var(--ft-outline) !important;
+    color: var(--ft-text-muted) !important;
+    cursor: pointer !important;
+    transition: background .2s, color .2s !important;
+}
+
+.ft-section-title {
+    font-size: 2.75rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.03em !important;
+    color: var(--ft-text) !important;
+    line-height: 1.1 !important;
+}
+
+.ft-section-subtitle {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.2em !important;
+    color: var(--ft-primary) !important;
+    margin-bottom: 0.4rem !important;
+}
+
+.ft-history-symbol-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.75rem !important;
+    border-radius: 0.75rem !important;
+    border: 1px solid var(--ft-outline) !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.ft-history-symbol-btn:hover {
+    border-color: var(--ft-primary) !important;
+}
+
+.ft-history-symbol-btn.active {
+    background: rgba(105,218,255,0.1) !important;
+    border-color: var(--ft-primary) !important;
+}
+
+.bb-range-btn {
+    padding: 0.4rem 0.85rem !important;
+    border-radius: 8px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    background: var(--ft-surface-high) !important;
+    border: 1px solid var(--ft-outline) !important;
+    color: var(--ft-text-muted) !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+}
+
+.bb-range-btn:hover {
+    background: var(--ft-bright) !important;
+    color: var(--ft-text) !important;
+}
+
+.bb-range-btn.active {
+    background: var(--ft-primary) !important;
+    color: var(--ft-primary-on) !important;
+    border-color: var(--ft-primary) !important;
+}
+
+.ft-divider {
+    border-top: 1px solid var(--ft-divider) !important;
+}
+
+.ft-status-dot {
+    width: 7px !important;
+    height: 7px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+}
+
+.ft-status-dot.ok {
+    background: var(--ft-secondary) !important;
+    box-shadow: 0 0 6px var(--ft-secondary) !important;
+}
+
+.ft-status-dot.bad {
+    background: var(--ft-danger) !important;
+}
+
+.ft-status-ok { color: var(--ft-secondary) !important; font-weight: 700 !important; }
+.ft-status-bad { color: var(--ft-danger) !important; font-weight: 700 !important; }
+
+.ft-search-box {
+    background: var(--ft-surface-high) !important;
+    border: 1px solid var(--ft-outline) !important;
+    color: var(--ft-text) !important;
+    border-radius: 8px !important;
+    padding: 0.4rem 0.75rem 0.4rem 2.25rem !important;
+    font-size: 0.8rem !important;
+    width: 220px !important;
+    outline: none !important;
+    transition: border-color .2s, box-shadow .2s !important;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+.ft-body.ft-financial-focus {
+    --ft-finbg-active: var(--ft-finbg-focus) !important;
+}
+
+.ft-auth-page {
+    --ft-grid-color: rgba(105, 218, 255, 0.35) !important;
+}
+
+.ft-cell-up { color: var(--ft-secondary) !important; transition: color .4s !important; }
+.ft-cell-down { color: var(--ft-danger) !important; transition: color .4s !important; }
+
+/* ── System Parameters Table Fixes ── */
+.param-view-mode {
+    max-height: 280px !important;
+    max-width: 700px !important;
+    overflow: auto !important;
+    scrollbar-width: thin !important;
+    font-size: 0.75rem !important;
+    line-height: 1.5 !important;
+}
+.param-view-mode::-webkit-scrollbar {
+    width: 6px;
+}
+.param-view-mode::-webkit-scrollbar-thumb {
+    background: var(--ft-outline);
+    border-radius: 10px;
+}
+
+/* ── Material Symbols (Google İkon Seti) ──
+   FILL, wght, GRAD, opsz → ikon kalınlığı ve dolgu ayarları
+   user-select: none → ikonlar yanlışlıkla seçilemesin
+   vertical-align: middle → metin içindeki ikonlar dikey ortada */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+    vertical-align: middle;
+    text-transform: none !important;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+}
+
+/* ── ft-body: <body> için temel stiller ──
+   Tüm sayfalar bu sınıfı kullanır. */
+.ft-body {
+    --ft-finbg-active: var(--ft-finbg-base);
+    background-color: var(--ft-bg);
+    background-image: var(--ft-finbg-active);
+    background-size: cover;
+    background-position: center top;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--ft-text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.ft-body.ft-financial-focus {
+    --ft-finbg-active: var(--ft-finbg-focus);
+}
+
+@media (max-width: 768px) {
+    .ft-body {
+        background-attachment: scroll;
+    }
+}
+
+/* 
+   LOGIN / REGISTER SAYFASI ARKAPLAN EFEKTLERİ
+    */
+
+/* ft-bg-mesh: İki radyal degrade (grafik artık ayrı bir div'de) */
+.ft-bg-mesh {
+    background:
+        radial-gradient(ellipse at 15% 25%, var(--ft-mesh-a) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 75%, var(--ft-mesh-b) 0%, transparent 55%);
+}
+
+/* ft-auth-chart: Arka plandaki bulanık finansal siluet */
+.ft-auth-chart {
+    position: fixed;
+    inset: 0;
+    background: var(--ft-finbg) center top / cover no-repeat;
+    opacity: 0.3; /* Siluetin finansal vibe vermesi için optimize edildi */
+    mix-blend-mode: var(--ft-chart-blend);
+    filter: blur(6px); /* Bir tık daha net olması için blur 10px'ten 6px'e düşürüldü */
+    pointer-events: none;
+    z-index: 0; 
+}
+
+/* Giriş ve Kayıt ekranlarında çizgilerin bir tık daha net olması için özel ayar */
+.ft-auth-page .ft-auth-chart {
+    opacity: 0.45;
+    filter: blur(4px);
+}
+
+/* ft-dot-pattern: 28px aralıklı ince nokta deseni
+   radial-gradient(1px nokta, şeffaf arka) tekrarlanır */
+.ft-dot-pattern {
+    background-image: radial-gradient(var(--ft-dot) 1px, transparent 1px);
+    background-size: 28px 28px;
+}
+
+/* ft-blob: Ortada büyük, yumuşak ışık hüzmesi (animate-pulse ile nefes alır) */
+.ft-blob {
+    background: radial-gradient(ellipse at center,
+        var(--ft-blob-from) 0%, var(--ft-blob-to) 45%, transparent 70%);
+}
+
+/* ft-chart: Dekoratif finansal grafik görseli için stil
+   opacity + mix-blend-mode → arka planla uyumlu, göz yormayan görsel */
+.ft-chart {
+    opacity: var(--ft-chart-opacity);
+    mix-blend-mode: var(--ft-chart-blend);
+    filter: blur(2px);
+}
+
+/* 
+   KART (Glassmorphism)
+   Login ve Register sayfalarındaki form kartı.
+   Dark modda: yarı saydam arka plan + backdrop-filter blur → cam efekti
+   Light modda: düz beyaz arka plan
+    */
+.ft-card {
+    background: var(--ft-card-bg);
+    border: 1px solid var(--ft-card-border);
+    box-shadow: var(--ft-card-shadow);
+    overflow: hidden !important;
+}
+/* Koyu tema için glassmorphism override */
+[data-theme="dark"] .ft-card {
+    background: rgba(22,26,30,0.7);            /* Yarı saydam koyu */
+    backdrop-filter: blur(20px);              /* Arka plandaki nesneleri bulanıklaştır */
+    -webkit-backdrop-filter: blur(20px);      /* Safari uyumluluğu */
+}
+
+/* 
+   INPUT ALANLARI
+   ft-input: Her form input'una uygulanan temel stil.
+   !important → Tailwind'in ve tarayıcı varsayılanlarının üzerine yazar.
+    */
+.ft-input {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: var(--ft-input-bg) !important;
+    border: 1px solid var(--ft-input-border) !important;
+    color: var(--ft-text) !important;
+    box-shadow: none !important;
+    transition: border-color .2s, box-shadow .2s;  /* Yumuşak geçiş animasyonu */
+}
+
+/* Password Toggle & Input Icon Fix */
+.relative > .absolute.right-4,
+.relative > .ft-input-icon.absolute.right-4 {
+    position: absolute !important;
+    right: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    z-index: 20 !important;
+    cursor: pointer !important;
+    outline: none !important;
+}
+
+.relative > .absolute.left-4,
+.relative > .ft-input-icon.absolute.left-4 {
+    position: absolute !important;
+    left: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 20 !important;
+}
+.ft-input::placeholder { color: var(--ft-placeholder) !important; opacity: 1; }
+
+/* Focus durumu: kenarlık primary renge döner + mavi halka belirer */
+.ft-input:focus,
+.ft-input:focus-visible {
+    outline: none !important;                              /* Tarayıcı varsayılan outline kaldırılır */
+    background: var(--ft-input-bg-focus) !important;      /* Biraz daha açık arka plan */
+    border-color: var(--ft-primary) !important;            /* Mavi kenarlık */
+    box-shadow: 0 0 0 3px var(--ft-input-ring) !important; /* Mavi glow halkası */
+}
+
+/* Hover: kenarlık rengi primary ile mevcut arasında karışım */
+.ft-input:hover { border-color: color-mix(in srgb, var(--ft-primary) 50%, var(--ft-input-border)) !important; }
+
+/* ── Tarayıcı Otomatik Doldurma (Autofill) Düzeltmesi ──
+   Tarayıcı form alanlarını otomatik doldurduğunda sarı/mavi arka plan uyguluyor.
+   -webkit-box-shadow ile arka plan rengi üzerine yazılarak bu engellenir.
+   transition:9999s → renk değişimini uzun süreye yayarak gizler. */
+.ft-input:-webkit-autofill,
+.ft-input:-webkit-autofill:hover,
+.ft-input:-webkit-autofill:focus,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--ft-autofill-bg) inset !important;
+    -webkit-text-fill-color: var(--ft-autofill-text) !important;
+    transition: background-color 9999s;
+}
+
+/* Input içindeki ikonlar (kişi, mail, kilit simgeleri) için renk */
+.ft-input-icon { color: var(--ft-text-muted); opacity: 0.5; }
+.ft-input-sm { min-width: 100px; }
+
+/* 
+   METİN YARDIMCILARI
+    */
+.ft-text        { color: var(--ft-text); }        /* Ana metin rengi */
+.ft-text-muted  { color: var(--ft-text-muted); }  /* Gri/soluk metin */
+.ft-text-faint  { color: var(--ft-text-faint); }  /* Çok soluk metin (etiketler) */
+
+/* ft-label: Form alan etiketleri (E-POSTA, ŞİFRE gibi)
+   Büyük harf + geniş harf aralığı → kurumsal/teknik görünüm */
+.ft-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--ft-text-muted);
+}
+
+/* Yatay çizgi ayırıcı (örn. "Hesabın yok mu?" alanının üstü) */
+.ft-divider-el { border-top: 1px solid var(--ft-divider); }
+
+/* ft-error-box: Sunucudan gelen hata mesajı kutusu
+   Kırmızı kenarlık + soluk kırmızı arka plan */
+.ft-error-box {
+    background: rgba(255,113,107,0.07);
+    border: 1px solid rgba(255,113,107,0.2);
+    color: var(--ft-danger);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    text-align: center;
+    margin-top: 0.625rem;
+}
+[data-theme="light"] .ft-error-box { color: var(--ft-danger); }
+
+/* 
+   ANA BUTON (ft-btn-primary)
+   Login ve Register'daki "Giriş Yap" / "Kayıt Ol" butonları.
+  */
+.ft-btn-primary {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    border-radius: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 0.875rem; letter-spacing: 0.03em;
+
+    /* Degrade arka plan — 200% genişlikte, sola hizalı başlar */
+    background: var(--ft-btn-gradient) !important;
+    background-size: 200% auto !important;
+    background-position: left center !important;
+    color: var(--ft-btn-text) !important;
+
+    box-shadow: 0 2px 14px -2px var(--ft-btn-glow);  /* Yumuşak mavi alt gölge */
+    border: none; cursor: pointer; position: relative; overflow: hidden;
+    transition: background-position .5s ease, box-shadow .2s ease, transform .15s ease;
+}
+/* Hover: gradient sağa kayar (parlama efekti), gölge büyür */
+.ft-btn-primary:hover {
+    background-position: right center !important;
+    box-shadow: 0 6px 22px -3px var(--ft-btn-glow-hover);
+}
+/* Tıklama: hafif küçülür (basılma hissi) */
+.ft-btn-primary:active { transform: scale(0.97); }
+
+/* ::after → üzerinden geçen parlama animasyonu (shine effect)
+   Sol dışından sağ dışına doğru kayar */
+.ft-btn-primary::after {
+    content:''; position:absolute; top:0; left:-75%; width:50%; height:100%;
+    background: linear-gradient(120deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%);
+    transform: skewX(-20deg); transition: left .5s ease; pointer-events:none;
+}
+.ft-btn-primary:hover::after { left: 130%; } /* Hover'da parlama sağa çıkar */
+
+/* Renkli link (örn: "Kayıt Ol", "Şifremi Unuttum") */
+.ft-link-accent { color: var(--ft-link-accent); transition: color .2s; text-decoration: none; }
+.ft-link-accent:hover { color: var(--ft-link-accent-hover); }
+
+/* 
+   TEMA DEĞİŞTİRME BUTONU (Login/Register sayfaları)
+   position:fixed → sağ üst köşede sabit
+   Yuvarlak hap şekli (border-radius:9999px)
+   */
+.ft-theme-toggle {
+    position: fixed; top: 1.1rem; right: 1.1rem; z-index: 200;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.45rem 0.7rem; border-radius: 9999px;
+    background: var(--ft-toggle-bg);
+    border: 1px solid var(--ft-toggle-border);
+    color: var(--ft-toggle-text);
+    font-size: 0.7rem; font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(16px);        /* Arkasındaki içeriği bulanıklaştırır */
+    box-shadow: var(--ft-toggle-shadow);
+    transition: background .2s, color .2s;
+}
+.ft-theme-toggle:hover { background: var(--ft-toggle-hover-bg); }
+.ft-theme-toggle .material-symbols-outlined { font-size: 16px; }
+
+
+/*
+   ADMIN PANELİ BİLEŞENLERİ
+   Aşağıdaki tüm sınıflar Admin.cshtml tarafından kullanılır.
+   */
+
+/* ── NAVBAR (Sabit Üst Menü) ── */
+.ft-navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+    height: 84px;
+    background: var(--ft-nav-bg);
+    border-bottom: 1px solid var(--ft-nav-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    padding: 0.5rem 2.25rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* ft-logo: "FixTrading" yazısına uygulanan gradient metin efekti */
+.ft-logo {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    background: linear-gradient(125deg, #69daff 0%, #00c0ea 60%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 2rem;
+}
+[data-theme="light"] .ft-logo {
+    background: linear-gradient(125deg, #006880 0%, #004a5d 60%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* Nav link grubu */
+.ft-nav-links {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-right: auto;
+    flex-wrap: nowrap;
+}
+
+/* Tek bir nav linki */
+.ft-nav-link {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ft-text-muted);
+    text-decoration: none;
+    padding: 0.55rem 1rem;
+    position: relative;
+    transition: color 0.2s, background 0.2s;
+    white-space: nowrap;
+    border-radius: 8px;
+}
+
+.ft-nav-link:hover {
+    color: var(--ft-text);
+    background: rgba(105,218,255,0.06);
+}
+[data-theme="light"] .ft-nav-link:hover {
+    background: rgba(0,104,128,0.05);
+}
+
+/* Aktif sekme */
+.ft-nav-link.active {
+    color: var(--ft-primary);
+    background: rgba(105,218,255,0.10);
+    font-weight: 700;
+}
+[data-theme="light"] .ft-nav-link.active {
+    background: rgba(0,104,128,0.08);
+    color: #006880;
+}
+
+/* ── NAVBAR SAĞ AKSİYON KUTUSU ── */
+.ft-navbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(105, 218, 255, 0.04);
+    border: 1px solid var(--ft-outline);
+    border-radius: 16px;
+    margin-left: 1rem;
+    transition: all 0.2s ease;
+}
+[data-theme="light"] .ft-navbar-actions {
+    background: rgba(0, 104, 128, 0.03);
+}
+.ft-navbar-actions:hover {
+    background: rgba(105, 218, 255, 0.07);
+    border-color: rgba(105, 218, 255, 0.2);
+}
+
+/* Navbar'daki tema toggle butonu (yuvarlak, ikon tek başına) */
+.ft-navbar-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--ft-outline);
+    color: var(--ft-text-muted);
+    cursor: pointer;
+    transition: background .2s, color .2s;
+}
+.ft-navbar-toggle:hover {
+    background: rgba(105,218,255,0.08);   /* Mavi hover efekti */
+    color: var(--ft-primary);
+}
+[data-theme="light"] .ft-navbar-toggle:hover {
+    background: rgba(0,104,128,0.06);
+}
+
+/* 
+   MARKET STRIP (FİYAT BANDI)
+   Navbar'ın hemen altında yatay kayan fiyat kartları.
+   scrollbar-width:none → kaydırma çubuğu gizlenir.
+   */
+.ft-market-strip {
+    background: var(--ft-bg);
+    border-bottom: 1px solid var(--ft-nav-border);
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+}
+.ft-strip-container {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 2.5rem;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+}
+.ft-strip-container::-webkit-scrollbar { display: none; }
+
+/* Her bir sembol kartı */
+.ft-strip-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 130px;
+    padding: 0.65rem 1rem;
+    background: var(--ft-surface-low);
+    border: 1px solid var(--ft-card-border);
+    border-radius: 10px;
+    flex-shrink: 0;
+    transition: background .2s, border-color .2s, box-shadow .2s;
+    cursor: default;
+    gap: 0.15rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    overflow: visible;
+}
+.ft-strip-card:hover {
+    background: var(--ft-surface-high);
+    border-color: rgba(105,218,255,0.25);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+[data-theme="light"] .ft-strip-card {
+    background: #ffffff;
+    border-color: var(--ft-card-border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+[data-theme="light"] .ft-strip-card:hover {
+    background: var(--ft-surface-high);
+    border-color: rgba(0,104,128,0.25);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+}
+
+/* Sembol adı (EURUSD gibi) */
+.ft-strip-symbol {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ft-text-muted);
+}
+/* Fiyat değeri (1.08750 gibi) */
+.ft-strip-price {
+    font-size: 1rem;
+    font-weight: 800;
+    font-family: 'Inter', sans-serif;
+    color: var(--ft-text);
+    letter-spacing: -0.02em;
+}
+
+/* ── BÖLÜM BAŞLIĞI STİLLERİ ── */
+.ft-section-title {
+    font-size: 2.75rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--ft-text);
+    line-height: 1.1;
+}
+/* Küçük üst başlık ("Genel Bakış", "Yönetim Paneli" gibi) */
+.ft-section-subtitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ft-primary);   /* Mavi renk */
+    margin-bottom: 0.4rem;
+}
+
+/*
+   SERVİS KARTLARI (Anasayfa - Sistem Durumu)
+   Sol kenarda renkli çizgi ile durum belirtilir.
+   */
+.ft-service-card {
+    background: var(--ft-surface-low);
+    border: 1px solid var(--ft-card-border);
+    border-left: 4px solid;           /* Sol kenarlık kalın, rengi alt sınıflardan gelir */
+    border-radius: 14px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    transition: transform .2s, box-shadow .2s;
+}
+/* Hover: kart yukarı yükselir ve gölgesi büyür */
+.ft-service-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.25); }
+.ft-service-card-ok   { border-left-color: var(--ft-secondary); }  /* Yeşil: çalışıyor */
+.ft-service-card-bad  { border-left-color: var(--ft-danger); }     /* Kırmızı: çalışmıyor */
+
+/* 
+   TABLOLAR (Canlı Piyasa, Kullanıcılar, Limitler, Uyarılar)
+   border-collapse:separate + border-spacing:0 → hücre kenarlıkları
+   birleşmeden ayrı tutulur (rounded corner için gerekli).
+    */
+.ft-table { border-collapse: separate; border-spacing: 0; }
+.ft-table th {
+    padding: 1rem 1.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;     /* Büyük harf sütun başlıkları */
+    color: var(--ft-text-faint);
+    border-bottom: 1px solid var(--ft-divider);
+    background: rgba(255,255,255,0.015);  /* Çok hafif beyaz başlık arka planı */
+}
+[data-theme="light"] .ft-table th {
+    background: rgba(0,0,0,0.015);
+    color: var(--ft-text-faint);
+}
+.ft-table td {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--ft-text);
+    border-bottom: 1px solid var(--ft-divider);
+    vertical-align: middle;  /* Hücre içeriği dikey ortada */
+}
+/* Satır hover: çok hafif mavi arka plan */
+.ft-table tbody tr {
+    transition: background .15s;
+}
+.ft-table tbody tr:hover td {
+    background: rgba(105,218,255,0.03);
+}
+[data-theme="light"] .ft-table tbody tr:hover td {
+    background: rgba(0,104,128,0.04);
+}
+
+/* Sembol kutusu: EURUSD için "EURU" gibi kısa kod gösteren kare ikon */
+.ft-symbol-box {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(105,218,255,0.08);
+    border: 1px solid rgba(105,218,255,0.15);
+    color: var(--ft-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 800; flex-shrink: 0;
+}
+[data-theme="light"] .ft-symbol-box {
+    background: rgba(0,104,128,0.08);
+    border-color: rgba(0,104,128,0.15);
+}
+
+/* Kullanıcı avatarı: ismin baş harfleri (örn: "AV") içeren yuvarlak daire */
+.ft-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
+}
+
+/* ── Rol Etiketi (chip) ──
+   Admin → mavi, User → yeşil
+   Kullanıcı tablosunda kullanıcının rolünü gösterir. */
+.ft-role-chip {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    padding: 0.2rem 0.55rem;
+    background: rgba(105,218,255,0.1);
+    color: var(--ft-primary);
+    border: 1px solid rgba(105,218,255,0.15);
+}
+[data-theme="light"] .ft-role-chip {
+    background: rgba(0,104,128,0.08);
+    border-color: rgba(0,104,128,0.2);
+}
+.ft-role-chip.admin {
+    background: rgba(105,218,255,0.1);
+    color: var(--ft-primary);      /* Mavi — yönetici */
+    border-color: rgba(105,218,255,0.2);
+}
+.ft-role-chip.user {
+    background: rgba(0,253,147,0.08);
+    color: var(--ft-secondary);    /* Yeşil — normal kullanıcı */
+    border-color: rgba(0,253,147,0.15);
+}
+[data-theme="light"] .ft-role-chip.user {
+    background: rgba(0,109,60,0.07);
+    color: var(--ft-secondary);
+    border-color: rgba(0,109,60,0.15);
+}
+
+/* Durum noktası (kullanılan servis durum göstergesi için) */
+.ft-status-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.ft-status-dot.ok  { background: var(--ft-secondary); box-shadow: 0 0 6px var(--ft-secondary); } /* Yeşil parlayan */
+.ft-status-dot.bad { background: var(--ft-danger); }
+
+/* Durum metni */
+.ft-status-ok  { color: var(--ft-secondary); font-weight: 700; font-size: 0.9rem; }
+.ft-status-bad { color: var(--ft-danger);    font-weight: 700; font-size: 0.9rem; }
+
+/* ── Uyarı Tipi Etiketi (Alerts tablosu) ──
+   critical → kırmızı (SPREAD_LIMIT, MID_TOO_HIGH, MID_TOO_LOW)
+   warn     → sarı (diğer uyarılar) */
+.ft-alert-badge {
+    display: inline-flex; align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.65rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+}
+.ft-alert-badge.critical {
+    background: rgba(255,113,107,0.12);
+    color: var(--ft-danger);
+    border: 1px solid rgba(255,113,107,0.2);
+}
+.ft-alert-badge.warn {
+    background: rgba(245,158,11,0.1);
+    color: var(--ft-warning);
+    border: 1px solid rgba(245,158,11,0.2);
+}
+
+/* 
+   BUTONLAR (Admin Paneli)
+   */
+
+/* ── Küçük Ana Buton (Kullanıcı Ekle gibi) ──
+   Tek renk, köşeli — daha kompakt versiyon */
+.ft-btn-primary-sm {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 700; font-size: 0.85rem;
+    background: var(--ft-primary);
+    color: var(--ft-primary-on);
+    border: none; cursor: pointer;
+    transition: filter .2s, transform .15s;
+}
+.ft-btn-primary-sm:hover { filter: brightness(1.1); }   /* Hover: biraz parlar */
+.ft-btn-primary-sm:active { transform: scale(0.97); }   /* Tıklama: küçülür */
+[data-theme="light"] .ft-btn-primary-sm { background: var(--ft-primary); color: #fff; }
+
+/* ── İkincil Buton (Rol Değiştir gibi) ──
+   Nötr gri, çerçeveli */
+.ft-btn-secondary {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    font-weight: 600; font-size: 0.8rem;
+    background: var(--ft-surface-high);
+    border: 1px solid var(--ft-outline);
+    color: var(--ft-text-muted);
+    cursor: pointer;
+    transition: background .2s, color .2s;
+}
+.ft-btn-secondary:hover { background: var(--ft-bright); color: var(--ft-text); }
+[data-theme="light"] .ft-btn-secondary { background: var(--ft-surface-high); }
+
+/* ── Tehlikeli Buton (Sil) ──
+   Kırmızı tonlu, hover'da daha kırmızı */
+.ft-btn-danger {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    font-weight: 600; font-size: 0.8rem;
+    background: rgba(255,113,107,0.1);
+    border: 1px solid rgba(255,113,107,0.2);
+    color: var(--ft-danger);
+    cursor: pointer;
+    transition: background .2s;
+}
+.ft-btn-danger:hover { background: rgba(255,113,107,0.2); }
+[data-theme="light"] .ft-btn-danger {
+    background: rgba(179,38,30,0.07);
+    border-color: rgba(179,38,30,0.2);
+    color: var(--ft-danger);
+}
+[data-theme="light"] .ft-btn-danger:hover { background: rgba(179,38,30,0.14); }
+
+/* ── İkon Butonu (save, delete küçük ikonlu butonlar) ──
+   Kare şeklinde, yalnızca bir ikon içerir */
+.ft-btn-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: transparent; border: 1px solid var(--ft-outline);
+    color: var(--ft-text-muted); cursor: pointer;
+    transition: background .2s, color .2s;
+}
+.ft-btn-icon:hover { background: var(--ft-surface-high); color: var(--ft-text); }
+
+/* 
+   HİSSE/KUR DEĞİŞİM ROZETLERİ (Market tablosu ve Strip)
+   JavaScript tarafından doldurulur.
+   Başlangıçta gizli (display:none), JS ile görünür yapılır.
+   */
+.ft-badge-stock {
+    display: none;                /* Başlangıçta görünmez */
+    align-items: center; gap: 2px;
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 0.7rem; font-weight: 700;
+    margin-left: 4px; vertical-align: middle;
+}
+.ft-badge-up   { display: inline-flex; background: rgba(0,253,147,0.1); color: var(--ft-secondary); }  /* Artış → yeşil */
+.ft-badge-down { display: inline-flex; background: rgba(255,113,107,0.1); color: var(--ft-danger); }   /* Düşüş → kırmızı */
+[data-theme="light"] .ft-badge-up   { color: var(--ft-secondary); }
+[data-theme="light"] .ft-badge-down { color: var(--ft-danger); }
+/* Strip rozetleri sol boşluk istemez (zaten kart içinde hizalı) */
+[data-strip-badge] { margin-left: 0; align-self: flex-start; }
+
+/* 
+   CANLI HÜCRE ANİMASYONLARI (Market tablosu)
+   Fiyat değişince kısa süre renk değişir, sonra normale döner.
+   JS'de setTimeout ile 800ms sonra sınıf kaldırılır.
+    */
+.ft-cell-up   { color: var(--ft-secondary) !important; transition: color .4s; }  /* Artış → yeşil yanıp söner */
+.ft-cell-down { color: var(--ft-danger) !important;    transition: color .4s; }  /* Düşüş → kırmızı yanıp söner */
+
+/* ── Uyarı Satır Renkleri (Alerts tablosu) ──
+   Kritik satırlar hafif kırmızımsı, uyarı satırlar hafif sarımsı arka plan */
+.ft-row-critical td { background: rgba(255,113,107,0.05) !important; }
+.ft-row-warn     td { background: rgba(245,158,11,0.04) !important; }
+
+/* 
+   MODAL (Kullanıcı Ekle Penceresi)
+   Tam ekranı kaplar, arkasını karartır + bulanıklaştırır.
+   "hidden" sınıfı kaldırılınca görünür olur.
+    */
+.ft-modal {
+    position: fixed; inset: 0; z-index: 300;  /* z:300 → her şeyin üstünde */
+    background: rgba(0,0,0,0.6);              /* Koyu yarı saydam overlay */
+    backdrop-filter: blur(6px);               /* Arkasındaki içeriği bulanıklaştır */
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+[data-theme="light"] .ft-modal { background: rgba(44,62,80,0.25); } /* Açık temada daha az koyu */
+.ft-modal-content { max-height: calc(100vh - 2rem); overflow: auto; } /* Uzun formlar scroll olabilsin */
+
+/* ── Yüzey Yardımcı Sınıfları ── */
+.ft-surface     { background: var(--ft-surface); }
+.ft-surface-low { background: var(--ft-surface-low); }
+.ft-border      { border: 1px solid var(--ft-card-border); }
+.ft-rounded     { border-radius: 14px; }
+
+/*
+   DİL SEÇİCİ (Bayrak butonları)
+   İki yatay pill buton: Türk bayrağı + "TR" / İngiliz bayrağı + "EN"
+   - Bayraklar inline SVG (Windows'ta emoji'nin "TR" / "GB" harf çiftine
+     düşmesini engeller).
+   - "TR" / "EN" kodları her zaman görünür.
+   - Aktif dil vurgulu (mavi kenar + hafif arka plan), tıklayınca anında
+     /SetLanguage'a yönlendirir.
+*/
+.ft-lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.ft-lang-flag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 8px 0 6px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    /* Buton metni navbar'daki diğer yazılarla aynı font ailesinde olsun */
+    font-family: 'Inter', sans-serif;
+    color: var(--ft-text-muted);
+    opacity: 0.7;
+    transition: opacity .15s ease, background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+    user-select: none;
+}
+.ft-lang-flag .ft-flag-svg {
+    display: block;
+    width: 18px;
+    height: 12px;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.18) inset;
+    flex-shrink: 0;
+}
+[data-theme="light"] .ft-lang-flag .ft-flag-svg {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12) inset;
+}
+.ft-lang-flag .ft-lang-code {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
+}
+.ft-lang-flag:hover {
+    opacity: 1;
+    color: var(--ft-text);
+    background: rgba(105,218,255,0.08);
+}
+[data-theme="light"] .ft-lang-flag:hover {
+    background: rgba(0,104,128,0.06);
+}
+.ft-lang-flag.active {
+    opacity: 1;
+    color: var(--ft-text);
+    background: rgba(105,218,255,0.12);
+    border-color: rgba(105,218,255,0.35);
+}
+[data-theme="light"] .ft-lang-flag.active {
+    background: rgba(0,104,128,0.10);
+    border-color: rgba(0,104,128,0.35);
+    color: var(--ft-text);
+}
+.ft-lang-flag:active { transform: scale(0.95); }
+.ft-lang-flag:focus-visible {
+    outline: 2px solid var(--ft-primary);
+    outline-offset: 2px;
+}
+
+/* Login/Register sayfalarında sabit konumlu varyant */
+.ft-lang-switcher-fixed {
+    position: fixed;
+    top: 1.1rem;
+    right: 9rem; /* Tema toggle'ı solunda durur */
+    z-index: 200;
+    padding: 4px;
+    background: var(--ft-toggle-bg);
+    border: 1px solid var(--ft-toggle-border);
+    border-radius: 9999px;
+    backdrop-filter: blur(16px);
+    box-shadow: var(--ft-toggle-shadow);
+}
+.ft-lang-switcher-fixed .ft-lang-flag {
+    border-radius: 9999px;
+    height: 24px;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   FİNANSAL GRAFİK ARKAPLAN DESENI — Dekoratif, CSS-tabanlı
+   Candlestick barlar + çizgi grafik + grid içeren SVG data URI.
+   --ft-finbg değişkeni tema değiştiğinde otomatik güncellenir.
+   pointer-events yoktur, içerik okunabilirliğine dokunmaz.
+   ════════════════════════════════════════════════════════════ */
+
+/* KOYU TEMA: mavi-cyan tonlu (%2369daff = #69daff), çok düşük opasite */
+html:not([data-theme="light"]) {
+    --ft-finbg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 640' preserveAspectRatio='xMidYMid slice'%3E%3Cg stroke='%2369daff' stroke-width='0.6' fill='none' opacity='0.28'%3E%3Cline x1='0' y1='80' x2='1440' y2='80'/%3E%3Cline x1='0' y1='160' x2='1440' y2='160'/%3E%3Cline x1='0' y1='240' x2='1440' y2='240'/%3E%3Cline x1='0' y1='320' x2='1440' y2='320'/%3E%3Cline x1='0' y1='400' x2='1440' y2='400'/%3E%3Cline x1='0' y1='480' x2='1440' y2='480'/%3E%3C/g%3E%3Cg stroke='%2369daff' stroke-width='0.4' fill='none' opacity='0.15'%3E%3Cline x1='120' y1='0' x2='120' y2='640'/%3E%3Cline x1='240' y1='0' x2='240' y2='640'/%3E%3Cline x1='360' y1='0' x2='360' y2='640'/%3E%3Cline x1='480' y1='0' x2='480' y2='640'/%3E%3Cline x1='600' y1='0' x2='600' y2='640'/%3E%3Cline x1='720' y1='0' x2='720' y2='640'/%3E%3Cline x1='840' y1='0' x2='840' y2='640'/%3E%3Cline x1='960' y1='0' x2='960' y2='640'/%3E%3Cline x1='1080' y1='0' x2='1080' y2='640'/%3E%3Cline x1='1200' y1='0' x2='1200' y2='640'/%3E%3Cline x1='1320' y1='0' x2='1320' y2='640'/%3E%3C/g%3E%3Cg stroke='%2369daff' stroke-width='1.5' opacity='0.48'%3E%3Cline x1='60' y1='340' x2='60' y2='395'/%3E%3Cline x1='140' y1='325' x2='140' y2='375'/%3E%3Cline x1='220' y1='325' x2='220' y2='380'/%3E%3Cline x1='300' y1='320' x2='300' y2='385'/%3E%3Cline x1='380' y1='295' x2='380' y2='360'/%3E%3Cline x1='460' y1='295' x2='460' y2='350'/%3E%3Cline x1='540' y1='275' x2='540' y2='355'/%3E%3Cline x1='620' y1='255' x2='620' y2='315'/%3E%3Cline x1='700' y1='250' x2='700' y2='312'/%3E%3Cline x1='780' y1='238' x2='780' y2='318'/%3E%3Cline x1='860' y1='218' x2='860' y2='278'/%3E%3Cline x1='940' y1='220' x2='940' y2='282'/%3E%3Cline x1='1020' y1='215' x2='1020' y2='285'/%3E%3Cline x1='1100' y1='190' x2='1100' y2='255'/%3E%3Cline x1='1180' y1='195' x2='1180' y2='260'/%3E%3Cline x1='1260' y1='192' x2='1260' y2='260'/%3E%3Cline x1='1340' y1='170' x2='1340' y2='235'/%3E%3C/g%3E%3Cg fill='%2369daff' opacity='0.36'%3E%3Crect x='48' y='355' width='24' height='20' rx='2'/%3E%3Crect x='128' y='340' width='24' height='20' rx='2'/%3E%3Crect x='208' y='340' width='24' height='25' rx='2'/%3E%3Crect x='288' y='340' width='24' height='28' rx='2'/%3E%3Crect x='368' y='315' width='24' height='30' rx='2'/%3E%3Crect x='448' y='315' width='24' height='20' rx='2'/%3E%3Crect x='528' y='295' width='24' height='40' rx='2'/%3E%3Crect x='608' y='272' width='24' height='26' rx='2'/%3E%3Crect x='688' y='272' width='24' height='23' rx='2'/%3E%3Crect x='768' y='258' width='24' height='40' rx='2'/%3E%3Crect x='848' y='238' width='24' height='22' rx='2'/%3E%3Crect x='928' y='238' width='24' height='27' rx='2'/%3E%3Crect x='1008' y='235' width='24' height='33' rx='2'/%3E%3Crect x='1088' y='210' width='24' height='28' rx='2'/%3E%3Crect x='1168' y='210' width='24' height='30' rx='2'/%3E%3Crect x='1248' y='212' width='24' height='31' rx='2'/%3E%3Crect x='1328' y='188' width='24' height='27' rx='2'/%3E%3C/g%3E%3Cpath d='M 60,355 C 90,355 110,340 140,340 C 170,340 190,365 220,365 C 250,365 270,340 300,340 C 330,340 350,315 380,315 C 410,315 430,335 460,335 C 490,335 510,295 540,295 C 570,295 590,272 620,272 C 650,272 670,295 700,295 C 730,295 750,258 780,258 C 810,258 830,238 860,238 C 890,238 910,265 940,265 C 970,265 990,235 1020,235 C 1050,235 1070,210 1100,210 C 1130,210 1150,240 1180,240 C 1210,240 1230,212 1260,212 C 1290,212 1310,188 1340,188 L 1440,175' stroke='%2369daff' stroke-width='2' fill='none' opacity='0.62' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cg fill='%2369daff' opacity='0.70'%3E%3Ccircle cx='60' cy='355' r='3'/%3E%3Ccircle cx='220' cy='365' r='3'/%3E%3Ccircle cx='380' cy='315' r='3'/%3E%3Ccircle cx='540' cy='295' r='3'/%3E%3Ccircle cx='700' cy='295' r='3'/%3E%3Ccircle cx='860' cy='238' r='3'/%3E%3Ccircle cx='1020' cy='235' r='3'/%3E%3Ccircle cx='1180' cy='240' r='3'/%3E%3Ccircle cx='1340' cy='188' r='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* AÇIK TEMA: koyu teal (%23006880 = #006880), daha da düşük opasite */
+html[data-theme="light"] {
+    --ft-finbg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 640' preserveAspectRatio='xMidYMid slice'%3E%3Cg stroke='%23006880' stroke-width='0.6' fill='none' opacity='0.22'%3E%3Cline x1='0' y1='80' x2='1440' y2='80'/%3E%3Cline x1='0' y1='160' x2='1440' y2='160'/%3E%3Cline x1='0' y1='240' x2='1440' y2='240'/%3E%3Cline x1='0' y1='320' x2='1440' y2='320'/%3E%3Cline x1='0' y1='400' x2='1440' y2='400'/%3E%3Cline x1='0' y1='480' x2='1440' y2='480'/%3E%3C/g%3E%3Cg stroke='%23006880' stroke-width='0.4' fill='none' opacity='0.13'%3E%3Cline x1='120' y1='0' x2='120' y2='640'/%3E%3Cline x1='240' y1='0' x2='240' y2='640'/%3E%3Cline x1='360' y1='0' x2='360' y2='640'/%3E%3Cline x1='480' y1='0' x2='480' y2='640'/%3E%3Cline x1='600' y1='0' x2='600' y2='640'/%3E%3Cline x1='720' y1='0' x2='720' y2='640'/%3E%3Cline x1='840' y1='0' x2='840' y2='640'/%3E%3Cline x1='960' y1='0' x2='960' y2='640'/%3E%3Cline x1='1080' y1='0' x2='1080' y2='640'/%3E%3Cline x1='1200' y1='0' x2='1200' y2='640'/%3E%3Cline x1='1320' y1='0' x2='1320' y2='640'/%3E%3C/g%3E%3Cg stroke='%23006880' stroke-width='1.5' opacity='0.36'%3E%3Cline x1='60' y1='340' x2='60' y2='395'/%3E%3Cline x1='140' y1='325' x2='140' y2='375'/%3E%3Cline x1='220' y1='325' x2='220' y2='380'/%3E%3Cline x1='300' y1='320' x2='300' y2='385'/%3E%3Cline x1='380' y1='295' x2='380' y2='360'/%3E%3Cline x1='460' y1='295' x2='460' y2='350'/%3E%3Cline x1='540' y1='275' x2='540' y2='355'/%3E%3Cline x1='620' y1='255' x2='620' y2='315'/%3E%3Cline x1='700' y1='250' x2='700' y2='312'/%3E%3Cline x1='780' y1='238' x2='780' y2='318'/%3E%3Cline x1='860' y1='218' x2='860' y2='278'/%3E%3Cline x1='940' y1='220' x2='940' y2='282'/%3E%3C/g%3E%3Cg fill='%23006880' opacity='0.26'%3E%3Crect x='48' y='355' width='24' height='20' rx='2'/%3E%3Crect x='128' y='340' width='24' height='20' rx='2'/%3E%3Crect x='208' y='340' width='24' height='25' rx='2'/%3E%3Crect x='288' y='340' width='24' height='28' rx='2'/%3E%3Crect x='368' y='315' width='24' height='30' rx='2'/%3E%3Crect x='448' y='315' width='24' height='20' rx='2'/%3E%3Crect x='528' y='295' width='24' height='40' rx='2'/%3E%3Crect x='608' y='272' width='24' height='26' rx='2'/%3E%3Crect x='688' y='272' width='24' height='23' rx='2'/%3E%3Crect x='768' y='258' width='24' height='40' rx='2'/%3E%3Crect x='848' y='238' width='24' height='22' rx='2'/%3E%3Crect x='928' y='238' width='24' height='27' rx='2'/%3E%3C/g%3E%3Cpath d='M 60,355 C 90,355 110,340 140,340 C 170,340 190,365 220,365 C 250,365 270,340 300,340 C 330,340 350,315 380,315 C 410,315 430,335 460,335 C 490,335 510,295 540,295 C 570,295 590,272 620,272 C 650,272 670,295 700,295 C 730,295 750,258 780,258 C 810,258 830,238 860,238 C 890,238 910,265 940,265 L 1440,175' stroke='%23006880' stroke-width='2' fill='none' opacity='0.45' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cg fill='%23006880' opacity='0.52'%3E%3Ccircle cx='60' cy='355' r='3'/%3E%3Ccircle cx='220' cy='365' r='3'/%3E%3Ccircle cx='380' cy='315' r='3'/%3E%3Ccircle cx='540' cy='295' r='3'/%3E%3Ccircle cx='700' cy='295' r='3'/%3E%3Ccircle cx='860' cy='238' r='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.hidden { display: none !important; }

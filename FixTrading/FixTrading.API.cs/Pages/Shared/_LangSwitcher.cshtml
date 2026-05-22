@@ -1,0 +1,49 @@
+@*
+    _LangSwitcher.cshtml — Bayrak butonlu dil değiştirici (TR / EN)
+
+    - Emoji bayrak yerine inline SVG kullanır; Windows'ta emoji bayrakların
+      "TR" / "GB" harf çiftlerine düşmesini engeller.
+    - "TR" / "EN" kısaltmaları her zaman görünür şekilde yazılır.
+    - Tıklayınca /SetLanguage'a yönlendirir ve sayfayı anında o dilde yeniden yükler.
+
+    Çağrı yeri partial'a "Fixed" bayrağı geçebilir:
+        @await Html.PartialAsync("Shared/_LangSwitcher", new ViewDataDictionary(ViewData) { { "Fixed", true } })
+    Bu durumda sağ üst köşede sabit (Login/Register için) görünür.
+    Aksi halde inline (navbar içi) görünüm kullanılır.
+*@
+@{
+    var isFixed = ViewData["Fixed"] is bool b && b;
+    var currentCulture = System.Globalization.CultureInfo.CurrentCulture.Name;
+    var isTr = currentCulture == "tr-TR";
+    var isEn = currentCulture == "en-US";
+}
+
+<div class="ft-lang-switcher @(isFixed ? "ft-lang-switcher-fixed" : "")" translate="no">
+    <button type="button"
+            class="ft-lang-flag notranslate @(isTr ? "active" : "")"
+            onclick="location.href='/SetLanguage?culture=tr-TR&amp;returnUrl=' + encodeURIComponent(location.pathname + location.search)"
+            title="Türkçe" aria-label="Türkçe" translate="no">
+        @* Türk bayrağı: kırmızı zemin, beyaz hilal + yıldız *@
+        <svg class="ft-flag-svg" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <rect width="30" height="20" fill="#E30A17"/>
+            <circle cx="11" cy="10" r="4" fill="#fff"/>
+            <circle cx="12" cy="10" r="3.2" fill="#E30A17"/>
+            <polygon points="16.5,8 17.05,9.62 18.78,9.62 17.36,10.62 17.91,12.24 16.5,11.24 15.09,12.24 15.64,10.62 14.22,9.62 15.95,9.62" fill="#fff"/>
+        </svg>
+        <span class="ft-lang-code">TR</span>
+    </button>
+    <button type="button"
+            class="ft-lang-flag notranslate @(isEn ? "active" : "")"
+            onclick="location.href='/SetLanguage?culture=en-US&amp;returnUrl=' + encodeURIComponent(location.pathname + location.search)"
+            title="English" aria-label="English" translate="no">
+        @* İngiliz bayrağı (Union Jack) — küçük ölçekte okunaklı sadeleştirilmiş hali *@
+        <svg class="ft-flag-svg" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <rect width="60" height="30" fill="#012169"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="2.4"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+        </svg>
+        <span class="ft-lang-code">EN</span>
+    </button>
+</div>

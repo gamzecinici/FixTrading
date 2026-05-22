@@ -1,0 +1,335 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\services\\instrumentsymboladminservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\services\\instrumentsymboladminservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\services\\pricinglimitmutationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\services\\pricinglimitmutationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\services\\useraccountservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\services\\useraccountservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\services\\pricinglimitsqueryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\services\\pricinglimitsqueryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\repositories\\pricinglimitsrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\repositories\\pricinglimitsrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\repositories\\instrumentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\repositories\\instrumentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\entities\\userentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\entities\\userentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\entities\\systemparameterentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\entities\\systemparameterentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\entities\\pricinglimitentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\entities\\pricinglimitentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\configurations\\userconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\configurations\\userconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.persistence\\configurations\\pricinglimitconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8E1B289-0E72-4CC0-A84C-D90233D8B424}|FixTrading.Persistence\\FixTrading.Persistence.csproj|solutionrelative:fixtrading.persistence\\configurations\\pricinglimitconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\stores\\inmemorylastpricestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\stores\\inmemorylastpricestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\services\\systemparameterservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\services\\systemparameterservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\services\\groqfinanceassistantservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\services\\groqfinanceassistantservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\redis\\redislatestpricestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\redis\\redislatestpricestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\pricing\\pricinglimitscache.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\pricing\\pricinglimitscache.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\pricing\\pricingalertchecker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\pricing\\pricingalertchecker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|c:\\users\\gamzecinici\\desktop\\fixtrading\\fixtrading\\fixtrading.infrastructure.cs\\observers\\redisstoretickobserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{23F001E2-6800-42BE-9AF9-713A6A171E2B}|FixTrading.Infrastructure.cs\\FixTrading.Infrastructure.cs.csproj|solutionrelative:fixtrading.infrastructure.cs\\observers\\redisstoretickobserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 332,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\AppDbContext.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\AppDbContext.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\AppDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:28:32.942Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UserAccountService.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\UserAccountService.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Services\\UserAccountService.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\UserAccountService.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Services\\UserAccountService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:28:01.623Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PricingLimitsQueryService.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\PricingLimitsQueryService.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Services\\PricingLimitsQueryService.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\PricingLimitsQueryService.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Services\\PricingLimitsQueryService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:27:11.561Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PricingLimitMutationService.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\PricingLimitMutationService.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Services\\PricingLimitMutationService.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\PricingLimitMutationService.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Services\\PricingLimitMutationService.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAA+wAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:26:07.671Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "InstrumentSymbolAdminService.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\InstrumentSymbolAdminService.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Services\\InstrumentSymbolAdminService.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Services\\InstrumentSymbolAdminService.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Services\\InstrumentSymbolAdminService.cs",
+              "ViewState": "AgIAAI4AAAAAAAAAAAAqwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:22:44.653Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PricingLimitsRepository.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Repositories\\PricingLimitsRepository.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Repositories\\PricingLimitsRepository.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Repositories\\PricingLimitsRepository.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Repositories\\PricingLimitsRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAABiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:18:27.904Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "InstrumentRepository.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Repositories\\InstrumentRepository.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Repositories\\InstrumentRepository.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Repositories\\InstrumentRepository.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Repositories\\InstrumentRepository.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwBIAAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:18:26.705Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "SystemParameterEntity.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Entities\\SystemParameterEntity.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Entities\\SystemParameterEntity.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Entities\\SystemParameterEntity.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Entities\\SystemParameterEntity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:16:39.151Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "UserEntity.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Entities\\UserEntity.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Entities\\UserEntity.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Entities\\UserEntity.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Entities\\UserEntity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:16:38.058Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "PricingLimitEntity.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Entities\\PricingLimitEntity.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Entities\\PricingLimitEntity.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Entities\\PricingLimitEntity.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Entities\\PricingLimitEntity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:15:49.702Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UserConfiguration.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Configurations\\UserConfiguration.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Configurations\\UserConfiguration.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Configurations\\UserConfiguration.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Configurations\\UserConfiguration.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAwwC4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:09:07.568Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "PricingLimitConfiguration.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Configurations\\PricingLimitConfiguration.cs",
+              "RelativeDocumentMoniker": "FixTrading.Persistence\\Configurations\\PricingLimitConfiguration.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Persistence\\Configurations\\PricingLimitConfiguration.cs",
+              "RelativeToolTip": "FixTrading.Persistence\\Configurations\\PricingLimitConfiguration.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T11:04:23.782Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "InMemoryLastPriceStore.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Stores\\InMemoryLastPriceStore.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Stores\\InMemoryLastPriceStore.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Stores\\InMemoryLastPriceStore.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Stores\\InMemoryLastPriceStore.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:55:19.804Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "SystemParameterService.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Services\\SystemParameterService.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Services\\SystemParameterService.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Services\\SystemParameterService.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Services\\SystemParameterService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:55:18.447Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "GroqFinanceAssistantService.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Services\\GroqFinanceAssistantService.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Services\\GroqFinanceAssistantService.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Services\\GroqFinanceAssistantService.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Services\\GroqFinanceAssistantService.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAA2wBIBAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:55:17.172Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "RedisLatestPriceStore.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Redis\\RedisLatestPriceStore.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Redis\\RedisLatestPriceStore.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Redis\\RedisLatestPriceStore.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Redis\\RedisLatestPriceStore.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:54:01.146Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "PricingLimitsCache.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Pricing\\PricingLimitsCache.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Pricing\\PricingLimitsCache.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Pricing\\PricingLimitsCache.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Pricing\\PricingLimitsCache.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:51:58.495Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "PricingAlertChecker.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Pricing\\PricingAlertChecker.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Pricing\\PricingAlertChecker.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Pricing\\PricingAlertChecker.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Pricing\\PricingAlertChecker.cs",
+              "ViewState": "AgIAAF8AAAAAAAAAAAAgwEkAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:50:47.746Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "RedisStoreTickObserver.cs",
+              "DocumentMoniker": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Observers\\RedisStoreTickObserver.cs",
+              "RelativeDocumentMoniker": "FixTrading.Infrastructure.cs\\Observers\\RedisStoreTickObserver.cs",
+              "ToolTip": "C:\\Users\\GAMZECINICI\\Desktop\\FixTrading\\FixTrading\\FixTrading.Infrastructure.cs\\Observers\\RedisStoreTickObserver.cs",
+              "RelativeToolTip": "FixTrading.Infrastructure.cs\\Observers\\RedisStoreTickObserver.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-21T10:48:20.392Z"
+            }
+          ]
+        },
+        {
+          "DockedHeight": 68,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

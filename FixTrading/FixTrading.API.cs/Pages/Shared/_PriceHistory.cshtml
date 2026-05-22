@@ -1,0 +1,375 @@
+@using System.Text.Json
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@{
+    var symbols = (ViewData["PriceHistorySymbols"] as IEnumerable<string> ?? Enumerable.Empty<string>())
+        .Where(s => !string.IsNullOrWhiteSpace(s))
+        .Select(s => s.Trim().ToUpperInvariant().Replace("/", ""))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(s => s)
+        .ToList();
+    var selectedSymbol = (ViewData["PriceHistorySelectedSymbol"] as string ?? string.Empty).Trim().ToUpperInvariant().Replace("/", "");
+    var handlerBase = (ViewData["PriceHistoryHandlerBase"] as string ?? string.Empty).Trim();
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6" id="ft-price-history-root" 
+     data-handler-base="@handlerBase"
+     data-trans-loading="@Localizer["Loading"]"
+     data-trans-no-records="@Localizer["NoRecordsFound"]"
+     data-trans-error="@Localizer["ErrorFetchingData"]"
+     data-trans-price="@Localizer["Price"]"
+     data-trans-bid="@Localizer["Bid"]"
+     data-trans-ask="@Localizer["Ask"]"
+     data-trans-spread="@Localizer["Spread"]"
+     data-trans-title-1d="@Localizer["PriceChangeLast1Day"]"
+     data-trans-title-1w="@Localizer["PriceChangeLast1Week"]"
+     data-trans-title-1m="@Localizer["PriceChangeLast1Month"]"
+     data-trans-title-1y="@Localizer["PriceChangeLast1Year"]">
+    <div class="lg:col-span-1">
+        <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;padding:1.5rem;box-shadow:var(--ft-card-shadow)">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:var(--ft-primary)">@Localizer["SelectSymbol"]</h3>
+            <div class="flex flex-col gap-2 max-height-[500px] overflow-y-auto pr-2" style="max-height:500px;">
+                @foreach (var sym in symbols)
+                {
+                    var isActive = string.Equals(selectedSymbol, sym, StringComparison.OrdinalIgnoreCase);
+                    <button type="button"
+                            class="ft-history-symbol-btn flex items-center justify-between p-3 rounded-xl border transition-all @(isActive ? "bg-[rgba(105,218,255,0.1)] border-[var(--ft-primary)]" : "bg-transparent border-[var(--ft-outline)] hover:border-[var(--ft-primary)]")"
+                            data-symbol="@sym">
+                        <span style="font-weight:600;font-size:0.85rem">@(sym.Length == 6 ? sym.Insert(3, "/") : sym)</span>
+                        <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-3">
+        <div class="bb-chart-container" id="ftHistoryChartMain" style="display:none">
+            <div class="bb-range-filters">
+                <button type="button" class="bb-range-btn ft-history-range-btn active" data-range="1d">@Localizer["DayShort"]</button>
+                <button type="button" class="bb-range-btn ft-history-range-btn" data-range="1w">@Localizer["WeekShort"]</button>
+                <button type="button" class="bb-range-btn ft-history-range-btn" data-range="1m">@Localizer["MonthShort"]</button>
+                <button type="button" class="bb-range-btn ft-history-range-btn" data-range="1y">@Localizer["YearShort"]</button>
+            </div>
+            <div class="bb-header">
+                <div class="bb-price" id="ftHistoryCurrentPrice">--</div>
+                <div class="bb-details">
+                    <div class="bb-change" id="ftHistoryPriceChange">
+                        <span class="material-symbols-outlined" id="ftHistoryPriceIcon" style="font-size:24px"></span>
+                        <span id="ftHistoryPricePct">--</span>
+                    </div>
+                    <div class="bb-symbol" id="ftHistorySymbolDisplay">--</div>
+                </div>
+            </div>
+            <div style="height:380px;position:relative;">
+                <canvas id="ftHistoryChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-placeholder" id="ftHistoryChartPlaceholder">
+            <div class="text-center">
+                <span class="material-symbols-outlined" style="font-size:48px;margin-bottom:1rem;opacity:0.3">monitoring</span>
+                <p>@Localizer["ChartPlaceholder"]</p>
+                <p style="font-size:0.8rem;margin-top:0.5rem">@Localizer["SelectSymbolToViewChart"]</p>
+            </div>
+        </div>
+
+        <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+            <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
+                <span id="ftHistoryTableTitle" style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">@Localizer["PriceChangeLast1Day"]</span>
+                <span id="ftHistoryTableSymbol" style="font-size:0.8rem;font-weight:700;color:var(--ft-primary)">@selectedSymbol</span>
+            </div>
+            <div class="overflow-x-auto" style="max-height:400px;">
+                <table class="ft-table w-full" id="ftHistoryTable" aria-label="@Localizer["PriceHistory"]">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["Time"]</th>
+                            <th style="text-align:center">@Localizer["Bid"]</th>
+                            <th style="text-align:center">@Localizer["Ask"]</th>
+                            <th style="text-align:center">@Localizer["MarketPrice"]</th>
+                            <th style="text-align:center">@Localizer["Spread"]</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ftHistoryBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:3rem;color:var(--ft-text-faint)">@Localizer["SelectSymbolToListHistory"]</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var root = document.getElementById('ft-price-history-root');
+    if (!root) return;
+    var symbols = @Html.Raw(JsonSerializer.Serialize(symbols));
+    var selectedSymbol = @Html.Raw(JsonSerializer.Serialize(selectedSymbol));
+
+    var RANGE_CONFIG = {
+        // Backend: Europe/Istanbul sınırları + sunucuda kova gruplaması (ham tick limiti yok).
+        '1d': { title: root.getAttribute('data-trans-title-1d'), aggregate: 'hour' },
+        '1w': { title: root.getAttribute('data-trans-title-1w'), aggregate: 'day' },
+        '1m': { title: root.getAttribute('data-trans-title-1m'), aggregate: 'day' },
+        '1y': { title: root.getAttribute('data-trans-title-1y'), aggregate: 'month' }
+    };
+
+    var chart = null;
+    var currentRange = '1d';
+    var currentSymbol = '';
+    var handlerBase = root.getAttribute('data-handler-base') || '';
+    var body = document.getElementById('ftHistoryBody');
+
+    function toDate(value) {
+        if (!value) return null;
+        var normalized = String(value).replace(' ', 'T');
+        var d = new Date(normalized);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    function pad2(v) { return String(v).padStart(2, '0'); }
+    function fmtNum(v) { return Number(v || 0).toFixed(2).replace('.', ','); }
+    function fmtSymbol(sym) { return sym && sym.length === 6 ? sym.slice(0, 3) + '/' + sym.slice(3) : (sym || ''); }
+    function fmtTableDate(d, aggregate) {
+        if (aggregate === 'hour') return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':00';
+        if (aggregate === 'day') return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '.' + d.getFullYear();
+        return pad2(d.getMonth() + 1) + '.' + d.getFullYear();
+    }
+    function chartLabel(row, aggregate) {
+        if (aggregate === 'hour') return row.periodLabel.split(' ')[1];
+        if (aggregate === 'day') return row.periodLabel.slice(0, 5);
+        return row.periodLabel;
+    }
+
+    function aggregatePriceHistory(rawRows, range) {
+        var cfg = RANGE_CONFIG[range] || RANGE_CONFIG['1d'];
+        var aggregate = cfg.aggregate;
+        var groups = {};
+
+        (rawRows || []).forEach(function (item) {
+            var d = toDate(item.time || item.Time);
+            if (!d) return;
+
+            var key;
+            var sortTime;
+            if (aggregate === 'hour') {
+                key = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours());
+                sortTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), 0, 0, 0).getTime();
+            } else if (aggregate === 'day') {
+                key = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+                sortTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0).getTime();
+            } else {
+                key = d.getFullYear() + '-' + pad2(d.getMonth() + 1);
+                sortTime = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0).getTime();
+            }
+
+            if (!groups[key]) {
+                groups[key] = { count: 0, bidSum: 0, askSum: 0, midSum: 0, spreadSum: 0, sortTime: sortTime };
+            }
+
+            groups[key].count += 1;
+            groups[key].bidSum += Number(item.bid ?? item.Bid ?? 0);
+            groups[key].askSum += Number(item.ask ?? item.Ask ?? 0);
+            groups[key].midSum += Number(item.mid ?? item.Mid ?? 0);
+            groups[key].spreadSum += Number(item.spread ?? item.Spread ?? 0);
+        });
+
+        return Object.keys(groups).map(function (key) {
+            var g = groups[key];
+            var d = new Date(g.sortTime);
+            return {
+                periodKey: key,
+                periodLabel: fmtTableDate(d, aggregate),
+                timestamp: g.sortTime,
+                bid: g.bidSum / g.count,
+                ask: g.askSum / g.count,
+                mid: g.midSum / g.count,
+                spread: g.spreadSum / g.count
+            };
+        }).sort(function (a, b) { return b.timestamp - a.timestamp; });
+    }
+
+    function renderTable(mappedRows) {
+        if (!mappedRows.length) {
+            body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-text-faint)">' + root.getAttribute('data-trans-no-records') + '</td></tr>';
+            return;
+        }
+        body.innerHTML = mappedRows.map(function (row, idx) {
+            return '<tr id="ft-history-row-' + idx + '">' +
+                '<td style="font-size:0.82rem;color:var(--ft-text-muted)">' + row.periodLabel + '</td>' +
+                '<td style="text-align:center;font-family:monospace;font-size:0.85rem">' + fmtNum(row.bid) + '</td>' +
+                '<td style="text-align:center;font-family:monospace;font-size:0.85rem">' + fmtNum(row.ask) + '</td>' +
+                '<td style="text-align:center;font-family:monospace;font-size:0.85rem;font-weight:600">' + fmtNum(row.mid) + '</td>' +
+                '<td style="text-align:center;font-family:monospace;font-size:0.85rem;color:var(--ft-text-muted)">' + fmtNum(row.spread) + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function updateHeader(symbol, mappedRows) {
+        if (!mappedRows.length) return;
+        var latest = mappedRows[0];
+        var oldest = mappedRows[mappedRows.length - 1];
+        var diff = latest.mid - oldest.mid;
+        var pct = oldest.mid !== 0 ? (diff / oldest.mid) * 100 : 0;
+        var isUp = diff >= 0;
+        var color = isUp ? 'var(--ft-secondary)' : 'var(--ft-danger)';
+
+        document.getElementById('ftHistoryCurrentPrice').textContent = fmtNum(latest.mid);
+        document.getElementById('ftHistoryCurrentPrice').style.color = color;
+        document.getElementById('ftHistoryPriceChange').style.color = color;
+        document.getElementById('ftHistoryPriceIcon').textContent = isUp ? 'arrow_upward' : 'arrow_downward';
+        document.getElementById('ftHistoryPricePct').textContent = (isUp ? '+' : '') + pct.toFixed(2).replace('.', ',') + '%';
+        document.getElementById('ftHistorySymbolDisplay').textContent = fmtSymbol(symbol);
+    }
+
+    function renderChart(mappedRows) {
+        var chartData = mappedRows.slice().reverse();
+        var cfg = RANGE_CONFIG[currentRange] || RANGE_CONFIG['1d'];
+        var labels = chartData.map(function (row) { return chartLabel(row, cfg.aggregate); });
+        var prices = chartData.map(function (row) { return row.mid; });
+
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+        var textColor = isDark ? '#a9abaf' : '#44474f';
+        var lineColor = '#69daff';
+        var fillColor = 'rgba(105, 218, 255, 0.1)';
+
+        var ctx = document.getElementById('ftHistoryChart').getContext('2d');
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: root.getAttribute('data-trans-price'),
+                    data: prices,
+                    borderColor: lineColor,
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: lineColor,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2,
+                    fill: true,
+                    backgroundColor: fillColor,
+                    tension: 0.2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onHover: function (_event, elements) {
+                    document.querySelectorAll('#ftHistoryBody tr').forEach(function (tr) { tr.classList.remove('highlight'); });
+                    if (!elements || !elements.length) return;
+                    var chartIdx = elements[0].index;
+                    var tableIdx = mappedRows.length - 1 - chartIdx;
+                    var row = document.getElementById('ft-history-row-' + tableIdx);
+                    if (row) row.classList.add('highlight');
+                },
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1c2024' : '#ffffff',
+                        titleColor: isDark ? '#f8f9fe' : '#1a1c1e',
+                        bodyColor: isDark ? '#f8f9fe' : '#1a1c1e',
+                        borderColor: 'rgba(105, 218, 255, 0.2)',
+                        borderWidth: 1,
+                        displayColors: false,
+                        padding: 10,
+                        callbacks: {
+                            label: function (context) {
+                                var h = chartData[context.dataIndex];
+                                return [
+                                    root.getAttribute('data-trans-price') + ': ' + fmtNum(h.mid),
+                                    root.getAttribute('data-trans-bid') + ': ' + fmtNum(h.bid),
+                                    root.getAttribute('data-trans-ask') + ': ' + fmtNum(h.ask),
+                                    root.getAttribute('data-trans-spread') + ': ' + fmtNum(h.spread)
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor, font: { size: 10, weight: 'bold' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+                    },
+                    y: {
+                        position: 'right',
+                        grid: { color: gridColor },
+                        ticks: {
+                            color: textColor,
+                            font: { size: 10, weight: 'bold' },
+                            callback: function (value) { return Number(value).toFixed(2).replace('.', ','); }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function setRange(range) {
+        currentRange = range;
+        root.querySelectorAll('.ft-history-range-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-range') === range);
+        });
+
+        var cfg = RANGE_CONFIG[range] || RANGE_CONFIG['1d'];
+        document.getElementById('ftHistoryTableTitle').textContent = cfg.title;
+
+        if (currentSymbol) loadHistory(currentSymbol);
+    }
+
+    async function loadHistory(symbol) {
+        currentSymbol = symbol;
+        root.querySelectorAll('.ft-history-symbol-btn').forEach(function (btn) {
+            var isActive = btn.getAttribute('data-symbol') === symbol;
+            btn.classList.toggle('bg-[rgba(105,218,255,0.1)]', isActive);
+            btn.classList.toggle('border-[var(--ft-primary)]', isActive);
+            btn.classList.toggle('bg-transparent', !isActive);
+            btn.classList.toggle('border-[var(--ft-outline)]', !isActive);
+        });
+
+        document.getElementById('ftHistoryTableSymbol').textContent = symbol;
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">' + root.getAttribute('data-trans-loading') + '</td></tr>';
+        document.getElementById('ftHistoryChartPlaceholder').style.display = 'none';
+        document.getElementById('ftHistoryChartMain').style.display = 'block';
+
+        try {
+            var url = handlerBase + '?handler=PriceHistory&symbol=' + encodeURIComponent(symbol) + '&range=' + encodeURIComponent(currentRange);
+            var res = await fetch(url, { cache: 'no-store' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var raw = await res.json();
+            var mapped = aggregatePriceHistory(raw, currentRange);
+
+            if (!mapped.length) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-text-faint)">' + root.getAttribute('data-trans-no-records') + '</td></tr>';
+                document.getElementById('ftHistoryChartMain').style.display = 'none';
+                document.getElementById('ftHistoryChartPlaceholder').style.display = 'flex';
+                return;
+            }
+
+            renderTable(mapped);
+            updateHeader(symbol, mapped);
+            renderChart(mapped);
+        } catch (err) {
+            body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ft-danger)">' + root.getAttribute('data-trans-error') + '</td></tr>';
+            console.error('[PriceHistory] load error:', err);
+        }
+    }
+
+    root.querySelectorAll('.ft-history-range-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { setRange(btn.getAttribute('data-range') || '1d'); });
+    });
+    root.querySelectorAll('.ft-history-symbol-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { loadHistory(btn.getAttribute('data-symbol') || ''); });
+    });
+
+    setRange('1d');
+    if (selectedSymbol && symbols.indexOf(selectedSymbol) >= 0) {
+        loadHistory(selectedSymbol);
+    }
+})();
+</script>

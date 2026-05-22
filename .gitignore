@@ -1,0 +1,6 @@
+bin/
+obj/
+*.log
+datalog/
+datastore/.vs/
+.sonarqube/

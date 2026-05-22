@@ -1,0 +1,2051 @@
+
+@page
+@model FixTrading.API.cs.Pages.AdminModel
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta name="google" content="notranslate" />
+    <meta http-equiv="Content-Language" content="@System.Globalization.CultureInfo.CurrentCulture.Name" />
+    <title>FixTrading Admin</title>
+
+    <script>
+        (function () {
+            var t = localStorage.getItem('ft-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+        window.SelectedSymbol = '@Model.SelectedSymbol';
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    @* Inter: Admin paneli için tek font ailesi (farklı kalınlıklarda: 400-900)
+       Material Symbols: Navbar ve tablolardaki ikonlar için *@
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="/css/theme.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Tüm elementlerde box-sizing: border-box;
+           padding/border genişliği toplam genişliğe dahil olur → layout kırılmaz */
+        * { box-sizing: border-box; }
+
+        /* body arka planı ve yazı rengi CSS değişkenlerinden gelir */
+        body { background-color: var(--ft-bg); color: var(--ft-text); }
+
+        /* Navbar'da logo ile nav-linkleri arasındaki esnek boşluk doldurucu */
+        .nav-spacer { flex: 1; }
+
+        .ft-search-box {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem 0.4rem 2.25rem;
+            font-size: 0.8rem;
+            width: 180px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .ft-search-box:focus {
+            border-color: var(--ft-primary);
+            box-shadow: 0 0 0 3px var(--ft-input-ring);
+        }
+        .ft-search-box::placeholder { color: var(--ft-placeholder); }
+
+        /* Bloomberg Style Chart Header */
+        .bb-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+        .bb-price {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+        }
+        .bb-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 4px;
+        }
+        .bb-change {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            gap: 4px;
+        }
+        .bb-symbol {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--ft-text-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        .bb-chart-container {
+            background: var(--ft-surface-low);
+            border: 1px solid var(--ft-card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--ft-card-shadow);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .bb-range-filters {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+        .bb-range-btn {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text-muted);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bb-range-btn:hover {
+            border-color: var(--ft-primary);
+            color: var(--ft-primary);
+        }
+        .bb-range-btn.active {
+            background: var(--ft-primary);
+            border-color: var(--ft-primary);
+            color: var(--ft-primary-on);
+        }
+        .ft-table tr.highlight {
+            background: rgba(105, 218, 255, 0.15) !important;
+        }
+
+        .chart-placeholder {
+            background: var(--ft-surface-low);
+            border: 2px dashed var(--ft-outline);
+            border-radius: 16px;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ft-text-muted);
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        /* Limit input'larının yanındaki vertical spinner butonları (Ok tarzı) */
+        .ft-spin-container {
+            display: inline-flex;
+            align-items: stretch;
+            position: relative;
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            border-radius: 8px;
+            overflow: hidden;
+            width: 135px;
+            height: 38px;
+        }
+        .ft-spin-input {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 30px 0 10px !important;
+            width: 100% !important;
+            font-family: monospace;
+            font-size: 0.82rem;
+            text-align: right;
+        }
+        .ft-spin-controls {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 26px;
+            border-left: 1px solid var(--ft-outline);
+            background: var(--ft-surface-low);
+        }
+        .ft-spin-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--ft-text-muted);
+            cursor: pointer;
+            padding: 0;
+            transition: background .1s, color .1s;
+        }
+        .ft-spin-btn:hover { background: var(--ft-primary); color: white; }
+        .ft-spin-btn:active { background: var(--ft-primary-active); }
+        .ft-spin-btn:first-child { border-bottom: 1px solid var(--ft-outline); }
+        .ft-spin-btn span { font-size: 16px; font-weight: bold; }
+
+        /* Sistem parametreleri: düzenleme modu — key düz metin, value tek satır input */
+        .param-json-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            min-height: 120px;
+            padding: 0.1rem 0;
+        }
+        .param-json-row {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: nowrap;
+        }
+        .param-json-key {
+            flex: 0 0 10.5rem;
+            max-width: 34%;
+            font-size: 0.82rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--ft-text-muted);
+            user-select: none;
+            -webkit-user-select: none;
+            word-break: break-word;
+        }
+        .param-json-value {
+            flex: 1 1 auto;
+            min-width: 0;
+            border-radius: 8px !important;
+            padding: 0.45rem 0.65rem !important;
+            font-size: 0.82rem !important;
+            line-height: 1.35 !important;
+            font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace !important;
+        }
+    </style>
+</head>
+<body class="ft-body min-h-screen overflow-x-hidden @(Model.ActiveTab == "financial" ? "ft-financial-focus" : "")">
+    
+
+    <div id="ft-af-hold" style="display:none" 
+         data-trans-symbol-fetch-error="@Localizer["SymbolListFetchError"]"
+         data-trans-network-error-list="@Localizer["NetworkErrorListUpdate"]"
+         data-trans-active-limits="@Localizer["ActiveLimitSettings"]"
+         data-trans-fetching-data="@Localizer["FetchingData"]"
+         data-trans-data-fetch-error="@Localizer["DataFetchError"]"
+         data-trans-received-fix="@Localizer["ReceivedFromFIX"]"
+         data-trans-broker-unrecognized="@Localizer["BrokerDoesNotRecognize"]"
+         data-trans-no-fix="@Localizer["NoFIXConnection"]"
+         data-trans-network-error="@Localizer["NetworkError"]"
+         data-trans-base-empty="@Localizer["BaseFieldEmpty"]"
+         data-trans-quote-empty="@Localizer["QuoteFieldEmpty"]"
+         data-trans-min-mid-empty="@Localizer["MinMidFieldEmpty"]"
+         data-trans-max-mid-empty="@Localizer["MaxMidFieldEmpty"]"
+         data-trans-max-spread-empty="@Localizer["MaxSpreadFieldEmpty"]"
+         data-trans-invalid-limits="@Localizer["InvalidLimitValues"]"
+         data-trans-min-gt-max="@Localizer["MinMidGreaterMaxMid"]"
+         data-trans-bid="@Localizer["Bid"]"
+         data-trans-ask="@Localizer["Ask"]"
+         data-trans-update="@Localizer["Update"]"
+         data-trans-delete-symbol="@Localizer["DeleteSymbolTooltip"]"
+         data-trans-unauthorized-session="@Localizer["UnauthorizedSessionRequired"]"
+         data-trans-unauthorized-action="@Localizer["UnauthorizedAction"]"
+         data-trans-limits-range-error="@Localizer["LimitsRangeError"]"
+         data-trans-min-mid-max-mid-error="@Localizer["MinMidMaxMidError"]"
+         data-trans-negative-limit-error="@Localizer["NegativeLimitError"]"
+         data-trans-network-error-simple="@Localizer["NetworkError"]">@Html.AntiForgeryToken()</div>
+
+    <header class="ft-navbar">
+        <span class="ft-logo">FixTrading</span>
+
+        <nav class="ft-nav-links">
+            <a class="ft-nav-link @(Model.ActiveTab == "home"   ? "active" : "")" href="/Admin?tab=home">@Localizer["Home"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "market" ? "active" : "")" href="/Admin?tab=market">@Localizer["LiveMarket"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "history" ? "active" : "")" href="/Admin?tab=history">@Localizer["PriceHistory"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "financial" ? "active" : "")" href="/Admin?tab=financial">@Localizer["FinancialAnalysis"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "users"  ? "active" : "")" href="/Admin?tab=users">@Localizer["Users"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="/Admin?tab=limits">@Localizer["InstrumentsLimits"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "params" ? "active" : "")" href="/Admin?tab=params">@Localizer["SystemParameters"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "alerts" ? "active" : "")" href="/Admin?tab=alerts">@Localizer["Alerts"]</a>
+        </nav>
+
+        @* ── NAVBAR SAĞ KISIM ── *@
+        <div style="display:flex !important;flex-direction:row !important;align-items:center !important;flex-wrap:nowrap !important;flex-shrink:0;gap:4px;padding:0.25rem 0.4rem;background:rgba(105,218,255,0.04);border:1px solid var(--ft-outline);border-radius:14px;margin-left:0.35rem">
+            <div style="display:flex;flex-direction:row;align-items:center;gap:5px;flex-shrink:0">
+                <div style="text-align:right;flex-shrink:0">
+                    <div style="font-size:0.65rem;font-weight:700;color:var(--ft-text);line-height:1.3;white-space:nowrap">@(User.Identity?.Name ?? "Admin")</div>
+                    <div style="font-size:0.5rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ft-primary);line-height:1.3">@Localizer["Verified"]</div>
+                </div>
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(105,218,255,0.1);border:1px solid rgba(105,218,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <span class="material-symbols-outlined" style="font-size:14px;color:var(--ft-primary)">person</span>
+                </div>
+            </div>
+            <div style="width:1px;height:18px;background:var(--ft-outline);opacity:0.5;flex-shrink:0"></div>
+            
+            @* ── DİL SEÇİMİ (Bayrak Butonları) ── *@
+            @await Html.PartialAsync("Shared/_LangSwitcher")
+
+            <div style="width:1px;height:18px;background:var(--ft-outline);opacity:0.5;flex-shrink:0"></div>
+            <button class="ft-navbar-toggle" onclick="toggleTheme()" title="@Localizer["ChangeTheme"]" type="button" style="flex-shrink:0;width:28px;height:28px">
+                <span class="material-symbols-outlined" id="toggleIcon" style="font-size:14px">light_mode</span>
+            </button>
+            <div style="width:1px;height:18px;background:var(--ft-outline);opacity:0.5;flex-shrink:0"></div>
+            <form method="post" asp-page="/Logout" style="display:inline-flex;align-items:center;margin:0;padding:0;flex-shrink:0">
+                <button type="submit"
+                        style="font-size:0.55rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ft-text-muted);background:none;border:none;cursor:pointer;padding:0.15rem 0.25rem;border-radius:6px;transition:all .2s;white-space:nowrap"
+                        onmouseover="this.style.color='var(--ft-danger)';this.style.background='rgba(255,113,107,0.09)'"
+                        onmouseout="this.style.color='var(--ft-text-muted)';this.style.background='none'">@Localizer["Logout"]</button>
+            </form>
+        </div>
+    </header>
+
+    @* 
+       Navbar'ın hemen altinda (margin-top:72px = navbar yüksekliği).
+       Canli piyasa verilerinin hızlı özeti: sembol + orta fiyat.
+       Model.MarketRows'dan ilk 12 kayıt gösterilir.
+       JS tarafından her 3 saniyede guncellenir (refreshMarket fonksiyonu).
+        *@
+    <div class="ft-market-strip" style="margin-top:100px;">
+        <div class="ft-strip-container" id="marketStrip">
+            @* Her sembol için bir kart oluşturuluyor:
+               data-strip-symbol → JS bu attribute'u kullanarak doğru kartı bulur ve fiyatı günceller *@
+            @foreach (var row in Model.MarketRows.Take(12))
+            {
+                <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
+                    @* Sembol adı (EURUSD gibi) - araya slash koy *@
+                    <div class="ft-strip-symbol">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</div>
+                    @* Orta fiyat (bid+ask ortalaması), 1 ondalık basamak *@
+                    <div class="ft-strip-price">@row.Mid.ToString("F2")</div>
+                    @* Değişim rozeti (yüzde artış/azalış) — JS tarafından doldurulur.
+                       data-strip-badge → applyBadge() fonksiyonu bu attribute'u hedefler. *@
+                    <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <main style="min-height:calc(100vh - 130px);padding:2.5rem 2.5rem 4rem">
+
+        @*
+           Sistem servislerinin saglik durumunu gösterir. *@
+        @* Model.ActiveTab "home" değilse bu section gizlenir *@
+        <section class="@(Model.ActiveTab == "home" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">@Localizer["Overview"]</div>
+                <h1 class="ft-section-title">@Localizer["SystemStatus"]</h1>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+                @foreach (var service in Model.HealthServices)
+                {
+                    @* service.IsHealthy → true ise yesil kart, false ise kirmizi kart *@
+                    <div class="ft-service-card @(service.IsHealthy ? "ft-service-card-ok" : "ft-service-card-bad")">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                            <div>
+                                <div style="font-size:0.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ft-text-faint);margin-bottom:4px">@Localizer["Service"]</div>
+                                <div style="font-size:1.15rem;font-weight:800;color:var(--ft-text)">@service.Name</div>
+                            </div>
+                            @* Durum ikonu: check_circle (yeşil) veya cancel (kırmızı) *@
+                            <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:@(service.IsHealthy ? "rgba(0,253,147,0.1)" : "rgba(255,113,107,0.1)")">
+                                <span class="material-symbols-outlined" style="font-size:20px;color:@(service.IsHealthy ? "var(--ft-secondary)" : "var(--ft-danger)")" data-fill="1">@(service.IsHealthy ? "check_circle" : "cancel")</span>
+                            </div>
+                        </div>
+                        @* Durum etiketi: "Çalışıyor" veya "Çalışmıyor" *@
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:1.25rem">
+                            <span style="display:inline-flex;align-items:center;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;background:@(service.IsHealthy ? "rgba(0,253,147,0.1)" : "rgba(255,113,107,0.1)");color:@(service.IsHealthy ? "var(--ft-secondary)" : "var(--ft-danger)")">
+                                @(service.IsHealthy ? Localizer["Running"] : Localizer["NotRunning"])
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @*
+               Tüm servislerin genel sağlık yüzdesini büyük rakamla gösterir.
+               Razor: Tüm servisler sağlıklıysa %100, değilse hesaplanmış yüzde.
+               Yanıp sönen yeşil nokta → "LIVE" ifadesi gerçek zamanlı hissi verir. *@
+            <div style="background:linear-gradient(135deg,rgba(105,218,255,0.08) 0%,transparent 70%);border:1px solid rgba(105,218,255,0.15);border-radius:16px;padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;max-width:900px">
+                <div>
+                    <div style="font-size:0.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ft-primary);margin-bottom:0.5rem">@Localizer["GlobalHealthPulse"]</div>
+                    <div style="font-size:3.5rem;font-weight:900;letter-spacing:-.04em;color:var(--ft-text)">
+                        @* Tüm sağlıklıysa %100, değilse: sağlıklı sayısı / toplam * 100 *@
+                        @(Model.HealthServices.All(s => s.IsHealthy) ? "100%" : Model.HealthServices.Count(s => s.IsHealthy) * 100 / (Model.HealthServices.Count > 0 ? Model.HealthServices.Count : 1) + "%")
+                    </div>
+                    <div style="font-size:0.88rem;color:var(--ft-text-muted);margin-top:0.4rem">@Localizer["SystemOperational"]</div>
+                </div>
+                @* Canlı gösterge: CSS animation:pulse ile yeşil nokta yanıp söner *@
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ft-secondary);animation:pulse 1.5s infinite;box-shadow:0 0 10px var(--ft-secondary)"></span>
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--ft-secondary);letter-spacing:.08em;text-transform:uppercase">Live</span>
+                </div>
+            </div>
+        </section>
+
+        @*
+           SEKMELİ PANEL: CANLI PİYASA (market)
+           FIX protokolü üzerinden gelen Bid/Ask/Mid/Spread verileri.
+           JavaScript her 3 saniyede /Admin?handler=LiveMarket endpoint'ini çağırır
+           ve tabloyu anlık günceller.  *@
+        <section class="@(Model.ActiveTab == "market" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">@Localizer["MarketMonitoring"]</div>
+                    <h1 class="ft-section-title">@Localizer["LiveMarket"]</h1>
+                </div>
+                @* Arama Filtresi (Kullanıcı panelindeki gibi) *@
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style="font-size:18px;color:var(--ft-placeholder);pointer-events:none">search</span>
+                    <input type="text" id="marketSearch" class="ft-search-box" style="width:220px" placeholder="@Localizer["SearchSymbol"]" onkeyup="filterMarketSymbols()" />
+                </div>
+            </div>
+
+            @* Tablo kartı *@
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                @* Kart başlığı + LIVE göstergesi *@
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;font-weight:700;color:var(--ft-primary);text-transform:uppercase;letter-spacing:.1em">
+                        <span class="material-symbols-outlined" style="font-size:16px">monitoring</span>
+                        @Localizer["LivePrices"]
+                    </div>
+                    @* Yanıp sönen yeşil nokta → canlı veri akışını simgeler *@
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <span style="width:7px;height:7px;border-radius:50%;background:var(--ft-secondary);animation:pulse 1.5s infinite;display:inline-block"></span>
+                        <span style="font-size:0.7rem;font-weight:700;color:var(--ft-secondary);letter-spacing:.06em">LIVE</span>
+                    </div>
+                </div>
+
+                @* Tablo: yatay kaydırılabilir (küçük ekranlarda sığmaz)
+                   id="marketTable" → JS bu id ile tabloyu bulur ve günceller *@
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" id="marketTable" aria-label="@Localizer["LivePrices"]">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">@Localizer["Symbol"]</th>   @* Kur çifti adı (EURUSD gibi) *@
+                                <th style="text-align:center">@Localizer["Bid"]</th>       @* Alis fiyatı *@
+                                <th style="text-align:center">@Localizer["Ask"]</th>       @* Satis fiyatı *@
+                                <th style="text-align:center">@Localizer["MidPrice"]</th>       @* Orta fiyat = (Bid+Ask)/2 *@
+                                <th style="text-align:center">@Localizer["Spread"]</th>    @* Fark = Ask - Bid *@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.MarketRows.OrderBy(x => x.Symbol))
+                            {
+                                <tr data-symbol="@row.Symbol">
+                                    <td style="text-align:center">
+                                        @* Sembol kutusu (ilk 4 harf) + tam sembol adi *@
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+                                            <div class="ft-symbol-box">@(row.Symbol.Length > 4 ? row.Symbol.Substring(0,4) : row.Symbol)</div>
+                                            <span style="font-weight:700;font-size:0.88rem">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</span>
+                                        </div>
+                                    </td>
+                                    @* data-field attribute'u → JS hangi hücrenin hangi veri oldugunu tanir *@
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Bid.ToString("F2")</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">@row.Ask.ToString("F2")</td>
+                                    <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center">
+                                        <span>@row.Mid.ToString("F2")</span>
+                                        <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
+                                    </td>
+                                    <td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted);text-align:center">@row.Spread.ToString("F2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        @* 
+           Sistemdeki tüm kullanicilar listelenir.
+           Her kullanıcı icin:
+             - Rol degiştirme (admin ↔ user) → ToggleUserRole handler
+             - Silme → DeleteUser handler
+           "Kullanici Ekle" butonu modal pencereyi açar. *@
+        <section class="@(Model.ActiveTab == "users" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">@Localizer["AdminPanel"]</div>
+                    <h1 class="ft-section-title">@Localizer["Users"]</h1>
+                </div>
+                @* "Kullanıcı Ekle" butonu → openUserModal() ile modal açılır *@
+                <button class="ft-btn-primary-sm" onclick="openUserModal()" type="button">
+                    <span class="material-symbols-outlined" style="font-size:18px">person_add</span>
+                    @Localizer["AddUser"]
+                </button>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                @* Toplam kullanıcı sayısı başlık bilgisi *@
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);background:rgba(105,218,255,0.02)">
+                    <div style="font-size:0.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-text-faint)">
+                        @string.Format(Localizer["TotalUsers"], Model.Users.Count)
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:700px" aria-label="@Localizer["Users"]">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">@Localizer["FullName"]</th>
+                                <th style="text-align:center">@Localizer["EmailAddress"]</th>
+                                <th style="text-align:center">@Localizer["UserRole"]</th>
+                                <th style="text-align:center">@Localizer["Actions"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.Users)
+                            {
+                                var initials = string.Join("", user.FullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0].ToString().ToUpper()));
+                                var isAdmin = user.Role?.ToLower() == "admin";
+                                @* Admin → mavi avatar, User → yeşil avatar *@
+                                var avatarColor = isAdmin ? "rgba(105,218,255,0.12)" : "rgba(0,253,147,0.1)";
+                                var avatarText = isAdmin ? "var(--ft-primary)" : "var(--ft-secondary)";
+                                <tr>
+                                    <td style="text-align:center">
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+                                            @* Yuvarlak avatar dairesi, içinde baş harfler *@
+                                            <div class="ft-avatar" style="background:@avatarColor;color:@avatarText">@initials</div>
+                                            <span style="font-weight:600;font-size:0.88rem">@user.FullName</span>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--ft-text-muted);font-size:0.875rem;text-align:center">@user.Email</td>
+                                    <td style="text-align:center">
+                                        @* Rol etiketi (chip): admin → mavi, user → yeşil *@
+                                        <span class="ft-role-chip @(isAdmin ? "admin" : "user")">@user.Role</span>
+                                    </td>
+                                    <td style="text-align:center">
+                                        <div style="display:flex;justify-content:center;gap:6px">
+                                            @* ── ROL DEĞİŞTİRME FORMU ──
+                                               asp-page-handler="ToggleUserRole" → OnPostToggleUserRoleAsync() çağrılır.
+                                               Gizli input ile kullanıcı id'si sunucuya gönderilir. *@
+                                            <form method="post" asp-page-handler="ToggleUserRole">
+                                                <input name="id" type="hidden" value="@user.Id" />
+                                                <button class="ft-btn-secondary" style="font-size:0.7rem;padding:.4rem .9rem" type="submit">
+                                                    <span class="material-symbols-outlined" style="font-size:14px">swap_horiz</span>
+                                                    @Localizer["Role"]
+                                                </button>
+                                            </form>
+                                            @* ── KULLANICI SİLME FORMU ──
+                                               onsubmit → tarayıcı onay dialogu açar. Hayır'a basılırsa form gönderilmez.
+                                               asp-page-handler="DeleteUser" → OnPostDeleteUserAsync() çağrılır. *@
+                                            <form method="post" asp-page-handler="DeleteUser" onsubmit="return confirm('@Localizer["ConfirmDeleteUser"]')">
+                                                <input name="id" type="hidden" value="@user.Id" />
+                                                <button class="ft-btn-danger" style="font-size:0.7rem;padding:.4rem .9rem" type="submit">
+                                                    <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+                                                    @Localizer["Delete"]
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="@(Model.ActiveTab == "limits" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">@Localizer["InstrumentsLimits"]</div>
+                <h1 class="ft-section-title">@Localizer["InstrumentLimitManagement"]</h1>
+            </div>
+            @if (TempData["LimitError"] is string limitError)
+            {
+                <div style="background:rgba(255,113,107,0.1);border:1px solid rgba(255,113,107,0.35);border-radius:10px;padding:0.75rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;color:var(--ft-danger);font-size:0.85rem;font-weight:600">
+                    <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">error</span>
+                    @limitError
+                </div>
+            }
+
+            <div id="limits-symbol-msg" class="hidden" style="border-radius:10px;padding:0.75rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600"></div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;box-shadow:var(--ft-card-shadow)">
+                <div style="font-size:0.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ft-text-faint);margin-bottom:1rem">@Localizer["AddNewInstrument"]</div>
+                <form id="addSymbolForm" class="flex flex-wrap gap-4 items-end" style="gap:1rem">
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["Instrument"]</label>
+                        <input id="addSymbolField" class="ft-input" placeholder="EURUSD" type="text" maxlength="20" autocomplete="off" style="border-radius:10px;padding:.55rem 1rem;width:140px;text-transform:uppercase" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["Base"]</label>
+                        <input id="addBaseField" class="ft-input" placeholder="EUR" type="text" maxlength="10" autocomplete="off" style="border-radius:10px;padding:.55rem 1rem;width:90px;text-transform:uppercase" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["Quote"]</label>
+                        <input id="addQuoteField" class="ft-input" placeholder="USD" type="text" maxlength="10" autocomplete="off" style="border-radius:10px;padding:.55rem 1rem;width:90px;text-transform:uppercase" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["MinMidPriceUpper"]</label>
+                        <input id="addMinMid" class="ft-input" inputmode="decimal" type="text" style="border-radius:10px;padding:.55rem 1rem;width:150px;font-family:monospace" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["MaxMidPriceUpper"]</label>
+                        <input id="addMaxMid" class="ft-input" inputmode="decimal" type="text" style="border-radius:10px;padding:.55rem 1rem;width:150px;font-family:monospace" />
+                    </div>
+                    <div>
+                        <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["MaxSpreadUpper"]</label>
+                        <input id="addMaxSpread" class="ft-input" inputmode="decimal" type="text" style="border-radius:10px;padding:.55rem 1rem;width:150px;font-family:monospace" />
+                    </div>
+                    <button class="ft-btn-primary-sm" id="addSymbolBtn" type="submit" style="margin-bottom:2px">
+                        <span class="material-symbols-outlined" style="font-size:18px">add</span>
+                        @Localizer["AddInstrument"]
+                    </button>
+                </form>
+
+                @* ── Anlık piyasa verisi önizleme: sembol yazılınca FIX'ten gelen son fiyat çekilir ── *@
+                <div id="addSymbolPreview" class="hidden" style="margin-top:1rem;padding:0.85rem 1rem;border-radius:12px;background:var(--ft-surface-high);border:1px solid var(--ft-card-border);display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ft-text-faint)">
+                        <span id="addSymbolPreviewDot" class="material-symbols-outlined" style="font-size:16px;color:var(--ft-text-faint)">radio_button_unchecked</span>
+                        <span>@Localizer["InstantMarketData"]</span>
+                        <span id="addSymbolPreviewLabel" style="color:var(--ft-text);font-weight:800;letter-spacing:.04em">—</span>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:1rem;font-family:monospace;font-size:0.85rem">
+                        <div><span style="color:var(--ft-text-faint)">@Localizer["Bid"]:</span> <span id="addSymbolPreviewBid" style="color:var(--ft-secondary);font-weight:700">—</span></div>
+                        <div><span style="color:var(--ft-text-faint)">@Localizer["Ask"]:</span> <span id="addSymbolPreviewAsk" style="color:var(--ft-primary);font-weight:700">—</span></div>
+                        <div><span style="color:var(--ft-text-faint)">@Localizer["MidPrice"]:</span> <span id="addSymbolPreviewMid" style="color:var(--ft-text);font-weight:700">—</span></div>
+                        <div><span style="color:var(--ft-text-faint)">@Localizer["Spread"]:</span> <span id="addSymbolPreviewSpread" style="color:var(--ft-danger);font-weight:700">—</span></div>
+                    </div>
+                    <span id="addSymbolPreviewMsg" style="margin-left:auto;font-size:0.75rem;color:var(--ft-text-faint);white-space:nowrap;padding-right:1rem"></span>
+                    <button type="button" id="addSymbolApplyLimitsBtn" class="ft-btn-icon hidden" title="@Localizer["SuggestLimitsTooltip"]" style="flex-shrink:0;border-radius:10px;padding:.4rem .7rem;font-size:0.7rem;font-weight:700;background:rgba(105,218,255,0.08);border:1px solid rgba(105,218,255,0.2);color:var(--ft-primary);display:inline-flex;align-items:center;gap:6px">
+                        <span class="material-symbols-outlined" style="font-size:16px">auto_fix_high</span>
+                        @Localizer["SuggestLimits"]
+                    </button>
+                </div>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:900px" aria-label="@Localizer["PricingLimits"]">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">@Localizer["InstrumentUpper"]</th>
+                                <th style="text-align:center">@Localizer["MinMidPriceUpper"]</th>   @* Minimum orta fiyat *@
+                                <th style="text-align:center">@Localizer["MaxMidPriceUpper"]</th>   @* Maximum orta fiyat *@
+                                <th style="text-align:center">@Localizer["MaxSpreadUpper"]</th>      @* İzin verilen maximum spread *@
+                                <th style="text-align:center">@Localizer["ActionsUpper"]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="limitsTableBody">
+                            @foreach (var limit in Model.PricingLimits)
+                            {
+                                @* Sembol adının ilk 4 karakteri avatar kutusunda gösterilir *@
+                                var sym = limit.Symbol?.Length > 4 ? limit.Symbol.Substring(0, 4) : limit.Symbol ?? "—";
+                                <tr>
+                                    <td style="text-align:center">
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+                                            @* Mavi gradient sembol kutusu *@
+                                            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">
+                                                @sym
+                                            </div>
+                                            <div>
+                                                <div style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">
+                                                    @* Sembol arasına slash koy (EURUSD -> EUR/USD) *@
+                                                    @(limit.Symbol != null && limit.Symbol.Length == 6 ? limit.Symbol.Insert(3, "/") : limit.Symbol)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    @* ── DÜZENLENEBİLİR LİMİT INPUT'LARI (TR Formatı: Binlik Nokta, Ondalık Virgül) ── *@
+                                    <td style="text-align:center">
+                                        <div class="ft-spin-container" style="margin: 0 auto">
+                                            @* tr-TR formatı: 20.005,50000000 *@
+                                            <input class="ft-input ft-spin-input" id="min-@limit.Id" inputmode="decimal" type="text"
+                                                   value="@limit.MinMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))"
+                                                   style="color:var(--ft-secondary)" />
+                                            <div class="ft-spin-controls">
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('min-@limit.Id', 1)">▲</button>
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('min-@limit.Id', -1)">▼</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center">
+                                        <div class="ft-spin-container" style="margin: 0 auto">
+                                            <input class="ft-input ft-spin-input" id="max-@limit.Id" inputmode="decimal" type="text"
+                                                   value="@limit.MaxMid.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))"
+                                                   style="color:var(--ft-text)" />
+                                            <div class="ft-spin-controls">
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('max-@limit.Id', 1)">▲</button>
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('max-@limit.Id', -1)">▼</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center">
+                                        <div class="ft-spin-container" style="margin: 0 auto">
+                                            <input class="ft-input ft-spin-input" id="spread-@limit.Id" inputmode="decimal" type="text"
+                                                   value="@limit.MaxSpread.ToString("#,##0.########", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))"
+                                                   style="color:var(--ft-danger)" />
+                                            <div class="ft-spin-controls">
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('spread-@limit.Id', 1)">▲</button>
+                                                <button type="button" class="ft-spin-btn" onclick="stepLimit('spread-@limit.Id', -1)">▼</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center">
+                                        <div style="display:flex;justify-content:center;gap:6px">
+                                            @*
+                                               onsubmit="bindLimitValues(...)" → form gönderilmeden önce
+                                               görünür input değerleri gizli input'lara kopyalanır.
+                                               asp-page-handler="UpdateLimit" → OnPostUpdateLimitAsync() çağrılır.
+                                               Gizli input değerleri InvariantCulture ile yazılır (locale bağımsız nokta ayırıcı). *@
+                                            <form method="post" asp-page-handler="UpdateLimit" onsubmit="bindLimitValues('@limit.Id')">
+                                                <input name="id" type="hidden" value="@limit.Id" />
+                                                @* Gizli input'lar — form verisi bu name'lerle sunucuya gider *@
+                                                <input id="hidden-min-@limit.Id" name="minMid" type="hidden" value="@limit.MinMid.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                <input id="hidden-max-@limit.Id" name="maxMid" type="hidden" value="@limit.MaxMid.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                <input id="hidden-spread-@limit.Id" name="maxSpread" type="hidden" value="@limit.MaxSpread.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                <button class="ft-btn-icon" title="@Localizer["Update"]" type="submit"
+                                                        style="width:34px;height:34px;border-radius:10px;background:rgba(105,218,255,0.08);border-color:rgba(105,218,255,0.2);color:var(--ft-primary)"
+                                                        onmouseover="this.style.background='var(--ft-primary)';this.style.color='var(--ft-primary-on)'"
+                                                        onmouseout="this.style.background='rgba(105,218,255,0.08)';this.style.color='var(--ft-primary)'">
+                                                    <span class="material-symbols-outlined" style="font-size:16px">save</span>
+                                                </button>
+                                            </form>
+                                            <button class="ft-btn-icon ft-btn-delete-symbol" title="@Localizer["DeleteSymbolTooltip"]" type="button"
+                                                    data-instrument-id="@limit.InstrumentId"
+                                                    style="width:34px;height:34px;border-radius:10px;background:rgba(255,113,107,0.08);border-color:rgba(255,113,107,0.2);color:var(--ft-danger)"
+                                                    onmouseover="this.style.background='var(--ft-danger)';this.style.color='#fff'"
+                                                    onmouseout="this.style.background='rgba(255,113,107,0.08)';this.style.color='var(--ft-danger)'">
+                                                <span class="material-symbols-outlined" style="font-size:16px">delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="@(Model.ActiveTab == "params" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                <div class="ft-section-subtitle">@Localizer["DynamicConfiguration"]</div>
+                <h1 class="ft-section-title">@Localizer["ParameterSettings"]</h1>
+                </div>
+                <div id="params-actions" class="flex gap-2">
+                    <form method="post" asp-page-handler="RefreshParamsCache" style="display:inline">
+                        <button class="ft-btn-secondary" title="@Localizer["ClearCacheTooltip"]" type="submit" style="padding:.45rem 1rem">
+                            <span class="material-symbols-outlined" style="font-size:18px">refresh</span>
+                            @Localizer["Refresh"]
+                        </button>
+                    </form>
+                    <button class="ft-btn-primary-sm" onclick="enterParamEditMode()" id="btn-edit-params">
+                        <span class="material-symbols-outlined" style="font-size:18px">edit</span>
+                        @Localizer["Edit"]
+                    </button>
+                    <div id="params-edit-actions" class="hidden flex gap-2">
+                        <button class="ft-btn-secondary" onclick="cancelParamEditMode()" style="padding:.45rem 1.2rem">@Localizer["Cancel"]</button>
+                        <button class="ft-btn-primary-sm" onclick="saveParamChanges()" id="btn-save-params">
+                            <span class="material-symbols-outlined" style="font-size:18px">save</span>
+                            @Localizer["Save"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @if (TempData["ParamError"] is string paramError)
+            {
+                <div id="param-error-msg" style="background:rgba(255,113,107,0.1);border:1px solid rgba(255,113,107,0.35);border-radius:10px;padding:0.75rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;color:var(--ft-danger);font-size:0.85rem;font-weight:600">
+                    <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">error</span>
+                    @paramError
+                </div>
+            }
+            <div id="param-js-error" style="display:none;background:rgba(255,113,107,0.1);border:1px solid rgba(255,113,107,0.35);border-radius:10px;padding:0.75rem 1.25rem;margin-bottom:1.5rem;align-items:center;gap:10px;color:var(--ft-danger);font-size:0.85rem;font-weight:600">
+                <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">error</span>
+                <span id="param-js-error-text"></span>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:900px" id="paramsTable" aria-label="@Localizer["SystemParameters"]">
+                        <thead>
+                            <tr>
+                                <th style="width:160px">@Localizer["ParameterName"]</th>
+                                <th>@Localizer["Data"]</th>
+                                <th style="width:140px">@Localizer["LastUpdatedBy"]</th>
+                                <th style="width:150px">@Localizer["CreationDate"]</th>
+                                <th style="width:150px">@Localizer["UpdateDate"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var param in Model.SystemParameters)
+                            {
+                                var options = new System.Text.Json.JsonSerializerOptions 
+                                { 
+                                    WriteIndented = true,
+                                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                                };
+                                var compactOptions = new System.Text.Json.JsonSerializerOptions 
+                                { 
+                                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                                };
+                                
+                                var prettyJson = param.Config;
+								var compactJson = param.Config;
+                                try
+                                {
+                                    //Json u parse ediyor
+                                    var jsonDoc = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(param.Config);
+                                    //Json'u hem biçimlendirilmiş (pretty) hem de tek satır (compact) olarak serileştiriyor
+                                    prettyJson = System.Text.Json.JsonSerializer.Serialize(jsonDoc, options);
+                                    //Kullanici anlasın diye güzelleştiriliyor
+                                    compactJson = System.Text.Json.JsonSerializer.Serialize(jsonDoc, compactOptions);
+                                }
+                                catch { }
+                                <tr data-filename="@param.DosyaAdi">
+                                    <td style="font-weight:700;font-size:0.88rem;vertical-align:top;padding-top:1.25rem">@param.DosyaAdi</td>
+                                    <td>
+                                        <pre class="param-view-mode" style="margin:0;padding:0.75rem 1rem;border-radius:10px;background:var(--ft-surface-high);border:1px solid var(--ft-outline);font-family:'Cascadia Code','Fira Code',monospace;font-size:0.78rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:var(--ft-text)">@prettyJson</pre>
+                                        <div class="param-edit-mode hidden param-json-editor"
+                                             data-original="@compactJson"></div>
+                                    </td>
+                                    <td style="font-size:0.82rem;color:var(--ft-text-muted);vertical-align:top;padding-top:1.25rem">@(param.GuncelleyenKullanici ?? "—")</td>
+                                    <td style="font-size:0.82rem;color:var(--ft-text-muted);vertical-align:top;padding-top:1.25rem">@param.OlusturulmaTarihi.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td style="font-size:0.82rem;color:var(--ft-text-muted);vertical-align:top;padding-top:1.25rem">@param.GuncellenmeTarihi.ToString("dd.MM.yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="@(Model.ActiveTab == "alerts" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">@Localizer["NotificationCenter"]</div>
+                    <h1 class="ft-section-title">@Localizer["Alerts"]</h1>
+                </div>
+                @*
+                   criticalCount: kritik tip uyarıların sayısı (Razor'da hesaplanır) *@
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    @{
+                        var criticalCount = Model.Alerts.Count(a => a.Type == "SPREAD_LIMIT" || a.Type == "MID_TOO_HIGH" || a.Type == "MID_TOO_LOW");
+                    }
+                    @* Toplam uyarı sayısı → yeşil *@
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:12px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px">
+                        <span style="font-size:0.82rem;color:var(--ft-text-muted);font-weight:500">@Localizer["TotalAlerts"]</span>
+                        <span style="font-size:1.5rem;font-weight:800;color:var(--ft-secondary)">@Model.Alerts.Count</span>
+                    </div>
+                    @* Kritik uyarı sayısı → kırmızı *@
+                    <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:12px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px">
+                        <span style="font-size:0.82rem;color:var(--ft-text-muted);font-weight:500">@Localizer["Critical"]</span>
+                        <span style="font-size:1.5rem;font-weight:800;color:var(--ft-danger)">@criticalCount</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--ft-divider);display:flex;align-items:center;justify-content:space-between;background:rgba(105,218,255,0.02);gap:1.5rem;flex-wrap:wrap">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:var(--ft-text)">
+                        <span class="material-symbols-outlined" style="font-size:18px;color:var(--ft-primary)">sort</span>
+                        @Localizer["RecentNotifications"]
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style="font-size:16px;color:var(--ft-placeholder);pointer-events:none">search</span>
+                        <input type="text" id="alertSearch" class="ft-search-box" style="width:200px" placeholder="@Localizer["SearchSymbolPlaceholder"]" onkeyup="filterAlertSymbols()" />
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="ft-table w-full" style="min-width:750px" id="alertsTable" aria-label="@Localizer["Alerts"]">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">@Localizer["Symbol"]</th>     @* Döviz çifti *@
+                                <th style="text-align:center">@Localizer["Type"]</th>       @* Uyarı tipi (SPREAD_LIMIT vb.) *@
+                                <th style="text-align:center">@Localizer["Value"]</th>      @* Gerçek değer *@
+                                <th style="text-align:center">@Localizer["Limit"]</th>      @* Aşılan limit değeri *@
+                                <th style="text-align:center">@Localizer["Time"]</th>     @* Türkiye saatiyle zaman *@
+                                <th style="text-align:center">@Localizer["Status"]</th>  @* Kırmızı/sarı durum noktası *@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var alert in Model.Alerts)
+                            {
+                                @* isCritical: 3 ana kritik tipten biri mi kontrolü *@
+                                var isCritical = alert.Type == "SPREAD_LIMIT" || alert.Type == "MID_TOO_HIGH" || alert.Type == "MID_TOO_LOW";
+                                var symShort = alert.Symbol?.Length > 4 ? alert.Symbol.Substring(0, 4) : alert.Symbol ?? "—";
+                                @* Kritik satırlar → kırmızımsı arka plan (ft-row-critical)
+                                   Uyarı satırlar  → sarımsı arka plan (ft-row-warn) *@
+                                <tr class="@(isCritical ? "ft-row-critical" : "ft-row-warn")" data-symbol="@alert.Symbol">
+                                    <td style="text-align:center">
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+                                            <div class="ft-symbol-box">@symShort</div>
+                                            <span style="font-weight:700;font-size:0.88rem">@(alert.Symbol != null && alert.Symbol.Length == 6 ? alert.Symbol.Insert(3, "/") : alert.Symbol)</span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center">
+                                        @* Uyarı tipi rozeti: kritik → kırmızı, uyarı → sarı *@
+                                        <span class="ft-alert-badge @(isCritical ? "critical" : "warn")">@alert.Type</span>
+                                    </td>
+                                    <td style="font-family:monospace;font-size:0.875rem;text-align:center">@alert.Value</td>
+                                    <td style="font-family:monospace;font-size:0.875rem;color:var(--ft-text-muted);text-align:center">@alert.Limit.ToString("F2")</td>
+                                    @* alert.TimeTurkey → UTC+3 dönüştürülmüş Türkiye saati *@
+                                    <td style="font-size:0.82rem;color:var(--ft-text-muted);text-align:center">@alert.TimeTurkey.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td style="text-align:center">
+                                        @* Küçük renkli durum noktası: kırmızı (kritik) veya sarı (uyarı) *@
+                                        @if (isCritical)
+                                        {
+                                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ft-danger);box-shadow:0 0 8px var(--ft-danger)"></span>
+                                        }
+                                        else
+                                        {
+                                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ft-warning);box-shadow:0 0 6px var(--ft-warning)"></span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        @* Finansal Analizler *@
+        <section class="@(Model.ActiveTab == "financial" ? "" : "hidden")">
+            <div style="margin-bottom:2rem">
+                <div class="ft-section-subtitle">@Localizer["Insight"]</div>
+                <h1 class="ft-section-title">@Localizer["FinancialAnalysis"]</h1>
+                <p style="color:var(--ft-text-muted);font-size:0.88rem;margin-top:0.5rem;max-width:600px">@Localizer["FinancialAnalysisDescription"]</p>
+            </div>
+            @await Html.PartialAsync("Shared/_FinancialAnalytics")
+        </section>
+
+        @* FİYAT GEÇMİŞİ *@
+        <section class="@(Model.ActiveTab == "history" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">@Localizer["AnalysisArchive"]</div>
+                <h1 class="ft-section-title">@Localizer["PriceHistory"]</h1>
+            </div>
+            @{
+                ViewData["PriceHistoryHandlerBase"] = "/Admin";
+                ViewData["PriceHistorySelectedSymbol"] = Model.SelectedSymbol;
+                ViewData["PriceHistorySymbols"] = Model.PricingLimits.Select(x => x.Symbol);
+            }
+            @await Html.PartialAsync("Shared/_PriceHistory")
+        </section>
+
+    </main>
+
+    @* 
+       MODAL: KULLANICI EKLE
+       ft-modal → tam ekranı kaplayan yarı saydam katman (overlay).
+       "hidden" Tailwind sınıfıyla başlangıçta gizli.
+       openUserModal() çağrılınca "hidden" kaldırılır.
+       Modal dışına tıklanınca (e.target kontrolüyle) kapanır.
+       *@
+    <div class="ft-modal" id="addUserModal" style="display:none">
+        @* İç kart: beyaz/koyu arka plan, yuvarlatılmış köşeler *@
+        <div class="ft-modal-content" style="background:var(--ft-surface);border:1px solid var(--ft-card-border);border-radius:18px;padding:2rem;width:100%;max-width:420px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+                <h3 style="font-size:1.15rem;font-weight:800;color:var(--ft-text)">@Localizer["AddUser"]</h3>
+                @* Kapat (X) butonu → closeUserModal() çağrılır *@
+                <button class="ft-btn-icon" onclick="closeUserModal()" type="button">
+                    <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                </button>
+            </div>
+            @* asp-page-handler="AddUser" → OnPostAddUserAsync() çağrılır.
+               Gizli tab input'u → işlem sonrası kullanıcılar sekmesine dönmek için. *@
+            <form class="space-y-4" method="post" asp-page-handler="AddUser">
+                <input name="tab" type="hidden" value="users" />
+                <div>
+                    <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["FullName"]</label>
+                    <input asp-for="NewUser.FullName" class="ft-input w-full" style="border-radius:10px;padding:.65rem 1rem" />
+                </div>
+                <div>
+                    <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["EmailAddress"]</label>
+                    <input asp-for="NewUser.Email" class="ft-input w-full" style="border-radius:10px;padding:.65rem 1rem" type="email" />
+                </div>
+                <div>
+                    <label class="ft-label" style="margin-bottom:6px;display:block">@Localizer["Password"]</label>
+                    <input asp-for="NewUser.Password" class="ft-input w-full" style="border-radius:10px;padding:.65rem 1rem" type="password" />
+                </div>
+                <button class="ft-btn-primary" style="margin-top:0.5rem" type="submit">@Localizer["CreateUser"]</button>
+            </form>
+        </div>
+    </div>
+
+    @* ── DEKORATIF ARKA PLAN IŞIK EFEKTLERİ ──
+       position:fixed → sayfa scroll'una bağlı değil, sabit.
+       filter:blur → yumuşak geçiş.
+       pointer-events:none → tıklanamaz.
+       z-index:-1 → tüm içeriğin arkasında. *@
+    <div style="position:fixed;top:0;right:0;width:40%;height:50%;background:rgba(105,218,255,0.04);filter:blur(120px);pointer-events:none;z-index:-1"></div>
+    <div style="position:fixed;bottom:0;left:0;width:30%;height:40%;background:rgba(255,113,107,0.03);filter:blur(100px);pointer-events:none;z-index:-1"></div>
+
+    <script>
+        // Tema gecisi: data-theme özniteligi üzerinden "light" ve "dark" temaları arasında gecis yapar.
+        const trans = document.getElementById('ft-af-hold').dataset;
+
+        function toggleTheme() {
+            var curr = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = curr === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('ft-theme', next);
+            syncToggleUI(next);
+        }
+        /* Admin navbar'ında yalnizca ikon var (yazı yok), bu yüzden label kontrolü yok */
+        function syncToggleUI(theme) {
+            var icon = document.getElementById('toggleIcon');
+            if (!icon) return;
+            icon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+        }
+        syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
+
+
+        //Yazilan sembole göre piyasa sembollerini filtreler
+        function filterMarketSymbols() {
+            var input = document.getElementById('marketSearch');                // Arama input'u
+            var filter = input.value.toUpperCase();                             // Girilen degeri büyük harfe cevirir
+            var table = document.getElementById('marketTable');                 // Tablo elementini alır
+            var tr = table.getElementsByTagName('tr');                          //Tablodaki tum satirlar
+
+            for (var i = 1; i < tr.length; i++) {
+                var sym = tr[i].getAttribute('data-symbol');
+                if (sym) {
+                    if (sym.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        // Uyarılar tablosunu sembol bazlı filtreler
+        function filterAlertSymbols() {
+            var input = document.getElementById('alertSearch');
+            var filter = input.value.toUpperCase();
+            var table = document.getElementById('alertsTable');
+            var tr = table.getElementsByTagName('tr');
+
+            for (var i = 1; i < tr.length; i++) {
+                var sym = tr[i].getAttribute('data-symbol');
+                if (sym) {
+                    if (sym.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        /** Kullanıcı ekle modalını açar — style.display = 'flex' yapar */
+        function openUserModal()  { document.getElementById('addUserModal').style.display = 'flex'; }
+
+        /** Kullanıcı ekle modalını kapatır — style.display = 'none' yapar */
+        function closeUserModal() { document.getElementById('addUserModal').style.display = 'none'; }
+
+        /* Modal dışına (arka plan overlay'e) tıklanınca kapan.
+           e.target === addUserModal → tıklanan şey modal iç kartı değil, arka plan katmanı. */
+        document.getElementById('addUserModal').addEventListener('click', function (e) {
+            if (e.target.id === 'addUserModal') closeUserModal();
+        });
+
+        /**
+         * stepLimit(elId, delta): +/− butonuna basınca mevcut değere delta ekler.
+         * Binlik noktaları siler, ondalık virgülle işlem yapar ve TR formatında geri yazar.
+         */
+        function stepLimit(elId, delta) {
+            var el = document.getElementById(elId);
+            if (!el) return;
+            var val = parseLimit(el);
+            if (isNaN(val)) val = 0;
+            
+            var step = 1;
+            if (val < 0.01) step = 0.00001;
+            else if (val < 1) step = 0.001;
+            else if (val < 10) step = 0.01;
+            else if (val < 100) step = 0.1;
+            
+            var result = val + (delta * step);
+            if (result < 0) result = 0;
+            
+            // TR formatı: 20.005,50 (Binlik Nokta, Ondalık Virgül)
+            el.value = result.toLocaleString('tr-TR', { 
+                minimumFractionDigits: 0, 
+                maximumFractionDigits: 8 
+            });
+        }
+
+        /**
+         * parseLimit(el): Ekranda görünen TR formatlı sayıyı (örn: 20.005,50) JavaScript sayısına çevirir.
+         * Hem TR (1.234,56) hem EN (1,234.56) formatı desteklenir: son ayırıcı ondalık kabul edilir.
+         */
+        function parseLimit(el) {
+            if (!el) return NaN;
+            var raw = el.value.trim().replace(/\s/g, '');
+            if (!raw) return 0;
+
+            var lastDot   = raw.lastIndexOf('.');
+            var lastComma = raw.lastIndexOf(',');
+
+            if (lastComma > lastDot) {
+                // TR formatı (1.234,56): noktaları sil (binlik), virgülü noktaya çevir (ondalık)
+                raw = raw.replace(/\./g, '').replace(',', '.');
+            } else {
+                // EN formatı (1,234.56): virgülleri sil (binlik), nokta ondalık kalır
+                raw = raw.replace(/,/g, '');
+            }
+            
+            return parseFloat(raw);
+        }
+
+        function getAfToken() {
+            var inp = document.querySelector('#ft-af-hold input[name="__RequestVerificationToken"]');
+            return inp ? inp.value : '';
+        }
+        function showLimitsMsg(text, isError) {
+            var box = document.getElementById('limits-symbol-msg');
+            if (!box) return;
+            if (!text) { box.classList.add('hidden'); box.textContent = ''; return; }
+            box.classList.remove('hidden');
+            box.textContent = text;
+            box.style.background = isError ? 'rgba(255,113,107,0.1)' : 'rgba(0,253,147,0.08)';
+            box.style.border = '1px solid ' + (isError ? 'rgba(255,113,107,0.35)' : 'rgba(0,253,147,0.28)');
+            box.style.color = isError ? 'var(--ft-danger)' : 'var(--ft-secondary)';
+        }
+        function fmtLimitNum(n) {
+            var x = Number(n);
+            if (!Number.isFinite(x)) x = 0;
+            return x.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 8 });
+        }
+        function escHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function buildLimitTableRow(r) {
+            var sym = r.symbol || '';
+            var symShort = sym.length > 4 ? sym.substring(0, 4) : sym;
+            var symDisp = sym.length === 6 ? sym.substring(0, 3) + '/' + sym.substring(3) : sym;
+            var lid = r.limitId;
+            var iid = r.instrumentId;
+            var minS = fmtLimitNum(r.minMid);
+            var maxS = fmtLimitNum(r.maxMid);
+            var sprS = fmtLimitNum(r.maxSpread);
+            var hMin = Number(r.minMid);
+            var hMax = Number(r.maxMid);
+            var hSp = Number(r.maxSpread);
+            if (!Number.isFinite(hMin)) hMin = 0;
+            if (!Number.isFinite(hMax)) hMax = 0;
+            if (!Number.isFinite(hSp)) hSp = 0;
+            return (
+                '<tr>' +
+                '<td><div style="display:flex;align-items:center;gap:12px">' +
+                '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">' + escHtml(symShort) + '</div>' +
+                '<div><div style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">' + escHtml(symDisp) + '</div></div></div></td>' +
+                '<td><div class="ft-spin-container"><input class="ft-input ft-spin-input" id="min-' + lid + '" inputmode="decimal" type="text" value="' + minS + '" style="color:var(--ft-secondary)" />' +
+                '<div class="ft-spin-controls"><button type="button" class="ft-spin-btn" onclick="stepLimit(\'min-' + lid + '\', 1)">▲</button><button type="button" class="ft-spin-btn" onclick="stepLimit(\'min-' + lid + '\', -1)">▼</button></div></div></td>' +
+                '<td><div class="ft-spin-container"><input class="ft-input ft-spin-input" id="max-' + lid + '" inputmode="decimal" type="text" value="' + maxS + '" style="color:var(--ft-text)" />' +
+                '<div class="ft-spin-controls"><button type="button" class="ft-spin-btn" onclick="stepLimit(\'max-' + lid + '\', 1)">▲</button><button type="button" class="ft-spin-btn" onclick="stepLimit(\'max-' + lid + '\', -1)">▼</button></div></div></td>' +
+                '<td><div class="ft-spin-container"><input class="ft-input ft-spin-input" id="spread-' + lid + '" inputmode="decimal" type="text" value="' + sprS + '" style="color:var(--ft-danger)" />' +
+                '<div class="ft-spin-controls"><button type="button" class="ft-spin-btn" onclick="stepLimit(\'spread-' + lid + '\', 1)">▲</button><button type="button" class="ft-spin-btn" onclick="stepLimit(\'spread-' + lid + '\', -1)">▼</button></div></div></td>' +
+                '<td><div style="display:flex;justify-content:flex-end;gap:6px">' +
+                '<form method="post" action="/Admin?handler=UpdateLimit" onsubmit="return bindLimitValues(\'' + lid + '\')">' +
+                '<input name="__RequestVerificationToken" type="hidden" value="' + escHtml(getAfToken()) + '" />' +
+                '<input name="id" type="hidden" value="' + lid + '" />' +
+                '<input id="hidden-min-' + lid + '" name="minMid" type="hidden" value="' + hMin + '" />' +
+                '<input id="hidden-max-' + lid + '" name="maxMid" type="hidden" value="' + hMax + '" />' +
+                '<input id="hidden-spread-' + lid + '" name="maxSpread" type="hidden" value="' + hSp + '" />' +
+                '<button class="ft-btn-icon" title="' + trans.update + '" type="submit" style="width:34px;height:34px;border-radius:10px;background:rgba(105,218,255,0.08);border-color:rgba(105,218,255,0.2);color:var(--ft-primary)" onmouseover="this.style.background=\'var(--ft-primary)\';this.style.color=\'var(--ft-primary-on)\'" onmouseout="this.style.background=\'rgba(105,218,255,0.08)\';this.style.color=\'var(--ft-primary)\'"><span class="material-symbols-outlined" style="font-size:16px">save</span></button></form>' +
+                '<button class="ft-btn-icon ft-btn-delete-symbol" title="' + trans.deleteSymbol + '" type="button" data-instrument-id="' + iid + '" style="width:34px;height:34px;border-radius:10px;background:rgba(255,113,107,0.08);border-color:rgba(255,113,107,0.2);color:var(--ft-danger)" onmouseover="this.style.background=\'var(--ft-danger)\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'rgba(255,113,107,0.08)\';this.style.color=\'var(--ft-danger)\'"><span class="material-symbols-outlined" style="font-size:16px">delete</span></button>' +
+                '</div></td></tr>'
+            );
+        }
+        async function refreshLimitsTableFromApi() {
+            var tb = document.getElementById('limitsTableBody');
+            if (!tb) return;
+            try {
+                var res = await fetch('/api/admin/symbols', { credentials: 'same-origin', cache: 'no-store' });
+                if (res.status === 401 || res.status === 403) { showLimitsMsg(trans.unauthorizedSession, true); return; }
+                if (!res.ok) { showLimitsMsg(trans.symbolFetchError, true); return; }
+                var rows = await res.json();
+                tb.innerHTML = (rows || []).map(buildLimitTableRow).join('');
+                var foot = document.getElementById('limitsCountFoot');
+                if (foot) foot.textContent = (rows || []).length + ' ' + trans.activeLimits;
+                
+                // Üstteki market strip alanını da güncelle
+                updateMarketStrip(rows);
+            } catch (e) {
+                console.warn(e);
+                showLimitsMsg(trans.networkErrorList, true);
+            }
+        }
+
+        function updateMarketStrip(rows) {
+            (rows || []).slice(0, 12).forEach(function(r) {
+                if (r && r.symbol) ensureMarketSymbol(r.symbol);
+            });
+            var apiSymbols = (rows || []).map(function(r) { return normalizeMarketSymbol(r.symbol); });
+            document.getElementById('marketStrip') && document.getElementById('marketStrip').querySelectorAll('.ft-strip-card').forEach(function(card) {
+                var sym = card.getAttribute('data-strip-symbol');
+                if (!apiSymbols.includes(sym)) {
+                    marketActiveSymbols.delete(sym);
+                    card.remove();
+                }
+            });
+        }
+
+
+        //Kullanici sembol alanına yazarken ilk 3 karakteri base, son 3 karakteri quote olarak alir ve ilgili alanlara otomatik doldurur
+        document.getElementById('addSymbolField') && document.getElementById('addSymbolField').addEventListener('input', function (e) {
+            var symbol = e.target.value.trim();
+            if (symbol.length >= 6) {
+                var base = symbol.substring(0, 3).toUpperCase();
+                var quote = symbol.substring(symbol.length - 3).toUpperCase();
+                document.getElementById('addBaseField').value = base;
+                document.getElementById('addQuoteField').value = quote;
+            } else if (symbol.length === 0) {
+                document.getElementById('addBaseField').value = '';
+                document.getElementById('addQuoteField').value = '';
+            }
+
+            scheduleAddSymbolPreview(symbol);
+        });
+
+        // ── Yeni Enstrüman önizleme (anlık FIX fiyatı) ──────────────────────────────
+        // Kullanici Sembol alanına yazdığında /api/LatestPrice/{symbol} sorgulanır;
+        // canlı tick'ler ise SignalR PriceUpdate üzerinden anlık güncellenir.
+        var addSymbolPreviewState = {
+            currentSymbol: '',     // Inputtaki normalize sembol (slash'sız, büyük harf)
+            debounceTimer: null,
+            inFlightCtrl: null,    // Sürmekte olan fetch için AbortController
+            lastMid: null,
+            isRejected: false      // Broker tarafından reddedilip reddedilmediği
+        };
+
+        function normalizePreviewSymbol(raw) {
+            return (raw || '').trim().toUpperCase().replace(/\s+/g, '').replace(/\//g, '');
+        }
+
+        function setPreviewVisibility(visible) {
+            var box = document.getElementById('addSymbolPreview');
+            if (!box) return;
+            if (visible) box.classList.remove('hidden');
+            else box.classList.add('hidden');
+        }
+
+        function setPreviewStatus(state, message) {
+            var dot = document.getElementById('addSymbolPreviewDot');
+            var msg = document.getElementById('addSymbolPreviewMsg');
+            if (!dot || !msg) return;
+            // state: 'idle' | 'loading' | 'ok' | 'empty' | 'error'
+            var icon = 'radio_button_unchecked';
+            var color = 'var(--ft-text-faint)';
+            if (state === 'loading') { icon = 'sync'; color = 'var(--ft-primary)'; }
+            else if (state === 'ok') { icon = 'check_circle'; color = 'var(--ft-success, #4ade80)'; }
+            else if (state === 'empty') { icon = 'error'; color = 'var(--ft-warning, #fbbf24)'; }
+            else if (state === 'error') { icon = 'cancel'; color = 'var(--ft-danger)'; }
+            dot.textContent = icon;
+            dot.style.color = color;
+            msg.textContent = message || '';
+        }
+
+        function fillPreviewValues(data) {
+            var fmt = function (v, d) {
+                if (v === null || v === undefined || isNaN(v)) return '—';
+                d = (d == null) ? 5 : d;
+                return Number(v).toFixed(d).replace('.', ',');
+            };
+            document.getElementById('addSymbolPreviewBid').textContent = fmt(data && data.bid);
+            document.getElementById('addSymbolPreviewAsk').textContent = fmt(data && data.ask);
+            document.getElementById('addSymbolPreviewMid').textContent = fmt(data && data.mid);
+            document.getElementById('addSymbolPreviewSpread').textContent = fmt(data && data.spread, 5);
+            addSymbolPreviewState.lastMid = (data && typeof data.mid === 'number') ? data.mid : null;
+            var applyBtn = document.getElementById('addSymbolApplyLimitsBtn');
+            if (applyBtn) {
+                if (addSymbolPreviewState.lastMid && addSymbolPreviewState.lastMid > 0) applyBtn.classList.remove('hidden');
+                else applyBtn.classList.add('hidden');
+            }
+        }
+
+        function clearPreviewValues() {
+            ['Bid', 'Ask', 'Mid', 'Spread'].forEach(function (k) {
+                var el = document.getElementById('addSymbolPreview' + k);
+                if (el) el.textContent = '—';
+            });
+            addSymbolPreviewState.lastMid = null;
+            addSymbolPreviewState.isRejected = false;
+            var btn = document.getElementById('addSymbolBtn');
+            if (btn) btn.disabled = false;
+            var applyBtn = document.getElementById('addSymbolApplyLimitsBtn');
+            if (applyBtn) applyBtn.classList.add('hidden');
+        }
+
+        function scheduleAddSymbolPreview(rawSymbol) {
+            var sym = normalizePreviewSymbol(rawSymbol);
+            addSymbolPreviewState.currentSymbol = sym;
+
+            if (addSymbolPreviewState.debounceTimer) {
+                clearTimeout(addSymbolPreviewState.debounceTimer);
+                addSymbolPreviewState.debounceTimer = null;
+            }
+            if (addSymbolPreviewState.inFlightCtrl) {
+                try { addSymbolPreviewState.inFlightCtrl.abort(); } catch (_) {}
+                addSymbolPreviewState.inFlightCtrl = null;
+            }
+
+            // Çok kisa sembollerde önizlemeyi gizle (en az 6 karakter yazılınca devreye girsin)
+            if (sym.length < 6) {
+                clearPreviewValues();
+                setPreviewVisibility(false);
+                return;
+            }
+
+            // Kutuyu hemen göster + yükleniyor durumu
+            setPreviewVisibility(true);
+            document.getElementById('addSymbolPreviewLabel').textContent = sym.length === 6 ? sym.substring(0, 3) + '/' + sym.substring(3) : sym;
+            clearPreviewValues();
+            setPreviewStatus('loading', trans.fetchingData);
+
+            addSymbolPreviewState.debounceTimer = setTimeout(function () {
+                fetchAddSymbolPreview(sym);
+            }, 350);
+        }
+
+        async function fetchAddSymbolPreview(sym) {
+            if (!sym || sym !== addSymbolPreviewState.currentSymbol) return;
+            var ctrl = new AbortController();
+            addSymbolPreviewState.inFlightCtrl = ctrl;
+            try {
+                // Preview endpoint: cache'te varsa anında, yoksa FIX'e geçici subscribe edip kısa süre bekler.
+                var res = await fetch('/api/admin/symbols/preview/' + encodeURIComponent(sym), {
+                    credentials: 'same-origin',
+                    signal: ctrl.signal
+                });
+                if (sym !== addSymbolPreviewState.currentSymbol) return;
+
+                if (res.status === 401 || res.status === 403) {
+                    clearPreviewValues();
+                    setPreviewStatus('error', 'Yetkisiz: Admin oturumu gerekli.');
+                    return;
+                }
+                if (!res.ok) {
+                    clearPreviewValues();
+                    setPreviewStatus('error', trans.dataFetchError.replace('{0}', res.status));
+                    return;
+                }
+                var payload = await res.json();
+                if (!payload) {
+                    clearPreviewValues();
+                    setPreviewStatus('empty', 'Veri yok.');
+                    return;
+                }
+
+                if (payload.status === 'ok' && payload.data) {
+                    fillPreviewValues(payload.data);
+                    setPreviewStatus('ok', trans.receivedFix);
+                    return;
+                }
+                if (payload.status === 'pending') {
+                    clearPreviewValues();
+                    setPreviewStatus('loading', payload.message || 'Veri bekleniyor…');
+                    return;
+                }
+                if (payload.status === 'rejected') {
+                    clearPreviewValues();
+                    setPreviewStatus('empty', payload.message || trans.brokerUnrecognized);
+                    addSymbolPreviewState.isRejected = true;
+                    var btn = document.getElementById('addSymbolBtn');
+                    if (btn) btn.disabled = true;
+                    return;
+                }
+                if (payload.status === 'fix_disconnected') {
+                    clearPreviewValues();
+                    setPreviewStatus('error', payload.message || trans.noFix);
+                    return;
+                }
+                clearPreviewValues();
+                setPreviewStatus('error', payload.message || 'Bilinmeyen durum.');
+            } catch (err) {
+                if (err && err.name === 'AbortError') return; // input değişti, sessizce çık
+                clearPreviewValues();
+                setPreviewStatus('error', trans.networkError);
+            } finally {
+                if (addSymbolPreviewState.inFlightCtrl === ctrl) addSymbolPreviewState.inFlightCtrl = null;
+            }
+        }
+
+        // "Limitleri Öner": Mid'i temel alıp varsayılan bir aralık ve spread tavanı önerir.
+        // MinMid = mid * 0.95, MaxMid = mid * 1.05, MaxSpread = max(spread*3, mid*0.001)
+        document.getElementById('addSymbolApplyLimitsBtn') && document.getElementById('addSymbolApplyLimitsBtn').addEventListener('click', function () {
+            var mid = addSymbolPreviewState.lastMid;
+            if (!mid || mid <= 0) return;
+            var spreadEl = document.getElementById('addSymbolPreviewSpread');
+            var spread = spreadEl ? parseFloat(spreadEl.textContent) : NaN;
+            if (!spread || isNaN(spread) || spread <= 0) spread = mid * 0.0005;
+            var minMid = (mid * 0.95);
+            var maxMid = (mid * 1.05);
+            var maxSpread = Math.max(spread * 3, mid * 0.001);
+            var fmt = function (v) { return Number(v).toFixed(5).replace('.', ','); };
+            document.getElementById('addMinMid').value = fmt(minMid);
+            document.getElementById('addMaxMid').value = fmt(maxMid);
+            document.getElementById('addMaxSpread').value = fmt(maxSpread);
+        });
+
+        document.getElementById('addSymbolForm') && document.getElementById('addSymbolForm').addEventListener('submit', async function (e) {
+            e.preventDefault(); // Sayfanın yenilenmesini engelle 
+            
+            var symInp = document.getElementById('addSymbolField');
+            var symbol = symInp ? symInp.value.trim() : '';
+            if (!symbol) { showLimitsMsg('Sembol girin.', true); return; }
+
+            var baseInp = document.getElementById('addBaseField');
+            var quoteInp = document.getElementById('addQuoteField');
+            var baseV = baseInp ? baseInp.value.trim() : '';
+            var quoteV = quoteInp ? quoteInp.value.trim() : '';
+
+            if (!baseV) { showLimitsMsg(trans.baseEmpty, true); return; }
+            if (!quoteV) { showLimitsMsg(trans.quoteEmpty, true); return; }
+
+            // Ham input değerlerini kontrol et (boşluk kontrolü için)
+            var minValRaw = document.getElementById('addMinMid').value.trim();
+            var maxValRaw = document.getElementById('addMaxMid').value.trim();
+            var spreadValRaw = document.getElementById('addMaxSpread').value.trim();
+
+            if (!minValRaw) { showLimitsMsg(trans.minMidEmpty, true); return; }
+            if (!maxValRaw) { showLimitsMsg(trans.maxMidEmpty, true); return; }
+            if (!spreadValRaw) { showLimitsMsg(trans.maxSpreadEmpty, true); return; }
+            
+            // Ekranda (virgüllü vb.) yazan sayilari saf sayiya cevir
+            var minV = parseLimit({ value: minValRaw });
+            var maxV = parseLimit({ value: maxValRaw });
+            var spV = parseLimit({ value: spreadValRaw });
+            
+            // Geçerli sayı olup olmadıklarını kontrol et
+            if (isNaN(minV) || isNaN(maxV) || isNaN(spV)) { showLimitsMsg(trans.invalidLimits, true); return; }
+            if (minV > maxV) { showLimitsMsg(trans.minGtMax, true); return; }
+            if (minV < 0 || maxV < 0 || spV < 0) { showLimitsMsg(trans.negativeLimitError, true); return; }
+            
+            if (addSymbolPreviewState.isRejected) {
+                showLimitsMsg('Broker bu sembolü reddettiği için eklenemez.', true);
+                return;
+            }
+            
+            var btn = document.getElementById('addSymbolBtn');
+            if (btn) btn.disabled = true; // İşlem bitene kadar butonu kilitle
+            
+            try {
+                // POST isteği ile yeni sembolü arka plana (Backend) gönder
+                var res = await fetch('/api/admin/symbols', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        symbol: symbol, 
+                        minMid: minV, 
+                        maxMid: maxV, 
+                        maxSpread: spV,
+                        base: baseV,
+                        quote: quoteV
+                    })
+                });
+                
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) { showLimitsMsg(data.error || 'Eklenemedi.', true); return; }
+                
+                // Başarı mesajı göster ve form alanlarını temizle
+                showLimitsMsg('Sembol eklendi.', false);
+                symInp.value = '';
+                if (baseInp) baseInp.value = '';
+                if (quoteInp) quoteInp.value = '';
+                document.getElementById('addMinMid').value = '';
+                document.getElementById('addMaxMid').value = '';
+                document.getElementById('addMaxSpread').value = '';
+                // Önizleme bölümünü gizle (yeni sembol yazılınca tekrar açılır)
+                scheduleAddSymbolPreview('');
+                
+                // Tabloyu yeni eklenen sembolle beraber güncelle; canli piyasa DOM'u SignalR beklemeden hazir
+                await refreshLimitsTableFromApi();
+                if (data.item && data.item.symbol) ensureMarketSymbol(data.item.symbol);
+            } catch (err) {
+                showLimitsMsg(trans.networkErrorSimple, true);
+            } finally {
+                if (btn) btn.disabled = false; // Buton kilidini kaldır
+            }
+        });
+
+        /**
+         * Tablodaki "Sil" butonlarından birine tıklandığında çalışır.
+         */
+        document.addEventListener('click', async function (ev) {
+            var t = ev.target;
+            if (!t.closest) return;
+            
+            // Tıklanan yer bir silme butonu mu?
+            var del = t.closest('.ft-btn-delete-symbol');
+            if (!del || !del.getAttribute('data-instrument-id')) return;
+            
+            var iid = del.getAttribute('data-instrument-id');
+            // Kullanıcıdan son onay al
+            if (!confirm('Sembol ve limitler tamamen silinsin mi? ')) return;
+            
+            del.disabled = true;
+            try {
+                // DELETE isteği ile sembolü arka plandan kaldır
+                var res = await fetch('/api/admin/symbols/' + encodeURIComponent(iid), { method: 'DELETE', credentials: 'same-origin' });
+                if (res.status === 401 || res.status === 403) { showLimitsMsg(trans.unauthorizedAction, true); return; }
+                if (!res.ok) { showLimitsMsg('Silinemedi.', true); return; }
+                
+                showLimitsMsg('Sembol silindi.', false);
+                // Tabloyu güncel listeyle yenile
+                await refreshLimitsTableFromApi();
+            } catch (e) {
+                showLimitsMsg(trans.networkErrorSimple, true);
+            } finally {
+                del.disabled = false;
+            }
+        });
+
+        /**
+         * bindLimitValues(id): Limit GÜNCELLEME işlemi öncesi çalışır.
+         * Ekranda görünen sayıları doğrular ve Backend'in beklediği formatta gizli inputlara aktarır.
+         */
+        function bindLimitValues(id) {
+            var MAX_LIMIT = 9999999999;
+            var minEl    = document.getElementById('min-' + id);
+            var maxEl    = document.getElementById('max-' + id);
+            var spreadEl = document.getElementById('spread-' + id);
+
+            // Ekranda yazan sayıları sayı formatına çevir
+            var minVal    = parseLimit(minEl);
+            var maxVal    = parseLimit(maxEl);
+            var spreadVal = parseLimit(spreadEl);
+
+            // Değerlerin mantıklı aralıklarda olduğunu doğrula
+            if (isNaN(minVal)    || minVal    < 0 || minVal    > MAX_LIMIT ||
+                isNaN(maxVal)    || maxVal    < 0 || maxVal    > MAX_LIMIT ||
+                isNaN(spreadVal) || spreadVal < 0 || spreadVal > MAX_LIMIT) {
+                alert(trans.limitsRangeError);
+                return false;
+            }
+            if (minVal > maxVal) {
+                alert(trans.minMidMaxMidError);
+                return false;
+            }
+
+            // Doğrulanmış değerleri, form submit olduğunda gönderilecek olan gizli (hidden) inputlara aktar
+            document.getElementById('hidden-min-' + id).value    = minVal.toString();
+            document.getElementById('hidden-max-' + id).value    = maxVal.toString();
+            document.getElementById('hidden-spread-' + id).value = spreadVal.toString();
+            return true; // Her şey tamamsa formun gönderilmesine (submit) izin ver
+        }
+
+        var BADGE_KEY = 'ft-badges'; /* localStorage anahtarı */
+
+        /** localStorage'dan rozet önbelleğini okur */
+        function loadBadgeCache() {
+            try { return JSON.parse(localStorage.getItem(BADGE_KEY) || '{}'); } catch(e) { return {}; }
+        }
+
+        /** Rozet önbelleğini localStorage'a yazar */
+        function saveBadgeCache(cache) {
+            try { localStorage.setItem(BADGE_KEY, JSON.stringify(cache)); } catch(e) {}
+        }
+
+        /* 
+           Sayfa yenilense bile son bilinen değişim yönü gösterilir.
+           Her sembol için hem tablo rozeti (data-change-badge)
+           hem de strip rozeti (data-strip-badge) güncellenir. */
+        (function applyStoredBadges() {
+            var cache = loadBadgeCache();
+            Object.keys(cache).forEach(function(symbol) {
+                var b = cache[symbol];
+                /* Market strip kartındaki rozet */
+                var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+                if (sBadge && b.cls && b.text) {
+                    sBadge.className = 'ft-badge-stock ' + b.cls;
+                    sBadge.textContent = b.text;
+                    sBadge.style.display = 'inline-flex';
+                }
+                /* Canlı piyasa tablosundaki rozet */
+                var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+                if (cBadge && b.cls && b.text) {
+                    cBadge.className = 'ft-badge-stock ' + b.cls;
+                    cBadge.textContent = b.text;
+                    cBadge.style.display = 'inline-flex';
+                }
+            });
+        })();
+
+
+        function toNum(v) {
+            if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+            var s = String(v || '').trim();
+            if (!s || s === '—') return 0;
+            // TR formatı: virgül varsa ondalık, noktalar binlik ayırıcı
+            if (s.indexOf(',') !== -1) s = s.replace(/\./g, '').replace(',', '.');
+            var n = parseFloat(s);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        // TR formatı: ondalık virgül — fiyat hücreleri için 2 basamak
+        function next2(v) { return Number(v).toFixed(2).replace('.', ','); }
+
+        function pulseCell(td, cls) {
+            td.classList.remove('ft-cell-up', 'ft-cell-down');
+            if (cls) td.classList.add(cls);
+            setTimeout(function () { td.classList.remove('ft-cell-up', 'ft-cell-down'); }, 800);
+        }
+
+        /**
+         * applyBadge(symbol, cls, text)
+         * Belirtilen sembole ait tüm rozet elementlerini günceller.
+         * cls  → 'ft-badge-up' veya 'ft-badge-down'
+         * text → '+0.05% ↑' veya '-0.03% ↓' gibi metin
+         * Değerler localStorage önbelleğine de kaydedilir.
+         */
+        function applyBadge(symbol, cls, text) {
+            /* Tablo içi rozet */
+            var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+            if (cBadge) {
+                cBadge.className = 'ft-badge-stock ' + cls;
+                cBadge.textContent = text;
+                cBadge.style.display = 'inline-flex';
+            }
+            /* Strip (fiyat bandı) rozeti */
+            var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+            if (sBadge) {
+                sBadge.className = 'ft-badge-stock ' + cls;
+                sBadge.textContent = text;
+                sBadge.style.display = 'inline-flex';
+            }
+            /* localStorage önbelleğini güncelle */
+            var cache = loadBadgeCache();
+            cache[symbol] = { cls: cls, text: text };
+            saveBadgeCache(cache);
+        }
+
+        /* Aktif limit sembolleri: SignalR ile eklenenler refreshMarket silinmeden kalir */
+        var marketActiveSymbols = new Set(
+            Array.from(document.querySelectorAll('.ft-strip-card[data-strip-symbol]')).map(function(c) {
+                return normalizeMarketSymbol(c.getAttribute('data-strip-symbol'));
+            }).filter(Boolean)
+        );
+
+        function normalizeMarketSymbol(raw) {
+            return String(raw || '').trim().toUpperCase().replace(/\//g, '');
+        }
+
+        function symDisplay(symbol) {
+            return symbol.length === 6 ? symbol.substring(0, 3) + '/' + symbol.substring(3) : symbol;
+        }
+
+        /** Strip + canli piyasa tablosunda sembol satiri yoksa olusturur (refresh gerektirmez). */
+        function ensureMarketSymbol(rawSymbol) {
+            var symbol = normalizeMarketSymbol(rawSymbol);
+            if (!symbol) return;
+            marketActiveSymbols.add(symbol);
+
+            var strip = document.getElementById('marketStrip');
+            if (strip && !document.querySelector('.ft-strip-card[data-strip-symbol="' + symbol + '"]')) {
+                var stripCard = document.createElement('div');
+                stripCard.className = 'ft-strip-card';
+                stripCard.setAttribute('data-strip-symbol', symbol);
+                stripCard.innerHTML =
+                    '<div class="ft-strip-symbol">' + symDisplay(symbol) + '</div>' +
+                    '<div class="ft-strip-price">—</div>' +
+                    '<div class="ft-badge-stock" data-strip-badge="' + symbol + '"></div>';
+                strip.appendChild(stripCard);
+            }
+
+            var table = document.getElementById('marketTable');
+            if (!table) return;
+            var body = table.querySelector('tbody');
+            if (!body) return;
+            var emptyRow = body.querySelector('tr[data-empty]');
+            if (emptyRow) emptyRow.remove();
+
+            if (!body.querySelector('tr[data-symbol="' + symbol + '"]')) {
+                var symShort = symbol.length > 4 ? symbol.substring(0, 4) : symbol;
+                var tr = document.createElement('tr');
+                tr.setAttribute('data-symbol', symbol);
+                tr.innerHTML =
+                    '<td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:10px">' +
+                    '<div class="ft-symbol-box">' + symShort + '</div>' +
+                    '<span style="font-weight:700;font-size:0.88rem">' + symDisplay(symbol) + '</span></div></td>' +
+                    '<td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center">—</td>' +
+                    '<td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center">—</td>' +
+                    '<td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center">' +
+                    '<span>—</span><span class="ft-badge-stock" data-change-badge="' + symbol + '"></span></td>' +
+                    '<td data-field="Spread" style="font-family:monospace;font-size:0.88rem;color:var(--ft-text-muted);text-align:center">—</td>';
+                body.appendChild(tr);
+            }
+        }
+
+        // refreshMarket(): Canlı piyasa verilerini sunucudan alır ve tablo ile strip kartlarını günceller
+        async function refreshMarket() {
+            var table = document.getElementById('marketTable');
+            if (!table) return; 
+            try {
+                var res = await fetch('/Admin?handler=LiveMarket', { cache: 'no-store' });
+                if (!res.ok) return;
+                var rows = await res.json();
+                var body = table.querySelector('tbody');
+
+                rows.forEach(function(r) { if (r && r.symbol) marketActiveSymbols.add(normalizeMarketSymbol(r.symbol)); });
+                var activeSymbols = new Set(rows.map(function(r) { return normalizeMarketSymbol(r.symbol); }));
+                marketActiveSymbols.forEach(function(s) { activeSymbols.add(s); });
+
+                // 1) Market Strip (üstteki kartlar) temizliği
+                var stripCards = document.querySelectorAll('.ft-strip-card');
+                stripCards.forEach(function(card) {
+                    var sym = card.getAttribute('data-strip-symbol');
+                    if (!activeSymbols.has(sym)) {
+                        card.remove(); // Listede yoksa kartı sil
+                    }
+                });
+
+                // 2) Market Tablosu (alt kısımdaki tablo) temizliği
+                var tableRows = body.querySelectorAll('tr[data-symbol]');
+                tableRows.forEach(function(tr) {
+                    var sym = tr.getAttribute('data-symbol');
+                    if (!activeSymbols.has(sym)) {
+                        tr.remove(); // Listede yoksa satırı sil
+                    }
+                });
+
+                rows.forEach(function (row) {
+                    var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
+                    if (!tr) {
+                        tr = document.createElement('tr');
+                        tr.setAttribute('data-symbol', row.symbol);
+                        var symWithSlash = row.symbol.length === 6 ? row.symbol.substring(0,3) + '/' + row.symbol.substring(3) : row.symbol;
+                        tr.innerHTML =
+                            '<td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:10px"><div class="ft-symbol-box">' + row.symbol.substring(0,4) + '</div><span style="font-weight:700;font-size:.88rem">' + symWithSlash + '</span></div></td>' +
+                            '<td data-field="Bid" style="font-family:monospace;font-size:.88rem;text-align:center"></td>' +
+                            '<td data-field="Ask" style="font-family:monospace;font-size:.88rem;text-align:center"></td>' +
+                            '<td data-field="Mid" style="font-family:monospace;font-size:.88rem;text-align:center"><span></span><span class="ft-badge-stock" data-change-badge="' + row.symbol + '"></span></td>' +
+                            '<td data-field="Spread" style="font-family:monospace;font-size:.88rem;color:var(--ft-text-muted);text-align:center"></td>';
+                        body.appendChild(tr);
+                    }
+
+                    var strip = document.getElementById('marketStrip');
+                    var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
+                    if (!stripCard && strip) {
+                        var symWithSlash = row.symbol.length === 6 ? row.symbol.substring(0, 3) + '/' + row.symbol.substring(3) : row.symbol;
+                        stripCard = document.createElement('div');
+                        stripCard.className = 'ft-strip-card';
+                        stripCard.setAttribute('data-strip-symbol', row.symbol);
+                        stripCard.innerHTML =
+                            '<div class="ft-strip-symbol">' + symWithSlash + '</div>' +
+                            '<div class="ft-strip-price"></div>' +
+                            '<div class="ft-badge-stock" data-strip-badge="' + row.symbol + '"></div>';
+                        strip.appendChild(stripCard);
+                    }
+                    if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = next2(row.mid);
+
+                    ['Bid', 'Ask', 'Mid', 'Spread'].forEach(function (field) {
+                        var td = tr.querySelector('td[data-field="' + field + '"]');
+                        var textContainer = field === 'Mid' ? td.querySelector('span:first-child') : td;
+                        var current = toNum(td.getAttribute('data-prev') || textContainer.textContent);
+                        var next = toNum(row[field.toLowerCase()]);
+
+                        if (field === 'Mid') {
+                            if (current > 0 && next !== current) {
+                                var diff = next - current;
+                                var pct = ((diff / current) * 100).toFixed(2).replace('.', ',');
+                                var isUp = diff > 0;
+                                var cls = isUp ? 'ft-badge-up' : 'ft-badge-down';
+                                var text = (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓');
+                                applyBadge(row.symbol, cls, text);
+                            }
+                            textContainer.textContent = next2(next);
+                        } else {
+                            td.textContent = next2(next);
+                        }
+
+                        if (next > current) pulseCell(td, 'ft-cell-up');
+                        if (next < current) pulseCell(td, 'ft-cell-down');
+
+                        td.setAttribute('data-prev', String(next));
+                    });
+                });
+            } catch (e) { console.warn('Market refresh error', e); }
+        }
+
+        // Tek bir tick'i (PriceUpdate olayını) işleyen fonksiyon
+        function handlePriceUpdate(row) {
+            if (!row || !row.symbol) return;
+            row.symbol = normalizeMarketSymbol(row.symbol);
+            ensureMarketSymbol(row.symbol);
+
+            var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
+            if (stripCard) {
+                var priceEl = stripCard.querySelector('.ft-strip-price');
+                var prevMid = toNum(stripCard.getAttribute('data-prev-mid') || (priceEl ? priceEl.textContent : ''));
+                var nextMid = toNum(row.mid);
+                if (priceEl && nextMid > 0) priceEl.textContent = next2(nextMid);
+                if (prevMid > 0 && nextMid > 0 && nextMid !== prevMid) {
+                    var diff = nextMid - prevMid;
+                    var pct = ((diff / prevMid) * 100).toFixed(2).replace('.', ',');
+                    var isUp = diff > 0;
+                    applyBadge(row.symbol, isUp ? 'ft-badge-up' : 'ft-badge-down', (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓'));
+                }
+                if (nextMid > 0) stripCard.setAttribute('data-prev-mid', String(nextMid));
+            }
+
+            // Tablo satırını güncelle
+            var table = document.getElementById('marketTable');
+            if (!table) return;
+            var body = table.querySelector('tbody');
+            var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
+            if (!tr) return;
+
+            ['Bid', 'Ask', 'Mid', 'Spread'].forEach(function (field) {
+                var td = tr.querySelector('td[data-field="' + field + '"]');
+                if (!td) return;
+                var textContainer = field === 'Mid' ? td.querySelector('span:first-child') : td;
+                var current = toNum(td.getAttribute('data-prev') || (textContainer ? textContainer.textContent : td.textContent));
+                var next = toNum(row[field.toLowerCase()]);
+
+                if (field === 'Mid') {
+                    if (current > 0 && next !== current) {
+                        var diff = next - current;
+                        var pct = ((diff / current) * 100).toFixed(2).replace('.', ',');
+                        var isUp = diff > 0;
+                        applyBadge(row.symbol, isUp ? 'ft-badge-up' : 'ft-badge-down', (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓'));
+                    }
+                    if (textContainer) textContainer.textContent = next2(next);
+                    else td.textContent = next2(next);
+                } else {
+                    td.textContent = next2(next);
+                }
+
+                if (next > current) pulseCell(td, 'ft-cell-up');
+                if (next < current) pulseCell(td, 'ft-cell-down');
+                td.setAttribute('data-prev', String(next));
+            });
+        }
+
+        // İlk yüklemede mevcut fiyatları çek (SignalR bağlantısı öncesi)
+        refreshMarket();
+
+        // SignalR bağlantısı: fiyat değiştiğinde sunucu push eder, polling yok
+        var marketConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/market')
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+            .build();
+
+        marketConnection.on('PriceUpdate', function (tick) {
+            handlePriceUpdate(tick);
+
+            // Yeni Enstrüman formundaki önizleme aktifse ve sembol eşleşiyorsa canlı güncelle
+            try {
+                if (tick && tick.symbol && addSymbolPreviewState.currentSymbol &&
+                    String(tick.symbol).toUpperCase() === addSymbolPreviewState.currentSymbol) {
+                    fillPreviewValues({ bid: tick.bid, ask: tick.ask, mid: tick.mid, spread: tick.spread });
+                    setPreviewStatus('ok', 'Canlı: FIX akışı (' + new Date().toLocaleTimeString() + ')');
+                }
+            } catch (_) { /* preview hub güncellemesi sessiz başarısız */ }
+        });
+
+        marketConnection.on('InstrumentCreated', function (data) {
+            console.log('[SignalR] Yeni enstrüman eklendi:', data.symbol);
+            if (data && data.symbol) ensureMarketSymbol(data.symbol);
+            refreshMarket();
+        });
+
+        marketConnection.on('InstrumentDeleted', function (data) {
+            console.log('[SignalR] Enstrüman silindi:', data.symbol);
+            if (data && data.symbol) marketActiveSymbols.delete(normalizeMarketSymbol(data.symbol));
+            refreshMarket();
+        });
+
+        marketConnection.on('InstrumentUpdated', function (data) {
+            console.log('[SignalR] Enstrüman güncellendi:', data.symbol);
+            refreshMarket();
+        });
+
+        marketConnection.on('SubscriptionRejected', function (data) {
+            console.warn('[SignalR] Abonelik reddedildi:', data.symbol, data.reason);
+            // Opsiyonel: Kullanıcıya bir toast veya uyarı gösterilebilir
+            if (typeof showParamError === 'function') {
+                showParamError('FIX Abonelik Reddedildi: ' + data.symbol + ' - ' + data.reason);
+            }
+        });
+
+        marketConnection.onreconnected(function () {
+            console.log('[SignalR] Yeniden bağlandı, fiyatlar yenileniyor...');
+            refreshMarket();
+        });
+
+        marketConnection.start()
+            .then(function () { console.log('[SignalR] Admin bağlandı → anlık fiyat modu aktif.'); })
+            .catch(function (err) {
+                console.error('[SignalR] Bağlantı kurulamadı, polling devreye alınıyor:', err);
+                setInterval(refreshMarket, 3000); // Fallback: SignalR çalışmazsa polling
+            });
+
+        // JSON string'ini tek satir ve minimum boşlukla sıkıştırır. Geçersiz JSON ise orijinal string'i döner
+        function jsonCompact(s) {
+            try { return JSON.stringify(JSON.parse(s.trim())); } catch { return s.trim(); }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function valueToEditorText(v) {
+            if (v === null) return 'null';
+            if (typeof v === 'string') return v;
+            return JSON.stringify(v);
+        }
+
+        function parseEditorValue(raw) {
+            var t = (raw || '').trim();
+            if (t === '') return '';
+            try { return JSON.parse(t); } catch { return raw; }
+        }
+
+        function buildParamEditor(editorEl) {
+            var source = editorEl.getAttribute('data-original') || '{}';
+            var parsed;
+            try {
+                parsed = JSON.parse(source);
+            } catch {
+                parsed = {};
+            }
+
+            var keys = Object.keys(parsed);
+            if (keys.length === 0) {
+                editorEl.innerHTML = '<div style="font-size:0.8rem;color:var(--ft-text-muted)">Bu parametre dosyasında düzenlenebilir alan yok.</div>';
+                return;
+            }
+
+            editorEl.innerHTML = keys.map(function (key) {
+                var valueText = valueToEditorText(parsed[key]);
+                return (
+                    '<div class="param-json-row">' +
+                        '<span class="param-json-key">' + escapeHtml(key) + '</span>' +
+                        '<input type="text" class="param-json-value ft-input" data-key="' + escapeHtml(key) + '" value="' + escapeHtml(valueText) + '" />' +
+                    '</div>'
+                );
+            }).join('');
+        }
+
+        function resetParamEditor(editorEl) {
+            buildParamEditor(editorEl);
+        }
+
+        function collectEditorObject(editorEl) {
+            var result = {};
+            var fields = editorEl.querySelectorAll('.param-json-value');
+            fields.forEach(function (field) {
+                var key = field.getAttribute('data-key');
+                if (!key) return;
+                result[key] = parseEditorValue(field.value);
+            });
+            return result;
+        }
+
+        //Parametre ekranini “okuma modundan → düzenleme moduna” geciriyor
+        function enterParamEditMode() {
+            document.getElementById('btn-edit-params').classList.add('hidden');                             // Düzenle butonunu gizle
+            document.getElementById('params-edit-actions').classList.remove('hidden');                      // Kaydet ve İptal butonlarini göster
+            document.querySelectorAll('.param-view-mode').forEach(el => el.classList.add('hidden'));        // Okuma modundaki elementleri gizle
+            document.querySelectorAll('.param-edit-mode').forEach(el => {
+                el.classList.remove('hidden');
+                buildParamEditor(el);
+            });
+            hideParamError();
+        }
+
+        //Yapilan degisiklikler iptal edilip, parametre ekranini “düzenleme modundan → okuma moduna” geciriyo
+        function cancelParamEditMode() {
+            document.getElementById('btn-edit-params').classList.remove('hidden');                          //Düzenle butonunu göster
+            document.getElementById('params-edit-actions').classList.add('hidden');                         //Kaydet ve iptal butonlarini gizle
+            document.querySelectorAll('.param-view-mode').forEach(el => el.classList.remove('hidden'));     // Okuma modundaki elementleri gorunur yap
+            document.querySelectorAll('.param-edit-mode').forEach(el => {                                   // Duzenleme modundaki elementleri gizle
+                el.classList.add('hidden');
+                resetParamEditor(el);
+            });
+            hideParamError();
+        }
+
+        // Parametrelerle ilgili hata mesaji gösterme/gizleme fonksiyonlari
+        function hideParamError() {
+            document.getElementById('param-js-error').style.display = 'none';                                    
+            var serverMsg = document.getElementById('param-error-msg');
+            if (serverMsg) serverMsg.style.display = 'none';
+        }
+
+        // Parametrelerle ilgili hata mesajı gösterir, kullanıcı dikkatini çekmek için sayfanın üstüne kaydirir
+        function showParamError(msg) {
+            var errBox = document.getElementById('param-js-error');
+            var errText = document.getElementById('param-js-error-text');
+            errText.textContent = msg;
+            errBox.style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Parametrelerde yapılan değişiklikleri topluca kaydeder.
+       //Önce tüm satırları kontrol eder, geçersiz JSON veya boş değer varsa hata verir. Değişiklik varsa sunucuya gönderir, başarılıysa sayfayı yeniler.
+        async function saveParamChanges() {
+             var updates = {};                                               //Backend’e gönderilecek değisiklikler burada tutulur
+            var hasChanges = false;
+            var rows = document.querySelectorAll('#paramsTable tbody tr');
+            
+            for (var row of rows) {                                        //Her satiri dolasarak değişiklik var mı kontrol eder
+                var fileName = row.getAttribute('data-filename');
+                var editor = row.querySelector('.param-edit-mode');
+                var oldCompact = (editor.getAttribute('data-original') || '').trim(); // Eski deger
+
+                var parsed = collectEditorObject(editor);
+                var newCompact = jsonCompact(JSON.stringify(parsed));
+
+                if (newCompact !== oldCompact) {                          //Degisiklik var mi kontrol eder
+                    updates[fileName] = JSON.stringify(parsed);
+					 hasChanges = true;                                 //Degisiklik var, kaydet butonuna basildiginda sunucuya gonderilecek veriye ekle
+                }
+            }
+
+            if (!hasChanges) {                 //Kullanıcı hiçbir değişiklik yapmadan kaydetmeye çalışırsa, düzenleme modundan çıkar ve hata mesajı gösterme
+                cancelParamEditMode();
+                return;
+            }
+
+            var btn = document.getElementById('btn-save-params');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin" style="font-size:18px">sync</span> Kaydediliyor...';
+
+            try {
+                var res = await fetch('/Admin?handler=BatchUpdateParams', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getAfToken()
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                var result = await res.json();
+                if (result.ok) {
+                    // Success: Refresh page to show updated values and metadata
+                    window.location.href = '/Admin?tab=params';
+                } else {
+                    showParamError(result.error || "Güncelleme sırasında bir hata oluştu.");
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">save</span> Kaydet';
+                }
+            } catch (e) {
+                showParamError("Ağ hatası oluştu.");
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">save</span> Kaydet';
+            }
+        }
+    </script>
+</body>
+</html>

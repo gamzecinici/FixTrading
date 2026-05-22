@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Fix\Listeners\**" />
+    <Compile Remove="Fix\Senders\**" />
+    <EmbeddedResource Remove="Fix\Listeners\**" />
+    <EmbeddedResource Remove="Fix\Senders\**" />
+    <None Remove="Fix\Listeners\**" />
+    <None Remove="Fix\Senders\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="3.7.1" />
+    <PackageReference Include="SharpCompress" Version="0.48.0" />
+    <PackageReference Include="Snappier" Version="1.3.1" />
+    <PackageReference Include="StackExchange.Redis" Version="2.12.14" />
+    <PackageReference Include="QuickFIXn.Core" Version="1.14.0" />
+    <PackageReference Include="QuickFIXn.FIX4.4" Version="1.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="fix.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.16.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FixTrading.Application\FixTrading.Application.csproj" />
+    <ProjectReference Include="..\FixTrading.Common\FixTrading.Common.csproj" />
+    <ProjectReference Include="..\FixTrading.Domain\FixTrading.Domain.csproj" />
+    <ProjectReference Include="..\FixTrading.Persistence\FixTrading.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.6" />
+  </ItemGroup>
+
+</Project>

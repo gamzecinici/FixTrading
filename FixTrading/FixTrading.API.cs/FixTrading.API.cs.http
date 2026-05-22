@@ -1,0 +1,6 @@
+@FixTrading.API.cs_HostAddress = http://localhost:5076
+
+GET {{FixTrading.API.cs_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

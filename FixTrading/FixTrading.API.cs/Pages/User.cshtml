@@ -1,0 +1,780 @@
+
+@page
+@model FixTrading.API.cs.Pages.UserModel
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta name="google" content="notranslate" />
+    <meta http-equiv="Content-Language" content="@System.Globalization.CultureInfo.CurrentCulture.Name" />
+    <title>FixTrading User Panel</title>
+
+    <script>
+        (function () {
+            var t = localStorage.getItem('ft-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+        window.SelectedSymbol = '@Model.SelectedSymbol';
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="/css/theme.css" rel="stylesheet" asp-append-version="true" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>        
+
+    @* Sayfaya özel minimal stiller; tema değişkenleri --ft-* Admin ile ortak (theme.css). *@
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: var(--ft-bg); color: var(--ft-text); }
+        .nav-spacer { flex: 1; }
+        .ft-search-box {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem 0.4rem 2.25rem;
+            font-size: 0.8rem;
+            width: 220px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .ft-search-box:focus {
+            border-color: var(--ft-primary);
+            box-shadow: 0 0 0 3px var(--ft-input-ring);
+        }
+        .ft-search-box::placeholder { color: var(--ft-placeholder); }
+
+        /* Bloomberg Style Chart Header */
+        .bb-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+        .bb-price {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+        }
+        .bb-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 4px;
+        }
+        .bb-change {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            gap: 4px;
+        }
+        .bb-symbol {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--ft-text-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        .bb-chart-container {
+            background: var(--ft-surface-low);
+            border: 1px solid var(--ft-card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--ft-card-shadow);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .bb-range-filters {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+        .bb-range-btn {
+            background: var(--ft-surface-high);
+            border: 1px solid var(--ft-outline);
+            color: var(--ft-text-muted);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bb-range-btn:hover {
+            border-color: var(--ft-primary);
+            color: var(--ft-primary);
+        }
+        .bb-range-btn.active {
+            background: var(--ft-primary);
+            border-color: var(--ft-primary);
+            color: var(--ft-primary-on);
+        }
+        .ft-table tr.highlight {
+            background: rgba(105, 218, 255, 0.15) !important;
+        }
+
+        /* Kullanıcı tabloları: sembol + sayılar başlık altında ortalı */
+        table.ft-table.ft-table-user th,
+        table.ft-table.ft-table-user td {
+            text-align: center !important;
+        }
+        table.ft-table.ft-table-user .ft-cell-symbol {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+        #marketTable.ft-table-user {
+            table-layout: fixed;
+        }
+        #marketTable.ft-table-user th,
+        #marketTable.ft-table-user td {
+            width: 25%;
+        }
+
+        .chart-placeholder {
+            background: var(--ft-surface-low);
+            border: 2px dashed var(--ft-outline);
+            border-radius: 16px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ft-text-muted);
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="ft-body min-h-screen overflow-x-hidden @(Model.ActiveTab == "financial" ? "ft-financial-focus" : "")"
+      data-trans-new-instrument="@Localizer["NewInstrumentAdded"]"
+      data-trans-instrument-deleted="@Localizer["InstrumentDeleted"]"
+      data-trans-instrument-updated="@Localizer["InstrumentUpdated"]"
+      data-trans-subscription-rejected="@Localizer["SubscriptionRejectedLog"]"
+      data-trans-reconnected="@Localizer["ReconnectedPricesRefreshing"]"
+      data-trans-user-connected="@Localizer["UserConnectedLivePricesActive"]"
+      data-trans-connection-failed="@Localizer["ConnectionFailedPollingActive"]"
+      data-trans-no-data-fix-pending="@Localizer["NoDataYetFixPending"]"
+      data-trans-rejected="@Localizer["Rejected"]">
+    
+
+    @* ── Üst çubuk: logo, sekmeler, tema, kullanıcı, çıkış *@
+    <header class="ft-navbar">
+        <span class="ft-logo">FixTrading</span>
+
+        <nav class="ft-nav-links">
+            <a class="ft-nav-link @(Model.ActiveTab == "home" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('home')">@Localizer["Home"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "limits" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('limits')">@Localizer["Limits"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "history" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('history')">@Localizer["PriceHistory"]</a>
+            <a class="ft-nav-link @(Model.ActiveTab == "financial" ? "active" : "")" href="javascript:void(0)" onclick="switchTab('financial')">@Localizer["FinancialAnalysis"]</a>
+        </nav>
+
+        <div style="display:flex !important;flex-direction:row !important;align-items:center !important;flex-wrap:nowrap !important;flex-shrink:0;gap:10px;padding:0.35rem 0.75rem;background:rgba(105,218,255,0.04);border:1px solid var(--ft-outline);border-radius:16px;margin-left:1rem">
+            <div style="display:flex;flex-direction:row;align-items:center;gap:8px;flex-shrink:0">
+                <div style="text-align:right;flex-shrink:0">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--ft-text);line-height:1.3;white-space:nowrap">@(User.Identity?.Name ?? "User")</div>
+                    <div style="font-size:0.52rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ft-primary);line-height:1.3">@Localizer["Verified"]</div>
+                </div>
+                <div style="width:30px;height:30px;border-radius:50%;background:rgba(105,218,255,0.1);border:1px solid rgba(105,218,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--ft-primary)">person</span>
+                </div>
+            </div>
+            <div style="width:1px;height:22px;background:var(--ft-outline);opacity:0.5;flex-shrink:0"></div>
+
+            @* ── DİL SEÇİMİ (Bayrak Butonları) ── *@
+            @await Html.PartialAsync("Shared/_LangSwitcher")
+
+            <div style="width:1px;height:22px;background:var(--ft-outline);opacity:0.5;flex-shrink:0"></div>
+            <button class="ft-navbar-toggle" onclick="toggleTheme()" title="@Localizer["ChangeTheme"]" type="button" style="flex-shrink:0">
+                <span class="material-symbols-outlined" id="toggleIcon" style="font-size:16px">light_mode</span>
+            </button>
+            <div style="width:1px;height:22px;background:var(--ft-outline);opacity:0.5;flex-shrink:0"></div>
+            <form method="post" asp-page="/Logout" style="display:inline-flex;align-items:center;margin:0;padding:0;flex-shrink:0">
+                <button type="submit"
+                        style="font-size:0.6rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ft-text-muted);background:none;border:none;cursor:pointer;padding:0.2rem 0.35rem;border-radius:6px;transition:all .2s;white-space:nowrap"
+                        onmouseover="this.style.color='var(--ft-danger)';this.style.background='rgba(255,113,107,0.09)'"
+                        onmouseout="this.style.color='var(--ft-text-muted)';this.style.background='none'">@Localizer["Logout"]</button>
+            </form>
+        </div>
+    </header>
+
+    @*
+       Yatay fiyat şeridi: Model.MarketRows ilk 12 sembol (sunucu zaten aktif limit sembolleriyle süzülmüş).
+       data-strip-symbol: JS refreshMarket içinde kart fiyatını güncellemek için.
+       data-strip-badge: yüzde değişim rozeti (applyBadge / applyStoredBadges).
+    *@
+    <div class="ft-market-strip" style="margin-top:100px;">
+        <div class="ft-strip-container" id="marketStrip">
+            @foreach (var row in Model.MarketRows.Take(12))
+            {
+                <div class="ft-strip-card" data-strip-symbol="@row.Symbol">
+                    <div class="ft-strip-symbol">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</div>
+                    <div class="ft-strip-price">@row.Mid.ToString("F2")</div>
+                    <div class="ft-badge-stock" data-strip-badge="@row.Symbol"></div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <main style="min-height:calc(100vh - 130px);padding:2.5rem 2.5rem 4rem">
+
+        @*
+           ANASAYFA (data-tab="home")
+           • İlk render: Razor ile Model.MarketRows doldurulur.
+           • data-symbol: filterSymbols satır gizleme; refreshMarket mevcut satırları günceller.
+           • data-field="Bid|Ask|Mid": JS hangi hücreyi güncelleyeceğini bilir.
+           • Mid hücresi: ilk span fiyat, ikinci span rozet (Admin ile aynı DOM yapısı).
+        *@
+        <section data-tab="home" class="@(Model.ActiveTab == "home" ? "" : "hidden")">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem">
+                <div>
+                    <div class="ft-section-subtitle">@Localizer["MarketMonitoring"]</div>
+                    <h1 class="ft-section-title">@Localizer["LivePrices"]</h1>
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style="font-size:18px;color:var(--ft-placeholder)">search</span>
+                    <input type="text" id="symbolSearch" class="ft-search-box" placeholder="@Localizer["SearchSymbol"]" onkeyup="filterSymbols()" />
+                </div>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table ft-table-user w-full" id="marketTable" aria-label="@Localizer["LivePrices"]">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center !important">@Localizer["Symbol"]</th>
+                                <th style="text-align:center !important">@Localizer["Bid"]</th>
+                                <th style="text-align:center !important">@Localizer["Ask"]</th>
+                                <th style="text-align:center !important">@Localizer["Spread"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.MarketRows.OrderBy(x => x.Symbol))
+                            {
+                                <tr data-symbol="@row.Symbol">
+                                    <td style="text-align:center !important">
+                                        <div class="ft-cell-symbol">
+                                            <div class="ft-symbol-box">@(row.Symbol.Length > 4 ? row.Symbol.Substring(0, 4) : row.Symbol)</div>
+                                            <span style="font-weight:700;font-size:0.88rem">@(row.Symbol.Length == 6 ? row.Symbol.Insert(3, "/") : row.Symbol)</span>
+                                        </div>
+                                    </td>
+                                    <td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center !important">@row.Bid.ToString("F2")</td>
+                                    <td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center !important">@row.Ask.ToString("F2")</td>
+                                    <td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center !important">
+                                        <span>@row.Mid.ToString("F2")</span>
+                                        <span class="ft-badge-stock" data-change-badge="@row.Symbol"></span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        @*
+           LİMİTLER (data-tab="limits")
+           Salt okunur tablo. Kaynak: Model.PricingLimits (admin’in tanımladığı min/mid max/spread).
+           Sayı formatı en-US: binlik virgül, oyda nokta (DBeaver ile uyumlu görünüm).
+        *@
+        <section data-tab="limits" class="@(Model.ActiveTab == "limits" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">@Localizer["InstrumentsLimits"]</div>
+                <h1 class="ft-section-title">@Localizer["Limits"]</h1>
+            </div>
+
+            <div style="background:var(--ft-surface-low);border:1px solid var(--ft-card-border);border-radius:16px;overflow:hidden;box-shadow:var(--ft-card-shadow)">
+                <div class="overflow-x-auto">
+                    <table class="ft-table ft-table-user ft-table--limits w-full" style="min-width:800px" aria-label="@Localizer["Limits"]">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center !important">@Localizer["Symbol"]</th>
+                                <th style="text-align:center !important">@Localizer["MinimumMid"]</th>
+                                <th style="text-align:center !important">@Localizer["MaximumMid"]</th>
+                                <th style="text-align:center !important">@Localizer["MaximumSpread"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var limit in Model.PricingLimits)
+                            {
+                                var sym = limit.Symbol?.Length > 4 ? limit.Symbol.Substring(0, 4) : limit.Symbol ?? "—";
+                                <tr>
+                                    <td style="text-align:center !important">
+                                        <div class="ft-cell-symbol">
+                                            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(105,218,255,0.15) 0%,rgba(105,218,255,0.04) 100%);border:1px solid rgba(105,218,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--ft-primary);flex-shrink:0">
+                                                @sym
+                                            </div>
+                                            <span style="font-size:0.9rem;font-weight:700;color:var(--ft-text)">
+                                                @(limit.Symbol != null && limit.Symbol.Length == 6 ? limit.Symbol.Insert(3, "/") : limit.Symbol)
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center !important;font-family:monospace;color:var(--ft-secondary)">@limit.MinMid.ToString("F2")</td>
+                                    <td style="text-align:center !important;font-family:monospace;color:var(--ft-text)">@limit.MaxMid.ToString("F2")</td>
+                                    <td style="text-align:center !important;font-family:monospace;color:var(--ft-danger)">@limit.MaxSpread.ToString("F2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section data-tab="history" class="@(Model.ActiveTab == "history" ? "" : "hidden")">
+            <div style="margin-bottom:2.5rem">
+                <div class="ft-section-subtitle">@Localizer["Analysis"]</div>
+                <h1 class="ft-section-title">@Localizer["PriceHistory"]</h1>
+            </div>
+            @{
+                ViewData["PriceHistoryHandlerBase"] = "/User";
+                ViewData["PriceHistorySelectedSymbol"] = Model.SelectedSymbol;
+                ViewData["PriceHistorySymbols"] = Model.PricingLimits.Select(x => x.Symbol);
+            }
+            @await Html.PartialAsync("Shared/_PriceHistory")
+        </section>
+
+        @* Finansal Analizler: Risk / Volatilite (backend) + Arbitraj / Anomali (placeholder) *@
+        <section data-tab="financial" class="@(Model.ActiveTab == "financial" ? "" : "hidden")">
+            <div style="margin-bottom:2rem">
+                <div class="ft-section-subtitle">@Localizer["Insight"]</div>
+                <h1 class="ft-section-title">@Localizer["FinancialAnalysis"]</h1>
+                <p style="color:var(--ft-text-muted);font-size:0.88rem;margin-top:0.5rem;max-width:600px">@Localizer["FinancialAnalysisDescription"]</p>
+            </div>
+            @await Html.PartialAsync("Shared/_FinancialAnalytics")
+        </section>
+
+    </main>
+
+    @* Dekoratif blur — tıklanamaz; sadece Admin paneli ile görsel tutarlılık. *@
+    <div style="position:fixed;top:0;right:0;width:40%;height:50%;background:rgba(105,218,255,0.04);filter:blur(120px);pointer-events:none;z-index:-1"></div>
+    <div style="position:fixed;bottom:0;left:0;width:30%;height:40%;background:rgba(255,113,107,0.03);filter:blur(100px);pointer-events:none;z-index:-1"></div>
+
+    <script>
+        // ── Tema: localStorage ft-theme, data-theme attribute, theme.css değişkenleri ─────────
+        const trans = document.body.dataset;
+
+        function toggleTheme() {
+            var curr = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = curr === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('ft-theme', next);
+            syncToggleUI(next);
+        }
+        function syncToggleUI(theme) {
+            var icon = document.getElementById('toggleIcon');
+            if (!icon) return;
+            icon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+        }
+        syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
+
+        /**
+         * Sekme geçişi (tam sayfa yok): .ft-nav-link active sınıfı + section[data-tab] hidden toggling.
+         * URL ?tab=home|limits|history — paylaşılabilir link ve geri tuşu (onpopstate) için.
+         */
+        function switchTab(tabId) {
+            document.body.classList.toggle('ft-financial-focus', tabId === 'financial');
+
+            document.querySelectorAll('.ft-nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('onclick').includes("'" + tabId + "'")) {
+                    link.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            var activeSec = document.querySelector('section[data-tab="' + tabId + '"]');
+            if (activeSec) activeSec.classList.remove('hidden');
+
+            var newUrl = window.location.pathname + '?tab=' + tabId;
+            window.history.pushState({ tab: tabId }, '', newUrl);
+
+            if (tabId === 'financial' && typeof window.ftLoadFinancialAnalytics === 'function') {
+                window.ftLoadFinancialAnalytics();
+            }
+        }
+
+        /** pushState ile oluşan geçmişte geri/ileri: state.tab varsa ilgili sekmeyi tekrar seç. */
+        window.onpopstate = function(e) {
+            if (e.state && e.state.tab) switchTab(e.state.tab);
+        };
+
+        /** Canlı tablo: thead hariç tr satırlarında data-symbol substring araması (büyük harf). */
+        function filterSymbols() {
+            var input = document.getElementById('symbolSearch');
+            var filter = input.value.toUpperCase();
+            var table = document.getElementById('marketTable');
+            var tr = table.getElementsByTagName('tr');
+
+            for (var i = 1; i < tr.length; i++) {
+                var sym = tr[i].getAttribute('data-symbol');
+                if (sym) {
+                    if (sym.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        /* ── Canlı piyasa yenileme (Admin ile aynı API şekli; handler farklı sayfa: /User) ── */
+        function toNum(v) {
+            if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+            var s = String(v || '').trim();
+            if (!s || s === '—') return 0;
+            // TR formatı: virgül varsa ondalık, noktalar binlik ayırıcı
+            if (s.indexOf(',') !== -1) s = s.replace(/\./g, '').replace(',', '.');
+            var n = parseFloat(s);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        // TR formatı: ondalık virgül — fiyat hücreleri için 2 basamak
+        function next2(v) { return Number(v).toFixed(2).replace('.', ','); }
+        function pulseCell(td, cls) {
+            td.classList.remove('ft-cell-up', 'ft-cell-down');
+            if (cls) td.classList.add(cls);
+            setTimeout(function () { td.classList.remove('ft-cell-up', 'ft-cell-down'); }, 800);
+        }
+
+        /** Admin’den ayrı anahtar: iki panel aynı tarayıcıda çakışmasın diye ft-badges-user. */
+        var BADGE_KEY = 'ft-badges-user';
+        function loadBadgeCache() { try { return JSON.parse(localStorage.getItem(BADGE_KEY) || '{}'); } catch(e) { return {}; } }
+        function saveBadgeCache(cache) { try { localStorage.setItem(BADGE_KEY, JSON.stringify(cache)); } catch(e) {} }
+
+        /** İlk paint sonrası: önceki oturumdan kalan yüzde rozetlerini strip + tabloya geri yükle. */
+        (function applyStoredBadges() {
+            var cache = loadBadgeCache();
+            Object.keys(cache).forEach(function(symbol) {
+                var b = cache[symbol];
+                /* Market strip kartındaki rozet */
+                var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+                if (sBadge && b.cls && b.text) {
+                    sBadge.className = 'ft-badge-stock ' + b.cls;
+                    sBadge.textContent = b.text;
+                    sBadge.style.display = 'inline-flex';
+                }
+                /* Canlı piyasa tablosundaki rozet */
+                var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+                if (cBadge && b.cls && b.text) {
+                    cBadge.className = 'ft-badge-stock ' + b.cls;
+                    cBadge.textContent = b.text;
+                    cBadge.style.display = 'inline-flex';
+                }
+            });
+        })();
+
+        /**
+         * Hem tablodaki data-change-badge hem şeritteki data-strip-badge güncellenir;
+         * sembol → { cls, text } olarak BADGE_KEY altında saklanır.
+         */
+        function applyBadge(symbol, cls, text) {
+            var cBadge = document.querySelector('.ft-badge-stock[data-change-badge="' + symbol + '"]');
+            if (cBadge) {
+                cBadge.className = 'ft-badge-stock ' + cls;
+                cBadge.textContent = text;
+                cBadge.style.display = 'inline-flex';
+            }
+            var sBadge = document.querySelector('.ft-badge-stock[data-strip-badge="' + symbol + '"]');
+            if (sBadge) {
+                sBadge.className = 'ft-badge-stock ' + cls;
+                sBadge.textContent = text;
+                sBadge.style.display = 'inline-flex';
+            }
+            var cache = loadBadgeCache();
+            cache[symbol] = { cls: cls, text: text };
+            saveBadgeCache(cache);
+        }
+
+        var marketActiveSymbols = new Set(
+            Array.from(document.querySelectorAll('.ft-strip-card[data-strip-symbol]')).map(function(c) {
+                return normalizeMarketSymbol(c.getAttribute('data-strip-symbol'));
+            }).filter(Boolean)
+        );
+
+        function normalizeMarketSymbol(raw) {
+            return String(raw || '').trim().toUpperCase().replace(/\//g, '');
+        }
+
+        function symDisplay(symbol) {
+            return symbol.length === 6 ? symbol.substring(0, 3) + '/' + symbol.substring(3) : symbol;
+        }
+
+        function ensureMarketSymbol(rawSymbol) {
+            var symbol = normalizeMarketSymbol(rawSymbol);
+            if (!symbol) return;
+            marketActiveSymbols.add(symbol);
+
+            var strip = document.getElementById('marketStrip');
+            if (strip && !document.querySelector('.ft-strip-card[data-strip-symbol="' + symbol + '"]')) {
+                var stripCard = document.createElement('div');
+                stripCard.className = 'ft-strip-card';
+                stripCard.setAttribute('data-strip-symbol', symbol);
+                stripCard.innerHTML =
+                    '<div class="ft-strip-symbol">' + symDisplay(symbol) + '</div>' +
+                    '<div class="ft-strip-price">—</div>' +
+                    '<div class="ft-badge-stock" data-strip-badge="' + symbol + '"></div>';
+                strip.appendChild(stripCard);
+            }
+
+            var table = document.getElementById('marketTable');
+            if (!table) return;
+            var body = table.querySelector('tbody');
+            if (!body) return;
+            var emptyRow = body.querySelector('tr[data-empty]');
+            if (emptyRow) emptyRow.remove();
+
+            if (!body.querySelector('tr[data-symbol="' + symbol + '"]')) {
+                var symShort = symbol.length > 4 ? symbol.substring(0, 4) : symbol;
+                var tr = document.createElement('tr');
+                tr.setAttribute('data-symbol', symbol);
+                tr.innerHTML =
+                    '<td style="text-align:center !important"><div class="ft-cell-symbol">' +
+                    '<div class="ft-symbol-box">' + symShort + '</div>' +
+                    '<span style="font-weight:700;font-size:0.88rem">' + symDisplay(symbol) + '</span></div></td>' +
+                    '<td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center !important">—</td>' +
+                    '<td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center !important">—</td>' +
+                    '<td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center !important">' +
+                    '<span>—</span><span class="ft-badge-stock" data-change-badge="' + symbol + '"></span></td>';
+                body.appendChild(tr);
+            }
+        }
+
+        /**
+         * /User?handler=LiveMarket JSON: { symbol, bid, ask, mid, spread }[].
+         * Veriler geldiginde mevcut satirlari gunceller; tabloda henuz olmayan semboller icin
+         * dinamik olarak yeni satir ve strip karti olusturur, artik aktif olmayanlar kaldirilir.
+         */
+        async function refreshMarket() {
+            var table = document.getElementById('marketTable');
+            if (!table) return; 
+            try {
+                var res = await fetch('/User?handler=LiveMarket', { cache: 'no-store' });
+                if (!res.ok) return;
+                var rows = await res.json();
+                var body = table.querySelector('tbody');
+                var strip = document.getElementById('marketStrip');
+
+                rows.forEach(function(r) { if (r && r.symbol) marketActiveSymbols.add(normalizeMarketSymbol(r.symbol)); });
+                var activeSymbols = new Set(rows.map(function(r) { return normalizeMarketSymbol(r.symbol); }));
+                marketActiveSymbols.forEach(function(s) { activeSymbols.add(s); });
+
+                // Artik aktif olmayan satirlari kaldir
+                body.querySelectorAll('tr[data-symbol]').forEach(function(tr) {
+                    if (!activeSymbols.has(tr.getAttribute('data-symbol'))) tr.remove();
+                });
+
+                // Artik aktif olmayan strip kartlarini kaldir
+                document.querySelectorAll('.ft-strip-card').forEach(function(card) {
+                    if (!activeSymbols.has(card.getAttribute('data-strip-symbol'))) card.remove();
+                });
+
+                rows.forEach(function (row) {
+                    // Tabloda yoksa yeni satir ekle
+                    var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
+                    if (!tr) {
+                        tr = document.createElement('tr');
+                        tr.setAttribute('data-symbol', row.symbol);
+                        var symShort = row.symbol.length > 4 ? row.symbol.substring(0, 4) : row.symbol;
+                        var symWithSlash = row.symbol.length === 6 ? row.symbol.substring(0, 3) + '/' + row.symbol.substring(3) : row.symbol;
+                        tr.innerHTML =
+                            '<td style="text-align:center !important"><div class="ft-cell-symbol">' +
+                            '<div class="ft-symbol-box">' + symShort + '</div>' +
+                            '<span style="font-weight:700;font-size:0.88rem">' + symWithSlash + '</span></div></td>' +
+                            '<td data-field="Bid" style="font-family:monospace;font-size:0.88rem;text-align:center !important"></td>' +
+                            '<td data-field="Ask" style="font-family:monospace;font-size:0.88rem;text-align:center !important"></td>' +
+                            '<td data-field="Mid" style="font-family:monospace;font-size:0.88rem;text-align:center !important">' +
+                            '<span></span><span class="ft-badge-stock" data-change-badge="' + row.symbol + '"></span></td>';
+                        body.appendChild(tr);
+                    }
+
+                    // Strip kartta yoksa ekle
+                    var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
+                    if (!stripCard && strip) {
+                        var symSlash = row.symbol.length === 6 ? row.symbol.substring(0, 3) + '/' + row.symbol.substring(3) : row.symbol;
+                        stripCard = document.createElement('div');
+                        stripCard.className = 'ft-strip-card';
+                        stripCard.setAttribute('data-strip-symbol', row.symbol);
+                        stripCard.innerHTML =
+                            '<div class="ft-strip-symbol">' + symSlash + '</div>' +
+                            '<div class="ft-strip-price"></div>' +
+                            '<div class="ft-badge-stock" data-strip-badge="' + row.symbol + '"></div>';
+                        strip.appendChild(stripCard);
+                    }
+                    if (stripCard) stripCard.querySelector('.ft-strip-price').textContent = next2(row.mid);
+
+                    ['Bid', 'Ask', 'Mid'].forEach(function (field) {
+                        var td = tr.querySelector('td[data-field="' + field + '"]');
+                        if (!td) return;
+
+                        var current = toNum(td.getAttribute('data-prev') || (td.querySelector('span:first-child') ? td.querySelector('span:first-child').textContent : td.textContent));
+                        var next = toNum(row[field.toLowerCase()]);
+
+                        if (field === 'Mid') {
+                            if (current > 0 && next !== current) {
+                                var diff = next - current;
+                                var pctVal = ((diff / current) * 100);
+                                var pct = pctVal.toFixed(2).replace('.', ',');
+                                var isUp = diff > 0;
+                                var cls = isUp ? 'ft-badge-up' : 'ft-badge-down';
+                                var text = (isUp ? '+' : '') + pct + '% ' + (isUp ? '\u2191' : '\u2193');
+                                applyBadge(row.symbol, cls, text);
+                            }
+                            var span = td.querySelector('span:first-child');
+                            if (span) span.textContent = next2(next);
+                            else td.textContent = next2(next);
+                        } else {
+                            td.textContent = next2(next);
+                        }
+
+                        if (next > current) pulseCell(td, 'ft-cell-up');
+                        if (next < current) pulseCell(td, 'ft-cell-down');
+
+                        td.setAttribute('data-prev', String(next));
+                    });
+                });
+
+                // Hic veri yoksa bekleme mesaji goster
+                var emptyRow = body.querySelector('tr[data-empty]');
+                if (rows.length === 0 && !emptyRow) {
+                    var etr = document.createElement('tr');
+                    etr.setAttribute('data-empty', '1');
+                    etr.innerHTML = '<td colspan="4" style="text-align:center;padding:3rem;color:var(--ft-text-faint)">' + trans.noDataFixPending + '</td>';
+                    body.appendChild(etr);
+                } else if (rows.length > 0 && emptyRow) {
+                    emptyRow.remove();
+                }
+            } catch (e) { console.warn('Market refresh error', e); }
+        }
+
+        // Tek bir tick'i (PriceUpdate olayını) işleyen fonksiyon
+        function handlePriceUpdate(row) {
+            if (!row || !row.symbol) return;
+            row.symbol = normalizeMarketSymbol(row.symbol);
+            ensureMarketSymbol(row.symbol);
+
+            var stripCard = document.querySelector('.ft-strip-card[data-strip-symbol="' + row.symbol + '"]');
+            if (stripCard) {
+                var priceEl = stripCard.querySelector('.ft-strip-price');
+                var prevMid = toNum(stripCard.getAttribute('data-prev-mid') || (priceEl ? priceEl.textContent : ''));
+                var nextMid = toNum(row.mid);
+                if (priceEl && nextMid > 0) priceEl.textContent = next2(nextMid);
+                if (prevMid > 0 && nextMid > 0 && nextMid !== prevMid) {
+                    var diff = nextMid - prevMid;
+                    var pct = ((diff / prevMid) * 100).toFixed(2).replace('.', ',');
+                    var isUp = diff > 0;
+                    applyBadge(row.symbol, isUp ? 'ft-badge-up' : 'ft-badge-down', (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓'));
+                }
+                if (nextMid > 0) stripCard.setAttribute('data-prev-mid', String(nextMid));
+            }
+
+            // Tablo satırını güncelle
+            var table = document.getElementById('marketTable');
+            if (!table) return;
+            var body = table.querySelector('tbody');
+            var tr = body.querySelector('tr[data-symbol="' + row.symbol + '"]');
+            if (!tr) return;
+
+            ['Bid', 'Ask', 'Mid'].forEach(function (field) {
+                var td = tr.querySelector('td[data-field="' + field + '"]');
+                if (!td) return;
+                var current = toNum(td.getAttribute('data-prev') || (td.querySelector('span:first-child') ? td.querySelector('span:first-child').textContent : td.textContent));
+                var next = toNum(row[field.toLowerCase()]);
+
+                if (field === 'Mid') {
+                    if (current > 0 && next !== current) {
+                        var diff = next - current;
+                        var pct = ((diff / current) * 100).toFixed(2).replace('.', ',');
+                        var isUp = diff > 0;
+                        applyBadge(row.symbol, isUp ? 'ft-badge-up' : 'ft-badge-down', (isUp ? '+' : '') + pct + '% ' + (isUp ? '↑' : '↓'));
+                    }
+                    var span = td.querySelector('span:first-child');
+                    if (span) span.textContent = next2(next);
+                    else td.textContent = next2(next);
+                } else {
+                    td.textContent = next2(next);
+                }
+
+                if (next > current) pulseCell(td, 'ft-cell-up');
+                if (next < current) pulseCell(td, 'ft-cell-down');
+                td.setAttribute('data-prev', String(next));
+            });
+        }
+
+        // İlk yüklemede mevcut fiyatları çek
+        refreshMarket();
+
+        // SignalR bağlantısı: polling yok, sunucu fiyat değişince push eder
+        var marketConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/market')
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+            .build();
+
+        marketConnection.on('PriceUpdate', function (tick) {
+            handlePriceUpdate(tick);
+        });
+
+        marketConnection.on('InstrumentCreated', function (data) {
+            console.log('[SignalR] ' + trans.newInstrument, data.symbol);
+            if (data && data.symbol) ensureMarketSymbol(data.symbol);
+            refreshMarket();
+        });
+
+        marketConnection.on('InstrumentDeleted', function (data) {
+            console.log('[SignalR] ' + trans.instrumentDeleted, data.symbol);
+            if (data && data.symbol) marketActiveSymbols.delete(normalizeMarketSymbol(data.symbol));
+            refreshMarket();
+        });
+
+        marketConnection.on('InstrumentUpdated', function (data) {
+            console.log('[SignalR] ' + trans.instrumentUpdated, data.symbol);
+            refreshMarket();
+        });
+
+        marketConnection.on('SubscriptionRejected', function (data) {
+            console.warn('[SignalR] ' + trans.subscriptionRejected, data.symbol, data.reason);
+            // Kullanıcı ekranında sessizce loglayabiliriz veya tablo satırında bir uyarı gösterebiliriz
+            var tr = document.querySelector('tr[data-symbol="' + data.symbol + '"]');
+            if (tr) {
+                var midTd = tr.querySelector('td[data-field="Mid"]');
+                if (midTd) {
+                    var span = midTd.querySelector('span:first-child');
+                    if (span) span.textContent = trans.rejected;
+                    midTd.style.color = 'var(--ft-danger)';
+                    midTd.title = data.reason;
+                }
+            }
+        });
+
+        marketConnection.onreconnected(function () {
+            console.log('[SignalR] ' + trans.reconnected);
+            refreshMarket();
+        });
+
+        marketConnection.start()
+            .then(function () { console.log('[SignalR] ' + trans.userConnected); })
+            .catch(function (err) {
+                console.error('[SignalR] ' + trans.connectionFailed, err);
+                setInterval(refreshMarket, 3000);
+            });
+
+        // Sayfa yüklendiğinde URL tab parametresine göre sekmeyi aç
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab === 'financial') {
+                switchTab('financial');
+            }
+        });
+    </script>
+</body>
+</html>
